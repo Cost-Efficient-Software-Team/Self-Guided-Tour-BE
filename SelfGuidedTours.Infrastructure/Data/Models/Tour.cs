@@ -19,14 +19,6 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         public string Description { get; set; } = null!;
         [Column(TypeName = "decimal(10, 2)")]
         public decimal? Price { get; set; }
-        public int? StartCoordinateId { get; set; }
-        [ForeignKey(nameof(StartCoordinateId))]
-        public Coordinate StartCoordinate { get; set; } = null!;
-
-        public int? EndCoordinateId { get; set; }
-        [ForeignKey(nameof(EndCoordinateId))]
-        public Coordinate EndCoordinate { get; set; } = null!;
-
         [Required]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
