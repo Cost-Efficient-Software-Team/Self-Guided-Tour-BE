@@ -17,7 +17,8 @@ namespace Microsoft.Extensions.DependencyInjection
         }
         public static IServiceCollection AddApplicationDbContext(this IServiceCollection services, IConfiguration config)
         {
-            var connectionString = config.GetConnectionString("DefaultConnection"); //Connection string from user secrets
+            var containerConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__SelfGuidedToursDb");
+            var connectionString = containerConnectionString == null ? config.GetConnectionString("DefaultConnection") : containerConnectionString; //Connection string from user secrets
             services.AddDbContext<SelfGuidedToursDbContext>(options =>
             {
                 options.UseSqlServer(connectionString);
