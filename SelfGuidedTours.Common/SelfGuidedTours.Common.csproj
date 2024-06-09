@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <Folder Include="MessageConstants\" />
-    <Folder Include="ValidationConstants\" />
   </ItemGroup>
 
 </Project>
