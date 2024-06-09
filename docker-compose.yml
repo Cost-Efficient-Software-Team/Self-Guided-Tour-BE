@@ -1,0 +1,28 @@
+version: '3.4'
+networks:
+  selfguidedtoursnet:
+services:
+  selfguidedtoursdb:
+    container_name: selfguidedtoursdb
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    ports:
+    - 8002:1433
+    environment:
+        - ACCEPT_EULA=Y
+        - SA_PASSWORD=Project6
+    networks:
+    - selfguidedtoursnet
+  selfguidedtours.api:
+    image: ${DOCKER_REGISTRY-}selfguidedtoursapi
+    build:
+      context: .
+      dockerfile: SelfGuidedTours.Api/Dockerfile
+    ports:
+        - 8001:8080
+        - 8001:8081
+    depends_on:
+        - selfguidedtoursdb
+    environment:
+        - ConnectionStrings__SelfGuidedToursDb=Data Source=selfguidedtoursdb;Initial Catalog=SelfGuidedTours;User ID=sa;Password=Project6;Encrypt=True;TrustServerCertificate=True
+    networks:
+    - selfguidedtoursnet
