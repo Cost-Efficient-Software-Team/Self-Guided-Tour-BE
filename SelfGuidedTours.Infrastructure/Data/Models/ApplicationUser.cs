@@ -5,6 +5,7 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
 {
     public class ApplicationUser : IdentityUser
     {
+        public string Name { get; set; } = null!;
         public string? Credentials { get; set; }
         [Required]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
