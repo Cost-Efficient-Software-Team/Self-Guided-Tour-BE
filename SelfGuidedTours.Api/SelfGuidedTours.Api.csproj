@@ -17,7 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SelfGuidedTours.Common\SelfGuidedTours.Common.csproj" />
     <ProjectReference Include="..\SelfGuidedTours.Core\SelfGuidedTours.Core.csproj" />
     <ProjectReference Include="..\SelfGuidedTours.Infrastructure\SelfGuidedTours.Infrastructure.csproj" />
   </ItemGroup>

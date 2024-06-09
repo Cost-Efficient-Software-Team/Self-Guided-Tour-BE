@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
-
+using static SelfGuidedTours.Common.MessageConstants.ErrorMessages;
+using static SelfGuidedTours.Common.ValidationConstants.ValidationConstants.Review;
 namespace SelfGuidedTours.Infrastructure.Data.Models
 {
     public class Review
@@ -21,7 +22,8 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         [Required]
         [Range(1, 5)]
         public int Rating { get; set; }
-
+        [StringLength(CommentMaxLength,
+                       ErrorMessage = CommentLengthErrorMessage)]
         public string? Comment { get; set; }
 
         [Required]
