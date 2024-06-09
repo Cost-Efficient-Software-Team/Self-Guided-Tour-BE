@@ -1,18 +1,20 @@
-using System;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-
 var builder = WebApplication.CreateBuilder(args);
 
+
 builder.Services.AddControllers();
+
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddApplicationDbContext(builder.Configuration);
+
 builder.Services.AddApplicationIdentity(builder.Configuration);
+
 builder.Services.AddApplicationServices();
+
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
 
 if (app.Environment.IsDevelopment())
 {
@@ -21,23 +23,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
 app.UseAuthorization();
+
 app.MapControllers();
+
 app.Run();
-
-// ???????? ?? ???????? ?????? ? ??????????????
-string connectionString = "Server=myServerAddress;Database=myDataBase;User Id=myUsername;Password=myPassword;";
-Console.WriteLine("Hello, World!");
-
-// ?????? ???? ?? ????????
-int unusedVariable = 0;
-
-// ???????? ????????? ?? ??????????
-int result = DivideNumbers(10, 0);
-Console.WriteLine("Result: " + result);
-
-static int DivideNumbers(int a, int b)
-{
-    // ???????? ????????? ?? ??????????
-    return a / b;
-}
