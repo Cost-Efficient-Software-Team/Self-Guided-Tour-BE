@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SelfGuidedTours.Common.ValidationConstants
+﻿namespace SelfGuidedTours.Common.ValidationConstants
 {
     public static class ValidationConstants
     {
