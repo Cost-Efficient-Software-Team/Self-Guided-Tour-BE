@@ -20,7 +20,7 @@ namespace SelfGuidedTours.Api.Controllers
 
         [HttpPost("register")]
         [ProducesResponseType(typeof(string), 200)]
-        [ProducesResponseType(typeof(ModelStateDictionary), 400)]
+        [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
         public async Task<IActionResult> Register([FromBody] RegisterInputModel model)
         {
