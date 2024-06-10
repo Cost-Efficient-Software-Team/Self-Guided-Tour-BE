@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using SelfGuidedTours.Infrastructure.Data.Models;
+using SelfGuidedTours.Infrastructure.Data.SeedDb;
 
 namespace SelfGuidedTours.Infrastructure.Data
 {
@@ -14,52 +15,32 @@ namespace SelfGuidedTours.Infrastructure.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             //TODO: move these in sepparate configuration classes
-            modelBuilder.Entity<TourLandmark>()
-                .HasKey(tl => new { tl.TourId, tl.LandmarkId });
-
-            modelBuilder.Entity<Payment>()
-           .HasOne(p => p.Tour)
-           .WithMany(t => t.Payments)
-           .HasForeignKey(p => p.TourId)
-           .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Review>()
-            .HasOne(r => r.Tour)
-            .WithMany(t => t.Reviews)
-            .HasForeignKey(r => r.TourId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<UserTours>()
-           .HasOne(ut => ut.Tour)
-           .WithMany(t => t.UserTours)
-           .HasForeignKey(ut => ut.TourId)
-           .OnDelete(DeleteBehavior.Restrict);
-
+            //modelBuilder.Entity<TourLandmark>()
+            //    .HasKey(tl => new { tl.TourId, tl.LandmarkId });
+            modelBuilder.ApplyConfiguration(new TourLandmarkConfiguration());
+           // modelBuilder.Entity<Payment>()
+           //.HasOne(p => p.Tour)
+           //.WithMany(t => t.Payments)
+           //.HasForeignKey(p => p.TourId)
+           //.OnDelete(DeleteBehavior.Restrict);
+           modelBuilder.ApplyConfiguration(new PaymentConfiguration());
+            //modelBuilder.Entity<Review>()
+            //.HasOne(r => r.Tour)
+            //.WithMany(t => t.Reviews)
+            //.HasForeignKey(r => r.TourId)
+            //.OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.ApplyConfiguration(new ReviewConfiguration());
+            // modelBuilder.Entity<UserTours>()
+            //.HasOne(ut => ut.Tour)
+            //.WithMany(t => t.UserTours)
+            //.HasForeignKey(ut => ut.TourId)
+            //.OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.ApplyConfiguration(new UserToursConfiguration());
+            modelBuilder.ApplyConfiguration(new RolesConfiguration());
+            modelBuilder.ApplyConfiguration(new UsersConfiguration());
+            modelBuilder.ApplyConfiguration(new UsersRolesConfiguration());
             base.OnModelCreating(modelBuilder);
-            //Add random GUID strings for the role ids
-            var userRoleId = "4f8554d2-cfaa-44b5-90ce-e883c804ae90";
-            var adminRoleId = "656a6079-ec9a-4a98-a484-2d1752156d60";
-
-            //Create User and Admin roles
-            var roles = new List<IdentityRole>()
-            {
-                new IdentityRole
-                {
-                    Id = userRoleId,
-                    ConcurrencyStamp = userRoleId,
-                    Name = "User",
-                    NormalizedName = "USER",
-                },
-                new IdentityRole
-                {
-                    Id = adminRoleId,
-                    ConcurrencyStamp = adminRoleId,
-                    Name = "Admin",
-                    NormalizedName = "ADMIN",
-                }
-            };
-            // Seed the roles in the Database if they do not exist
-            modelBuilder.Entity<IdentityRole>().HasData(roles); 
+            
         }
 
         public DbSet<Coordinate> Coordinates { get; set; }
