@@ -33,10 +33,13 @@ namespace SelfGuidedTours.Core.Services
 
         private string GenerateJwtToken(string email, TimeSpan expiration)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();       
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            var key = Environment.GetEnvironmentVariable("JWT_KEY") ??
+                throw new ApplicationException("JWT key is not configured.");
             
-            var key = Encoding.ASCII.GetBytes(configuration["Jwt:Key"]!);
-            
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
+
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new Claim[]
@@ -46,7 +49,7 @@ namespace SelfGuidedTours.Core.Services
                 Expires = DateTime.UtcNow.Add(expiration),
                 Issuer = configuration["Jwt:Issuer"],
                 Audience = configuration["Jwt:Audience"],
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                SigningCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature)
             };
             
             var token = tokenHandler.CreateToken(tokenDescriptor);
@@ -101,7 +104,7 @@ namespace SelfGuidedTours.Core.Services
                 return response;
             }
 
-            var accessToken = GenerateJwtToken(user.Email!, TimeSpan.FromSeconds(20));
+            var accessToken = GenerateJwtToken(user.Email!, TimeSpan.FromSeconds(15));
             var refreshToken = GenerateJwtToken(user.Email!, TimeSpan.FromDays(60));
 
             response.AccessToken = accessToken;

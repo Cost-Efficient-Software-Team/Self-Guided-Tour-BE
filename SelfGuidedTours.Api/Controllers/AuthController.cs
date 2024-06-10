@@ -71,9 +71,9 @@ namespace SelfGuidedTours.Api.Controllers
             {
                 var response = await authService.LoginAsync(model);
 
-                if (response.AccessToken == null)
+                if(response.AccessToken == null)
                 {
-                    logger.LogWarning($"Unauthorized access attempt with email: {model.Email}");
+                    logger.LogWarning("Unauthorized access attempt with email: {Email}", model.Email);
 
                     return Unauthorized(response.ResponseMessage);
                 }
