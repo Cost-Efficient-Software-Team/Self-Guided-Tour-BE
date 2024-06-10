@@ -245,7 +245,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
 
                     b.HasKey("CoordinateId");
 
-                    b.ToTable("Coordinates");
+                    b.ToTable("Coordinates", (string)null);
                 });
 
             modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.Landmark", b =>
@@ -281,7 +281,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
 
                     b.HasIndex("CoordinateId");
 
-                    b.ToTable("Landmarks");
+                    b.ToTable("Landmarks", (string)null);
                 });
 
             modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.Payment", b =>
@@ -311,7 +311,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Payments");
+                    b.ToTable("Payments", (string)null);
                 });
 
             modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.Review", b =>
@@ -344,7 +344,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Reviews");
+                    b.ToTable("Reviews", (string)null);
                 });
 
             modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.Tour", b =>
@@ -387,7 +387,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
 
                     b.HasIndex("StartCoordinateId");
 
-                    b.ToTable("Tours");
+                    b.ToTable("Tours", (string)null);
                 });
 
             modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.TourLandmark", b =>
@@ -405,7 +405,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
 
                     b.HasIndex("LandmarkId");
 
-                    b.ToTable("TourLandmarks");
+                    b.ToTable("TourLandmarks", (string)null);
                 });
 
             modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.Transaction", b =>
@@ -433,7 +433,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
 
                     b.HasIndex("WalletId");
 
-                    b.ToTable("Transactions");
+                    b.ToTable("Transactions", (string)null);
                 });
 
             modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.UserTours", b =>
@@ -460,7 +460,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserTours");
+                    b.ToTable("UserTours", (string)null);
                 });
 
             modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.Wallet", b =>
@@ -483,7 +483,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("Wallets");
+                    b.ToTable("Wallets", (string)null);
                 });
 
             modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.ApplicationUser", b =>
@@ -499,6 +499,13 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RefreshToken")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("RefreshTokenExpiration")
+                        .HasColumnType("datetime2");
 
                     b.HasDiscriminator().HasValue("ApplicationUser");
                 });
