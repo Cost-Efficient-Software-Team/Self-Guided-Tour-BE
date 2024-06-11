@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Contracts\" />
-    <Folder Include="Services\" />
+    <ProjectReference Include="..\SelfGuidedTours.Common\SelfGuidedTours.Common.csproj" />
+    <ProjectReference Include="..\SelfGuidedTours.Infrastructure\SelfGuidedTours.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

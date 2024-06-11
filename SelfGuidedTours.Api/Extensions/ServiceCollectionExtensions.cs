@@ -2,6 +2,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using SelfGuidedTours.Core.Contracts;
+using SelfGuidedTours.Core.Services;
+using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using System.Text;
@@ -13,6 +16,8 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
             //Inject services here
+            services.AddScoped<IAuthService, AuthService>();
+
             return services;
         }
         public static IServiceCollection AddApplicationDbContext(this IServiceCollection services, IConfiguration config)
@@ -22,6 +27,8 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 options.UseSqlServer(connectionString);
             });
+
+            services.AddScoped<IRepository, Repository>();
 
             return services;
         }
@@ -57,7 +64,8 @@ namespace Microsoft.Extensions.DependencyInjection
                         ValidIssuer = config["Jwt:Issuer"], // Issuer from user secrets
                         ValidAudience = config["Jwt:Audience"], // Audience from user secrets
                         IssuerSigningKey = new SymmetricSecurityKey(
-                            Encoding.UTF8.GetBytes(config["Jwt:Key"])) // Key from user secrets
+                            Encoding.UTF8.GetBytes(config["Jwt:Key"]!)), // Key from user secrets
+                        ClockSkew = TimeSpan.Zero
                     };
                 });
 

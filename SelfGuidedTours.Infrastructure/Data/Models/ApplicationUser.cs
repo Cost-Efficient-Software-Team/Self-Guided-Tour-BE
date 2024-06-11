@@ -5,6 +5,7 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
 {
     public class ApplicationUser : IdentityUser
     {
+        public string Name { get; set; } = null!;
         public string? Credentials { get; set; }
         [Required]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
@@ -13,5 +14,8 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         public virtual ICollection<Review> Reviews { get; set; } = new HashSet<Review>();
         public virtual ICollection<UserTours> UserTours { get; set; } = new HashSet<UserTours>();
         public Wallet Wallet { get; set; } = null!;
+
+        public string RefreshToken { get; set; } = string.Empty;
+        public DateTime RefreshTokenExpiration { get; set; }
     }
 }

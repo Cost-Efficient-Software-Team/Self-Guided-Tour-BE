@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SelfGuidedTours.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SelfGuidedTours.Infrastructure.Data;
 namespace SelfGuidedTours.Infrastructure.Migrations
 {
     [DbContext(typeof(SelfGuidedToursDbContext))]
-    partial class SelfGuidedToursDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240610131854_AddedRefreshTokenAndItsExpirationToApplicationUserEntity")]
+    partial class AddedRefreshTokenAndItsExpirationToApplicationUserEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -245,7 +248,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
 
                     b.HasKey("CoordinateId");
 
-                    b.ToTable("Coordinates", (string)null);
+                    b.ToTable("Coordinates");
                 });
 
             modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.Landmark", b =>
@@ -261,21 +264,18 @@ namespace SelfGuidedTours.Infrastructure.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("History")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ImageUrl")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("VideoUrl")
                         .HasColumnType("nvarchar(max)");
@@ -284,7 +284,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
 
                     b.HasIndex("CoordinateId");
 
-                    b.ToTable("Landmarks", (string)null);
+                    b.ToTable("Landmarks");
                 });
 
             modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.Payment", b =>
@@ -314,7 +314,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Payments", (string)null);
+                    b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.Review", b =>
@@ -326,8 +326,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReviewId"));
 
                     b.Property<string>("Comment")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Rating")
                         .HasColumnType("int");
@@ -348,7 +347,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Reviews", (string)null);
+                    b.ToTable("Reviews");
                 });
 
             modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.Tour", b =>
@@ -368,24 +367,30 @@ namespace SelfGuidedTours.Infrastructure.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("EndCoordinateId")
+                        .HasColumnType("int");
 
                     b.Property<decimal?>("Price")
                         .HasColumnType("decimal(10, 2)");
 
+                    b.Property<int?>("StartCoordinateId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("TourId");
 
                     b.HasIndex("CreatorId");
 
+                    b.HasIndex("EndCoordinateId");
+
+                    b.HasIndex("StartCoordinateId");
 
                     b.ToTable("Tours");
-
                 });
 
             modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.TourLandmark", b =>
@@ -403,7 +408,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
 
                     b.HasIndex("LandmarkId");
 
-                    b.ToTable("TourLandmarks", (string)null);
+                    b.ToTable("TourLandmarks");
                 });
 
             modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.Transaction", b =>
@@ -431,7 +436,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
 
                     b.HasIndex("WalletId");
 
-                    b.ToTable("Transactions", (string)null);
+                    b.ToTable("Transactions");
                 });
 
             modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.UserTours", b =>
@@ -458,7 +463,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserTours", (string)null);
+                    b.ToTable("UserTours");
                 });
 
             modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.Wallet", b =>
@@ -481,7 +486,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("Wallets", (string)null);
+                    b.ToTable("Wallets");
                 });
 
             modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.ApplicationUser", b =>
@@ -616,7 +621,19 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("SelfGuidedTours.Infrastructure.Data.Models.Coordinate", "EndCoordinate")
+                        .WithMany()
+                        .HasForeignKey("EndCoordinateId");
+
+                    b.HasOne("SelfGuidedTours.Infrastructure.Data.Models.Coordinate", "StartCoordinate")
+                        .WithMany()
+                        .HasForeignKey("StartCoordinateId");
+
                     b.Navigation("Creator");
+
+                    b.Navigation("EndCoordinate");
+
+                    b.Navigation("StartCoordinate");
                 });
 
             modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.TourLandmark", b =>
