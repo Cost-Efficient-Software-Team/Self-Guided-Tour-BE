@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Models.Auth;
+using System.Security.Claims;
 
 namespace SelfGuidedTours.Api.Controllers
 {
@@ -78,6 +79,12 @@ namespace SelfGuidedTours.Api.Controllers
 
                 return Ok(response);
             }
+            catch (ArgumentException aex)
+            {
+                logger.LogError(aex, "Auth/login[POST] - Argument exception");
+
+                return BadRequest(aex.Message);
+            }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Auth/login[POST] - Unexpected error");
@@ -87,34 +94,40 @@ namespace SelfGuidedTours.Api.Controllers
         }
 
         [Authorize]
-        [HttpPost("logout")]
-        [ProducesResponseType(typeof(string), 200)]
-        [ProducesResponseType(typeof(string), 400)]
-        [ProducesResponseType(typeof(string), 500)]
-        public async Task<IActionResult> Logout([FromBody] LogoutInputModel model)
+        [HttpDelete("logout")]
+        [ProducesResponseType(typeof(string), 204)]
+        public async Task<IActionResult> Logout()
         {
-            if (!ModelState.IsValid)
-            {
-                logger.LogWarning("Invalid model state for logout input model!");
+            string userId = User.Claims.First().Value;
 
-                return BadRequest("Invalid model state!");
+            await authService.LogoutAsync(userId);
+
+            return NoContent();
+        }
+
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh([FromBody] RefreshRequestModel model)
+        {
+            if(!ModelState.IsValid)
+            {
+                return BadRequest();
             }
 
             try
             {
-                var result = await authService.LogoutAsync(model);
-               
-                return Ok(result);
+                var response = await authService.RefreshAsync(model);
+
+                return Ok(response);
             }
-            catch (ArgumentException aex)
+            catch(ArgumentException aex)
             {
-                logger.LogError(aex, "Auth/logout[POST] - Argument exception");
-                
-                return BadRequest(aex.Message);
+                logger.LogError(aex, "Auth/refresh[POST] - Argument exception");
+
+                return BadRequest();
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Auth/logout[POST] - Unexpected error");
+                logger.LogError(ex, "Auth/refresh[POST] - Unexpected error");
 
                 return StatusCode(StatusCodes.Status500InternalServerError, "Internal server error");
             }
