@@ -6,6 +6,7 @@ namespace SelfGuidedTours.Core.Contracts
     {
         Task<string> RegisterAsync(RegisterInputModel model);
         Task<LoginResponse> LoginAsync(LoginInputModel model);
-        Task<string> LogoutAsync(LogoutInputModel model);
+        Task LogoutAsync(string userId);
+        Task<LoginResponse> RefreshAsync(RefreshRequestModel model);
     }
 }
