@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using SelfGuidedTours.Core.Contracts;
-using SelfGuidedTours.Core.Models;
+using SelfGuidedTours.Core.Models.Auth;
 using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using System.IdentityModel.Tokens.Jwt;
@@ -29,6 +29,14 @@ namespace SelfGuidedTours.Core.Services
 
             return await repository.AllReadOnly<ApplicationUser>()
                 .FirstOrDefaultAsync(au => au.Email == email);
+        }
+
+        private async Task<ApplicationUser?> GetByRefreshTokenAsync(string refreshToken)
+        {
+            //In that case we will get the user with the provided refresh token if it's valid.
+
+            return await repository.AllReadOnly<ApplicationUser>()
+                .FirstOrDefaultAsync(au => au.RefreshToken == refreshToken);
         }
 
         private string GenerateJwtToken(string email, TimeSpan expiration)
@@ -118,6 +126,24 @@ namespace SelfGuidedTours.Core.Services
             await repository.SaveChangesAsync();
 
             return response;
+        }
+
+        public async Task<string> LogoutAsync(LogoutInputModel model)
+        {
+            var user = await GetByRefreshTokenAsync(model.RefreshToken);
+
+            if(user == null)
+            {
+                throw new ArgumentException("Refresh token is invalid!");
+            }
+
+            user.RefreshToken = null;
+            user.RefreshTokenExpiration = DateTime.MinValue;
+
+            await repository.UpdateAsync(user);
+            await repository.SaveChangesAsync();
+
+            return "Successfully logged out!";
         }
     }
 }

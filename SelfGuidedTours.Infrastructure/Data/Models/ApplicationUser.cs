@@ -15,7 +15,7 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         public virtual ICollection<UserTours> UserTours { get; set; } = new HashSet<UserTours>();
         public Wallet Wallet { get; set; } = null!;
 
-        public string RefreshToken { get; set; } = string.Empty;
+        public string? RefreshToken { get; set; }
         public DateTime RefreshTokenExpiration { get; set; }
     }
 }

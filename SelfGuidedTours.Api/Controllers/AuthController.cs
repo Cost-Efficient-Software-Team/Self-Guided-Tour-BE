@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using SelfGuidedTours.Core.Contracts;
-using SelfGuidedTours.Core.Models;
-using SelfGuidedTours.Core.Services;
+using SelfGuidedTours.Core.Models.Auth;
 
 namespace SelfGuidedTours.Api.Controllers
 {
@@ -89,10 +87,46 @@ namespace SelfGuidedTours.Api.Controllers
         }
 
         [Authorize]
-        [HttpGet("test-login")]
-        public IActionResult TestLogin()
+        [HttpPost("logout")]
+        [ProducesResponseType(typeof(string), 200)]
+        [ProducesResponseType(typeof(string), 400)]
+        [ProducesResponseType(typeof(string), 500)]
+        public async Task<IActionResult> Logout([FromBody] LogoutInputModel model)
         {
-            return Ok("User is logged in!");
+            if (!ModelState.IsValid)
+            {
+                logger.LogWarning("Invalid model state for logout input model!");
+
+                return BadRequest("Invalid model state!");
+            }
+
+            try
+            {
+                var result = await authService.LogoutAsync(model);
+               
+                return Ok(result);
+            }
+            catch (ArgumentException aex)
+            {
+                logger.LogError(aex, "Auth/logout[POST] - Argument exception");
+                
+                return BadRequest(aex.Message);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Auth/logout[POST] - Unexpected error");
+
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal server error");
+            }
+        }
+
+        [Authorize]
+        [HttpGet("check-login")]
+        [ProducesResponseType(typeof(string), 200)]
+        [ProducesResponseType(typeof(string), 401)]
+        public IActionResult CheckLogin()
+        {
+            return Ok("User is logged in.");
         }
     }
 }
