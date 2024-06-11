@@ -10,6 +10,14 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         public int LandmarkId { get; set; }
 
         [Required]
+        public int TourId { get; set; }
+        [ForeignKey(nameof(TourId))]
+        public Tour Tour { get; set; } = null!;
+
+        [Required]
+        public int StopOrder { get; set; }
+
+        [Required]
         [StringLength(NameMaxLength, MinimumLength = NameMinLength,
             ErrorMessage = LengthErrorMessage)]
         public string Name { get; set; } = null!;
@@ -26,10 +34,8 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         public int CoordinateId { get; set; }
         [ForeignKey(nameof(CoordinateId))]
         public Coordinate Coordinate { get; set; } = null!;
-        //TODO: Add Image and Video Urls validation
-        public string? ImageUrl { get; set; }
-        public string? VideoUrl { get; set; }
+      
 
-        public virtual ICollection<TourLandmark> TourLandmarks { get; set; } = new HashSet<TourLandmark>();
     }
+       
 }

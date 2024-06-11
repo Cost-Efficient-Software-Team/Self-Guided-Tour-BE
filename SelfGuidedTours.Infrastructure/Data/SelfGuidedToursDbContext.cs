@@ -12,8 +12,8 @@ namespace SelfGuidedTours.Infrastructure.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<TourLandmark>()
-                .HasKey(tl => new { tl.TourId, tl.LandmarkId });
+            //modelBuilder.Entity<TourLandmark>()
+            //    .HasKey(tl => new { tl.TourId, tl.LandmarkId });
 
             modelBuilder.Entity<Payment>()
            .HasOne(p => p.Tour)
@@ -41,12 +41,13 @@ namespace SelfGuidedTours.Infrastructure.Data
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<Tour> Tours { get; set; }
-        public DbSet<TourLandmark> TourLandmarks { get; set; }
+        //public DbSet<TourLandmark> TourLandmarks { get; set; }
         public DbSet<UserTours> UserTours { get; set; }
         public DbSet<Wallet> Wallets { get; set; }
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
 
+        public DbSet<LandmarkResource> LandmarkResources { get; set; }
 
     }
 }

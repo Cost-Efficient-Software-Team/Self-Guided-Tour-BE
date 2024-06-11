@@ -11,6 +11,8 @@
             public const int DescriptionMaxLength = 500;
 
             public const decimal PriceMinValue = 1.0m;
+
+            public const int ThumbnailImageUrlMaxLength = 500;
         }
 
         public static class Landmark
@@ -30,6 +32,11 @@
         {
             public const int CommentMinLength = 10;
             public const int CommentMaxLength = 500;
+        }
+        public static class LandmarkResource
+        {
+            public const int UrlMinLength = 10;
+            public const int UrlMaxLength = 500;
         }
     }
 }
