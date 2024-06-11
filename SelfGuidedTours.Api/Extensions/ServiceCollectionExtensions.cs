@@ -64,7 +64,8 @@ namespace Microsoft.Extensions.DependencyInjection
                         ValidIssuer = config["Jwt:Issuer"], // Issuer from user secrets
                         ValidAudience = config["Jwt:Audience"], // Audience from user secrets
                         IssuerSigningKey = new SymmetricSecurityKey(
-                            Encoding.UTF8.GetBytes(config["Jwt:Key"])) // Key from user secrets
+                            Encoding.UTF8.GetBytes(config["Jwt:Key"]!)), // Key from user secrets
+                        ClockSkew = TimeSpan.Zero
                     };
                 });
 

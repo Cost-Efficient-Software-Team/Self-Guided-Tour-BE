@@ -12,8 +12,8 @@ using SelfGuidedTours.Infrastructure.Data;
 namespace SelfGuidedTours.Infrastructure.Migrations
 {
     [DbContext(typeof(SelfGuidedToursDbContext))]
-    [Migration("20240609184916_AddedNameColumnToApplicationUserEntity")]
-    partial class AddedNameColumnToApplicationUserEntity
+    [Migration("20240610131854_AddedRefreshTokenAndItsExpirationToApplicationUserEntity")]
+    partial class AddedRefreshTokenAndItsExpirationToApplicationUserEntity
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -502,6 +502,13 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RefreshToken")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("RefreshTokenExpiration")
+                        .HasColumnType("datetime2");
 
                     b.HasDiscriminator().HasValue("ApplicationUser");
                 });

@@ -44,5 +44,11 @@ namespace SelfGuidedTours.Infrastructure.Common
         {
             return await context.SaveChangesAsync();
         }
+
+        public async Task UpdateAsync<T>(T entity) where T : class
+        {
+            context.Update(entity);
+            await Task.CompletedTask;
+        }
     }
 }

@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Models;
+using SelfGuidedTours.Core.Services;
 
 namespace SelfGuidedTours.Api.Controllers
 {
@@ -20,7 +22,7 @@ namespace SelfGuidedTours.Api.Controllers
 
         [HttpPost("register")]
         [ProducesResponseType(typeof(string), 200)]
-        [ProducesResponseType(typeof(ModelStateDictionary), 400)]
+        [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
         public async Task<IActionResult> Register([FromBody] RegisterInputModel model)
         {
@@ -28,7 +30,7 @@ namespace SelfGuidedTours.Api.Controllers
             {
                 logger.LogWarning("Invalid model state for register input model!");
 
-                return BadRequest(ModelState);
+                return BadRequest("Invalid model state!");
             }
 
             try
@@ -49,6 +51,48 @@ namespace SelfGuidedTours.Api.Controllers
 
                 return StatusCode(StatusCodes.Status500InternalServerError, "Internal server error");
             }
+        }
+
+        [HttpPost("login")]
+        [ProducesResponseType(typeof(LoginResponse), 200)]
+        [ProducesResponseType(typeof(string), 400)]
+        [ProducesResponseType(typeof(string), 401)]
+        [ProducesResponseType(typeof(string), 500)]
+        public async Task<IActionResult> Login([FromBody] LoginInputModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                logger.LogWarning("Invalid model state for login input model!");
+
+                return BadRequest("Invalid model state!");
+            }
+
+            try
+            {
+                var response = await authService.LoginAsync(model);
+
+                if(response.AccessToken == null)
+                {
+                    logger.LogWarning("Unauthorized access attempt with email: {Email}", model.Email);
+
+                    return Unauthorized(response.ResponseMessage);
+                }
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Auth/login[POST] - Unexpected error");
+
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal server error");
+            }
+        }
+
+        [Authorize]
+        [HttpGet("test-login")]
+        public IActionResult TestLogin()
+        {
+            return Ok("User is logged in!");
         }
     }
 }
