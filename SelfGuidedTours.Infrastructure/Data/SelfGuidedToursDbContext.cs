@@ -46,7 +46,6 @@ namespace SelfGuidedTours.Infrastructure.Data
         public DbSet<Wallet> Wallets { get; set; }
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
-
-
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
     }
 }
