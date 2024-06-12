@@ -1,4 +1,7 @@
+﻿using SelfGuidedTours.Core.Models;
+using SelfGuidedTours.Infrastructure.Data.Models;
 ﻿using SelfGuidedTours.Core.Models.Auth;
+
 
 namespace SelfGuidedTours.Core.Contracts
 {

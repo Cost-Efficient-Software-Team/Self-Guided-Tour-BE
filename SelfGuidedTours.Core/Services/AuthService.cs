@@ -87,8 +87,15 @@ namespace SelfGuidedTours.Core.Services
                 Name = model.Name,
                 PasswordHash = hasher.HashPassword(null!, model.Password) // Hash the password
             };
+            //Assign user role
+            var userRole = new IdentityUserRole<string>
+            {
+                UserId = user.Id,
+                RoleId = "4f8554d2-cfaa-44b5-90ce-e883c804ae90" //User Role Id
+            };
 
             await repository.AddAsync(user);
+            await repository.AddAsync(userRole);
             await repository.SaveChangesAsync();
 
             return "User registered successfully!";
