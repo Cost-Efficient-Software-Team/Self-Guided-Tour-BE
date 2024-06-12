@@ -26,7 +26,11 @@
       "launchUrl": "swagger",
       "applicationUrl": "https://localhost:7038;http://localhost:5166",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_SMTP_HOST": "smtp.gmail.com",
+        "ASPNETCORE_SMTP_USERNAME": "projectshest6@gmail.com",
+        "ASPNETCORE_SMTP_PASSWORD": "zdfltuxufftdaocn",
+        "ASPNETCORE_SMTP_PORT": "465"
       }
     },
     "IIS Express": {
