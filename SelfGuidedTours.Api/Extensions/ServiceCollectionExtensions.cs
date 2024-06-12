@@ -17,7 +17,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             //Inject services here
             services.AddScoped<IAuthService, AuthService>();
-
+            services.AddScoped<IEmailService, EmailService>();
             return services;
         }
         public static IServiceCollection AddApplicationDbContext(this IServiceCollection services, IConfiguration config)
