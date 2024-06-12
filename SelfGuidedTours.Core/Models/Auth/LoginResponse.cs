@@ -1,4 +1,4 @@
-﻿namespace SelfGuidedTours.Core.Models
+﻿namespace SelfGuidedTours.Core.Models.Auth
 {
     public class LoginResponse
     {

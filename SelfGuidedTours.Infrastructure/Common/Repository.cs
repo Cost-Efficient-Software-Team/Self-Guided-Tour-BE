@@ -50,5 +50,11 @@ namespace SelfGuidedTours.Infrastructure.Common
             context.Update(entity);
             await Task.CompletedTask;
         }
+
+        public async Task DeleteAllAsync<T>(IEnumerable<T> entities) where T : class
+        {
+            context.RemoveRange(entities);
+            await Task.CompletedTask;
+        }
     }
 }
