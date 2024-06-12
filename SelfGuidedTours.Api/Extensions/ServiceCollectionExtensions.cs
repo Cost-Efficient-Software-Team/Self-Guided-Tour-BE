@@ -67,16 +67,22 @@ namespace Microsoft.Extensions.DependencyInjection
                     var key = Environment.GetEnvironmentVariable("ACCESSTOKEN_KEY") ??
                          throw new ApplicationException("ACCESSTOKEN_KEY is not configured.");
 
+                    var issuer = Environment.GetEnvironmentVariable("ISSUER") ??
+                         throw new ApplicationException("ISSUER is not configured.");
+
+                    var audience = Environment.GetEnvironmentVariable("AUDIENCE") ??
+                         throw new ApplicationException("AUDIENCE is not configured.");
+
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = true,
                         ValidateAudience = true,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
-                        ValidIssuer = config["Authentication:Issuer"], // Issuer from user secrets
-                        ValidAudience = config["Authentication:Audience"], // Audience from user secrets
+                        ValidIssuer = issuer,
+                        ValidAudience = audience,
                         IssuerSigningKey = new SymmetricSecurityKey(
-                            Encoding.UTF8.GetBytes(key)), // Key from user secrets
+                            Encoding.UTF8.GetBytes(key)),
                         ClockSkew = TimeSpan.Zero
                     };
                 });

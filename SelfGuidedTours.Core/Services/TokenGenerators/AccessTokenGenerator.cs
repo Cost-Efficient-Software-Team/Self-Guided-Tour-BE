@@ -1,18 +1,14 @@
-﻿using Microsoft.Extensions.Configuration;
-using SelfGuidedTours.Infrastructure.Data.Models;
+﻿using SelfGuidedTours.Infrastructure.Data.Models;
 using System.Security.Claims;
 
 namespace SelfGuidedTours.Core.Services.TokenGenerators
 {
     public class AccessTokenGenerator
     {
-        private readonly IConfiguration configuration;
         private readonly TokenGenerator tokenGenerator;
 
-        public AccessTokenGenerator(IConfiguration configuration,
-            TokenGenerator tokenGenerator)
+        public AccessTokenGenerator(TokenGenerator tokenGenerator)
         {
-            this.configuration = configuration;
             this.tokenGenerator = tokenGenerator;
         }
 
@@ -30,11 +26,17 @@ namespace SelfGuidedTours.Core.Services.TokenGenerators
             
             var keyExpiration = Environment.GetEnvironmentVariable("ACCESSTOKEN_EXPIRATIONMINUTES") ??
                throw new ApplicationException("ACCESSTOKEN_EXPIRATIONMINUTES is not configured.");
+           
+            var issuer = Environment.GetEnvironmentVariable("ISSUER") ??
+               throw new ApplicationException("ISSUER is not configured.");
+
+            var audience = Environment.GetEnvironmentVariable("AUDIENCE") ??
+               throw new ApplicationException("AUDIENCE is not configured.");
 
             return tokenGenerator.GenerateToken(
                 key,
-                configuration["Authentication:Issuer"]!,
-                configuration["Authentication:Audience"]!,
+                issuer,
+                audience,
                 double.Parse(keyExpiration),
                 claims);
         }

@@ -1,16 +1,11 @@
-﻿using Microsoft.Extensions.Configuration;
-
-namespace SelfGuidedTours.Core.Services.TokenGenerators
+﻿namespace SelfGuidedTours.Core.Services.TokenGenerators
 {
     public class RefreshTokenGenerator
     {
-        private readonly IConfiguration configuration;
         private readonly TokenGenerator tokenGenerator;
 
-        public RefreshTokenGenerator(IConfiguration configuration,
-            TokenGenerator tokenGenerator)
+        public RefreshTokenGenerator(TokenGenerator tokenGenerator)
         {
-            this.configuration = configuration;
             this.tokenGenerator = tokenGenerator;
         }
         public string GenerateToken()
@@ -21,10 +16,16 @@ namespace SelfGuidedTours.Core.Services.TokenGenerators
             var keyExpiration = Environment.GetEnvironmentVariable("REFRESHTOKEN_EXPIRATIONMINUTES") ??
                 throw new ApplicationException("REFRESHTOKEN_EXPIRATIONMINUTES is not configured.");
 
+            var issuer = Environment.GetEnvironmentVariable("ISSUER") ??
+               throw new ApplicationException("ISSUER is not configured.");
+
+            var audience = Environment.GetEnvironmentVariable("AUDIENCE") ??
+               throw new ApplicationException("AUDIENCE is not configured.");
+
             return tokenGenerator.GenerateToken(
                 key,
-                configuration["Authentication:Issuer"]!,
-                configuration["Authentication:Audience"]!,
+                issuer,
+                audience,
                 double.Parse(keyExpiration));
         }
     }
