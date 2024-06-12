@@ -7,17 +7,16 @@ namespace SelfGuidedTours.Core.Services.TokenValidators
 {
     public class RefreshTokenValidator
     {
-        private readonly IConfiguration config;
-
-        public RefreshTokenValidator(IConfiguration config)
-        {
-            this.config = config;
-        }
-
         public bool Validate(string refreshToken)
         {
             var key = Environment.GetEnvironmentVariable("REFRESHTOKEN_KEY") ??
                 throw new ApplicationException("REFRESHTOKEN_KEY is not configured.");
+
+            var issuer = Environment.GetEnvironmentVariable("ISSUER") ??
+               throw new ApplicationException("ISSUER is not configured.");
+
+            var audience = Environment.GetEnvironmentVariable("AUDIENCE") ??
+               throw new ApplicationException("AUDIENCE is not configured.");
 
             TokenValidationParameters validationParameters = new TokenValidationParameters()
             {
@@ -25,10 +24,10 @@ namespace SelfGuidedTours.Core.Services.TokenValidators
                 ValidateAudience = true,
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
-                ValidIssuer = config["Authentication:Issuer"], // Issuer from user secrets
-                ValidAudience = config["Authentication:Audience"], // Audience from user secrets
+                ValidIssuer = issuer,
+                ValidAudience = audience,
                 IssuerSigningKey = new SymmetricSecurityKey(
-                            Encoding.UTF8.GetBytes(key)), // Key from user secrets
+                            Encoding.UTF8.GetBytes(key)),
                 ClockSkew = TimeSpan.Zero
             };
 

@@ -28,12 +28,13 @@ namespace SelfGuidedTours.Api.Controllers
 
                 return Ok("Email sent successfully!");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, "Iternal Server Error");
             }
         }
-        [HttpPost("sendHtml")]
+        
+        [HttpPost("send-html")]
         public async Task<IActionResult> SendHtmlEmail([FromBody] SendEmailDto sendEmailRequest)
         {
             try
@@ -42,7 +43,7 @@ namespace SelfGuidedTours.Api.Controllers
 
                 return Ok("Email sent successfully!");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error");
             }
