@@ -54,6 +54,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors("CorsPolicy"); // apply CORS policy from ServiceCollectionExtensions.cs
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
