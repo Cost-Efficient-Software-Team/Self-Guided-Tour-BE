@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Services;
+using SelfGuidedTours.Core.Services.TokenGenerators;
+using SelfGuidedTours.Core.Services.TokenValidators;
 using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data;
 using SelfGuidedTours.Infrastructure.Data.Models;
@@ -17,6 +19,13 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             //Inject services here
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+
+            //Token generators
+            services.AddScoped<AccessTokenGenerator>();
+            services.AddScoped<RefreshTokenGenerator>();
+            services.AddScoped<TokenGenerator>();
+            services.AddScoped<RefreshTokenValidator>();
 
             return services;
         }
@@ -34,7 +43,6 @@ namespace Microsoft.Extensions.DependencyInjection
         }
         public static IServiceCollection AddApplicationIdentity(this IServiceCollection services, IConfiguration config)
         {
-
             services.AddIdentityCore<ApplicationUser>()
                 .AddRoles<IdentityRole>()
                 .AddTokenProvider<DataProtectorTokenProvider<ApplicationUser>>("SelfGuidedTours")
@@ -52,19 +60,29 @@ namespace Microsoft.Extensions.DependencyInjection
                 options.Password.RequiredLength = 8;
                 options.Password.RequiredUniqueChars = 1;
             });
+
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
+                    var key = Environment.GetEnvironmentVariable("ACCESSTOKEN_KEY") ??
+                         throw new ApplicationException("ACCESSTOKEN_KEY is not configured.");
+
+                    var issuer = Environment.GetEnvironmentVariable("ISSUER") ??
+                         throw new ApplicationException("ISSUER is not configured.");
+
+                    var audience = Environment.GetEnvironmentVariable("AUDIENCE") ??
+                         throw new ApplicationException("AUDIENCE is not configured.");
+
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = true,
                         ValidateAudience = true,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
-                        ValidIssuer = config["Jwt:Issuer"], // Issuer from user secrets
-                        ValidAudience = config["Jwt:Audience"], // Audience from user secrets
+                        ValidIssuer = issuer,
+                        ValidAudience = audience,
                         IssuerSigningKey = new SymmetricSecurityKey(
-                            Encoding.UTF8.GetBytes(config["Jwt:Key"]!)), // Key from user secrets
+                            Encoding.UTF8.GetBytes(key)),
                         ClockSkew = TimeSpan.Zero
                     };
                 });

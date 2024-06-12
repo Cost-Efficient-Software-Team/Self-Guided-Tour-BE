@@ -1,4 +1,4 @@
-﻿using SelfGuidedTours.Core.Models;
+﻿using SelfGuidedTours.Core.Models.Auth;
 
 namespace SelfGuidedTours.Core.Contracts
 {
@@ -6,5 +6,7 @@ namespace SelfGuidedTours.Core.Contracts
     {
         Task<string> RegisterAsync(RegisterInputModel model);
         Task<LoginResponse> LoginAsync(LoginInputModel model);
+        Task LogoutAsync(string userId);
+        Task<LoginResponse> RefreshAsync(RefreshRequestModel model);
     }
 }

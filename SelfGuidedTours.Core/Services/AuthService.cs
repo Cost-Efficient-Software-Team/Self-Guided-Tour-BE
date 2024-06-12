@@ -1,26 +1,34 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Azure;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 using SelfGuidedTours.Core.Contracts;
-using SelfGuidedTours.Core.Models;
+using SelfGuidedTours.Core.Models.Auth;
+using SelfGuidedTours.Core.Services.TokenGenerators;
+using SelfGuidedTours.Core.Services.TokenValidators;
 using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data.Models;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 
 namespace SelfGuidedTours.Core.Services
 {
     public class AuthService : IAuthService
     {
         private readonly IRepository repository;
-        private readonly IConfiguration configuration;
+        private readonly AccessTokenGenerator accessTokenGenerator;
+        private readonly RefreshTokenGenerator refreshTokenGenerator;
+        private readonly RefreshTokenValidator refreshTokenValidator;
+        private readonly IRefreshTokenService refreshTokenService;
 
-        public AuthService(IRepository repository, IConfiguration configuration)
+        public AuthService(IRepository repository,
+            AccessTokenGenerator accessTokenGenerator,
+            RefreshTokenGenerator refreshTokenGenerator,
+            RefreshTokenValidator refreshTokenValidator,
+            IRefreshTokenService refreshTokenService)
         {
             this.repository = repository;
-            this.configuration = configuration;
+            this.accessTokenGenerator = accessTokenGenerator;
+            this.refreshTokenGenerator = refreshTokenGenerator;
+            this.refreshTokenValidator = refreshTokenValidator;
+            this.refreshTokenService = refreshTokenService;
         }
 
         private async Task<ApplicationUser?> GetByEmailAsync(string email)
@@ -31,31 +39,33 @@ namespace SelfGuidedTours.Core.Services
                 .FirstOrDefaultAsync(au => au.Email == email);
         }
 
-        private string GenerateJwtToken(string email, TimeSpan expiration)
+        private async Task<ApplicationUser?> GetByIdAsync(string userId)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-
-            var key = Environment.GetEnvironmentVariable("JWT_KEY") ??
-                throw new ApplicationException("JWT key is not configured.");
-            
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
-
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new Claim[]
-                {
-                    new Claim(ClaimTypes.Name, email)
-                }),
-                Expires = DateTime.UtcNow.Add(expiration),
-                Issuer = configuration["Jwt:Issuer"],
-                Audience = configuration["Jwt:Audience"],
-                SigningCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature)
-            };
-            
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-           
-            return tokenHandler.WriteToken(token);
+            return await repository.AllReadOnly<ApplicationUser>()
+                .FirstOrDefaultAsync(au => au.Id == userId);
         }
+
+        private async Task<LoginResponse> AuthenticateAsync(ApplicationUser user, string responesMessage)
+        {
+            var accessToken = accessTokenGenerator.GenerateToken(user);
+            var refreshToken = refreshTokenGenerator.GenerateToken();
+
+            RefreshToken refreshTokenDTO = new RefreshToken()
+            {
+                Token = refreshToken,
+                UserId = user.Id
+            };
+
+            await refreshTokenService.CreateAsync(refreshTokenDTO);
+            
+            return new LoginResponse()
+            {
+                AccessToken = accessToken,
+                RefreshToken = refreshToken,
+                ResponseMessage = responesMessage
+            };
+        }
+
         public async Task<string> RegisterAsync(RegisterInputModel model)
         {
             if (await GetByEmailAsync(model.Email) != null)
@@ -86,38 +96,55 @@ namespace SelfGuidedTours.Core.Services
 
         public async Task<LoginResponse> LoginAsync(LoginInputModel model)
         {
-            LoginResponse response = new LoginResponse();
-
             var user = await GetByEmailAsync(model.Email);
 
-            if(user == null)
+            if (user == null)
             {
-                response.ResponseMessage = "Email or password is incorrect!";
-                return response;
+                throw new ArgumentException("Email or password is incorrect!");
             }
 
             var isPassCorrect = new PasswordHasher<ApplicationUser>().VerifyHashedPassword(user, user.PasswordHash!, model.Password);
 
-            if(isPassCorrect != PasswordVerificationResult.Success)
+            if (isPassCorrect != PasswordVerificationResult.Success)
             {
-                response.ResponseMessage = "Email or password is incorrect!";
-                return response;
+                throw new ArgumentException("Email or password is incorrect!");
             }
 
-            var accessToken = GenerateJwtToken(user.Email!, TimeSpan.FromSeconds(15));
-            var refreshToken = GenerateJwtToken(user.Email!, TimeSpan.FromDays(60));
-
-            response.AccessToken = accessToken;
-            response.RefreshToken = refreshToken;
-            response.ResponseMessage = "Successfully logged in!";
-
-            user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiration = DateTime.UtcNow.AddDays(60);
-
-            await repository.UpdateAsync(user);
-            await repository.SaveChangesAsync();
-
-            return response;
+            return await AuthenticateAsync(user, "Successfully logged in!");
         }
+
+        public async Task LogoutAsync(string userId)
+        {
+            await refreshTokenService.DeleteAllAsync(userId);
+        }
+
+        public async Task<LoginResponse> RefreshAsync(RefreshRequestModel model)
+        {
+            var isValidRefreshToken = refreshTokenValidator.Validate(model.RefreshToken);
+
+            if (!isValidRefreshToken)
+            {
+                throw new ArgumentException("Invalid refresh token!");
+            }
+
+            var refreshTokenDTO = await refreshTokenService.GetByTokenAsync(model.RefreshToken);
+
+            if(refreshTokenDTO == null)
+            {
+                throw new ArgumentException("Refresh token was not found!");
+            }
+
+            await refreshTokenService.DeleteAsync(refreshTokenDTO.Id);
+
+            var user = await GetByIdAsync(refreshTokenDTO.UserId);
+
+            if(user == null)
+            {
+                throw new ArgumentException("User was not found!");
+            }
+
+            return await AuthenticateAsync(user, "Successfully got new tokens!");
+        }
+
     }
 }

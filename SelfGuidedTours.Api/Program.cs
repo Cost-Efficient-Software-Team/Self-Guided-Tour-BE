@@ -3,13 +3,6 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var jwtKey = builder.Configuration["Jwt:Key"];
-
-if (jwtKey != null)
-{
-    Environment.SetEnvironmentVariable("JWT_KEY", jwtKey);
-}
-
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();

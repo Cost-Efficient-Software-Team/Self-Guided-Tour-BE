@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using static SelfGuidedTours.Common.ValidationConstants.AuthConstants;
 
-namespace SelfGuidedTours.Core.Models
+namespace SelfGuidedTours.Core.Models.Auth
 {
     public class LoginInputModel
     {
