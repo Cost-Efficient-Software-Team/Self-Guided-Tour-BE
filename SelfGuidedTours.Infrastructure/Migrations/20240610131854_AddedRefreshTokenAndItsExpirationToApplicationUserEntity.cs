@@ -1,19 +1,26 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace SelfGuidedTours.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class AddedNameColumnToApplicationUserEntity : Migration
+    public partial class AddedRefreshTokenAndItsExpirationToApplicationUserEntity : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
-                name: "Name",
+                name: "RefreshToken",
                 table: "AspNetUsers",
                 type: "nvarchar(max)",
+                nullable: true);
+
+            migrationBuilder.AddColumn<DateTime>(
+                name: "RefreshTokenExpiration",
+                table: "AspNetUsers",
+                type: "datetime2",
                 nullable: true);
         }
 
@@ -21,7 +28,11 @@ namespace SelfGuidedTours.Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "Name",
+                name: "RefreshToken",
+                table: "AspNetUsers");
+
+            migrationBuilder.DropColumn(
+                name: "RefreshTokenExpiration",
                 table: "AspNetUsers");
         }
     }

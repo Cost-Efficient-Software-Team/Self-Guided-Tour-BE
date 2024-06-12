@@ -12,8 +12,8 @@ using SelfGuidedTours.Infrastructure.Data;
 namespace SelfGuidedTours.Infrastructure.Migrations
 {
     [DbContext(typeof(SelfGuidedToursDbContext))]
-    [Migration("20240609184916_AddedNameColumnToApplicationUserEntity")]
-    partial class AddedNameColumnToApplicationUserEntity
+    [Migration("20240611212554_AddedNewEntityRefreshTokensAndDeletedRefreshTokenInfoFromApplicationUsersTable")]
+    partial class AddedNewEntityRefreshTokensAndDeletedRefreshTokenInfoFromApplicationUsersTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -317,6 +317,27 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                     b.ToTable("Payments");
                 });
 
+            modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.RefreshToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshTokens");
+                });
+
             modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.Review", b =>
                 {
                     b.Property<int>("ReviewId")
@@ -583,6 +604,17 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Tour");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.RefreshToken", b =>
+                {
+                    b.HasOne("SelfGuidedTours.Infrastructure.Data.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });

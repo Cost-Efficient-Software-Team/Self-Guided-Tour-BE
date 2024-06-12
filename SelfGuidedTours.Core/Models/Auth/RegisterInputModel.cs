@@ -2,7 +2,7 @@
 using static SelfGuidedTours.Common.ValidationConstants.AuthConstants;
 using static SelfGuidedTours.Common.ValidationConstants.AuthConstants.Register;
 
-namespace SelfGuidedTours.Core.Models
+namespace SelfGuidedTours.Core.Models.Auth
 {
     public class RegisterInputModel
     {
