@@ -19,6 +19,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             //Inject services here
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 
             //Token generators
@@ -38,6 +39,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 });
             });
           
+
             return services;
         }
         public static IServiceCollection AddApplicationDbContext(this IServiceCollection services, IConfiguration config)
