@@ -16,7 +16,6 @@ namespace SelfGuidedTours.Infrastructure.Data
         {
 
             //Apply entity configurations
-            modelBuilder.ApplyConfiguration(new TourLandmarkConfiguration());
             modelBuilder.ApplyConfiguration(new PaymentConfiguration());
             modelBuilder.ApplyConfiguration(new ReviewConfiguration());
             modelBuilder.ApplyConfiguration(new UserToursConfiguration());
