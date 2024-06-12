@@ -14,6 +14,7 @@ namespace SelfGuidedTours.Infrastructure.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+
             //Apply entity configurations
             modelBuilder.ApplyConfiguration(new TourLandmarkConfiguration());
             modelBuilder.ApplyConfiguration(new PaymentConfiguration());
@@ -22,6 +23,7 @@ namespace SelfGuidedTours.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new RolesConfiguration());
             modelBuilder.ApplyConfiguration(new UsersConfiguration());
             modelBuilder.ApplyConfiguration(new UsersRolesConfiguration());
+
 
             base.OnModelCreating(modelBuilder);
 
@@ -32,11 +34,11 @@ namespace SelfGuidedTours.Infrastructure.Data
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<Tour> Tours { get; set; }
-        public DbSet<TourLandmark> TourLandmarks { get; set; }
         public DbSet<UserTours> UserTours { get; set; }
         public DbSet<Wallet> Wallets { get; set; }
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
+        public DbSet<LandmarkResource> LandmarkResources { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
     }
 }
