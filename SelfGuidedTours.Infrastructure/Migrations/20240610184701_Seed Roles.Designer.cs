@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SelfGuidedTours.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SelfGuidedTours.Infrastructure.Data;
 namespace SelfGuidedTours.Infrastructure.Migrations
 {
     [DbContext(typeof(SelfGuidedToursDbContext))]
-    partial class SelfGuidedToursDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240610184701_Seed Roles")]
+    partial class SeedRoles
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -224,13 +227,6 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetUserRoles", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            UserId = "27d78708-8671-4b05-bd5e-17aa91392224",
-                            RoleId = "656a6079-ec9a-4a98-a484-2d1752156d60"
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
@@ -335,27 +331,6 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Payments");
-                });
-
-            modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.RefreshToken", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Token")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("RefreshTokens");
                 });
 
             modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.Review", b =>
@@ -545,25 +520,6 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasDiscriminator().HasValue("ApplicationUser");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = "27d78708-8671-4b05-bd5e-17aa91392224",
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "10646b30-6b2b-4225-9fa9-364d1c8846bd",
-                            Email = "admin@selfguidedtours.bg",
-                            EmailConfirmed = false,
-                            LockoutEnabled = false,
-                            NormalizedEmail = "ADMIN@SELFGUIDEDTOURS.BG",
-                            NormalizedUserName = "ADMIN ADMINOV",
-                            PasswordHash = "AQAAAAIAAYagAAAAEJcTtrWUJTOR3Uqd+4bH0X9Hb+jGrF2bEzkCfNqvs8eIZuv3mY4vDitAU1liyZM2Tw==",
-                            PhoneNumberConfirmed = false,
-                            SecurityStamp = "5f65bb9b-dde9-4edf-af27-94d9592a0767",
-                            TwoFactorEnabled = false,
-                            CreatedAt = new DateTime(2024, 6, 10, 22, 47, 6, 35, DateTimeKind.Local).AddTicks(1075),
-                            Name = "Admin Adminov"
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -643,17 +599,6 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Tour");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.RefreshToken", b =>
-                {
-                    b.HasOne("SelfGuidedTours.Infrastructure.Data.Models.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
                     b.Navigation("User");
                 });

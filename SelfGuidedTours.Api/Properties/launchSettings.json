@@ -31,6 +31,13 @@
         "ASPNETCORE_SMTP_USERNAME": "projectshest6@gmail.com",
         "ASPNETCORE_SMTP_PASSWORD": "zdfltuxufftdaocn",
         "ASPNETCORE_SMTP_PORT": "465"
+        "REFRESHTOKEN_KEY": "a7990245-e3f1-4dcd-95a4-c2cde60eb8df",
+        "ACCESSTOKEN_KEY": "4y7XS2AHicSOs2uUJCxwlHWqTJNExW3UDUjMeXi96uLEso1YV4RazqQubpFBdx0zZGtdxBelKURhh0WXxPR0mEJQHk_0U9HeYtqcMManhoP3X2Ge8jgxh6k4C_Gd4UPTc6lkx0Ca5eRE16ciFQ6wmYDnaXC8NbngGqartHccAxE",
+        "REFRESHTOKEN_EXPIRATIONMINUTES": "131400",
+        "ACCESSTOKEN_EXPIRATIONMINUTES": "5",
+        "ISSUER": "https://localhost:7038",
+        "AUDIENCE": "https://localhost:7038"
+
       }
     },
     "IIS Express": {

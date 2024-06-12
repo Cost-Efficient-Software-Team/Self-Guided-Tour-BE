@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using SelfGuidedTours.Core.Contracts;
-using SelfGuidedTours.Core.Models;
-using SelfGuidedTours.Core.Services;
+using SelfGuidedTours.Core.Models.Auth;
+using System.Security.Claims;
 
 namespace SelfGuidedTours.Api.Controllers
 {
@@ -80,6 +79,12 @@ namespace SelfGuidedTours.Api.Controllers
 
                 return Ok(response);
             }
+            catch (ArgumentException aex)
+            {
+                logger.LogError(aex, "Auth/login[POST] - Argument exception");
+
+                return BadRequest(aex.Message);
+            }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Auth/login[POST] - Unexpected error");
@@ -89,10 +94,52 @@ namespace SelfGuidedTours.Api.Controllers
         }
 
         [Authorize]
-        [HttpGet("test-login")]
-        public IActionResult TestLogin()
+        [HttpDelete("logout")]
+        [ProducesResponseType(typeof(string), 204)]
+        public async Task<IActionResult> Logout()
         {
-            return Ok("User is logged in!");
+            string userId = User.Claims.First().Value;
+
+            await authService.LogoutAsync(userId);
+
+            return NoContent();
+        }
+
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh([FromBody] RefreshRequestModel model)
+        {
+            if(!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+
+            try
+            {
+                var response = await authService.RefreshAsync(model);
+
+                return Ok(response);
+            }
+            catch(ArgumentException aex)
+            {
+                logger.LogError(aex, "Auth/refresh[POST] - Argument exception");
+
+                return BadRequest();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Auth/refresh[POST] - Unexpected error");
+
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal server error");
+            }
+        }
+
+        [Authorize]
+        [HttpGet("check-login")]
+        [ProducesResponseType(typeof(string), 200)]
+        [ProducesResponseType(typeof(string), 401)]
+        public IActionResult CheckLogin()
+        {
+            return Ok("User is logged in.");
         }
     }
 }
