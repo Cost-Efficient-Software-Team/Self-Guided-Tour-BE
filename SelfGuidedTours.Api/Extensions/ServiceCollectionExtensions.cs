@@ -63,7 +63,10 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
-                { 
+                {
+                    var key = Environment.GetEnvironmentVariable("ACCESSTOKEN_KEY") ??
+                         throw new ApplicationException("ACCESSTOKEN_KEY is not configured.");
+
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = true,
@@ -73,7 +76,7 @@ namespace Microsoft.Extensions.DependencyInjection
                         ValidIssuer = config["Authentication:Issuer"], // Issuer from user secrets
                         ValidAudience = config["Authentication:Audience"], // Audience from user secrets
                         IssuerSigningKey = new SymmetricSecurityKey(
-                            Encoding.UTF8.GetBytes(config["Authentication:AccessTokenSecret"]!)), // Key from user secrets
+                            Encoding.UTF8.GetBytes(key)), // Key from user secrets
                         ClockSkew = TimeSpan.Zero
                     };
                 });

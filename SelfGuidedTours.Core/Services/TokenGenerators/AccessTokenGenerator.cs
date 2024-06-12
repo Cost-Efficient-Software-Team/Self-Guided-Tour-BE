@@ -25,14 +25,17 @@ namespace SelfGuidedTours.Core.Services.TokenGenerators
                 new Claim(ClaimTypes.Name, user.Name)
             };
 
-            //var key = Environment.GetEnvironmentVariable("AccessTokenSecret") ??
-            //    throw new ApplicationException("Access token is not configured.");
+            var key = Environment.GetEnvironmentVariable("ACCESSTOKEN_KEY") ??
+               throw new ApplicationException("ACCESSTOKEN_KEY is not configured.");
+            
+            var keyExpiration = Environment.GetEnvironmentVariable("ACCESSTOKEN_EXPIRATIONMINUTES") ??
+               throw new ApplicationException("ACCESSTOKEN_EXPIRATIONMINUTES is not configured.");
 
             return tokenGenerator.GenerateToken(
-                configuration["Authentication:AccessTokenSecret"]!,
+                key,
                 configuration["Authentication:Issuer"]!,
                 configuration["Authentication:Audience"]!,
-                double.Parse(configuration["Authentication:AccessTokenExpirationMinutes"]!),
+                double.Parse(keyExpiration),
                 claims);
         }
     }

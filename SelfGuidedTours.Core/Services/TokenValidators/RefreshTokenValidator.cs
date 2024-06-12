@@ -16,6 +16,9 @@ namespace SelfGuidedTours.Core.Services.TokenValidators
 
         public bool Validate(string refreshToken)
         {
+            var key = Environment.GetEnvironmentVariable("REFRESHTOKEN_KEY") ??
+                throw new ApplicationException("REFRESHTOKEN_KEY is not configured.");
+
             TokenValidationParameters validationParameters = new TokenValidationParameters()
             {
                 ValidateIssuer = true,
@@ -25,7 +28,7 @@ namespace SelfGuidedTours.Core.Services.TokenValidators
                 ValidIssuer = config["Authentication:Issuer"], // Issuer from user secrets
                 ValidAudience = config["Authentication:Audience"], // Audience from user secrets
                 IssuerSigningKey = new SymmetricSecurityKey(
-                            Encoding.UTF8.GetBytes(config["Authentication:RefreshTokenSecret"]!)), // Key from user secrets
+                            Encoding.UTF8.GetBytes(key)), // Key from user secrets
                 ClockSkew = TimeSpan.Zero
             };
 

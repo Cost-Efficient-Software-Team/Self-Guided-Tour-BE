@@ -15,14 +15,17 @@ namespace SelfGuidedTours.Core.Services.TokenGenerators
         }
         public string GenerateToken()
         {
-            //var key = Environment.GetEnvironmentVariable("RefreshTokenSecret") ??
-            //    throw new ApplicationException("Refresh token is not configured.");
+            var key = Environment.GetEnvironmentVariable("REFRESHTOKEN_KEY") ??
+                throw new ApplicationException("REFRESHTOKEN_KEY is not configured.");
+
+            var keyExpiration = Environment.GetEnvironmentVariable("REFRESHTOKEN_EXPIRATIONMINUTES") ??
+                throw new ApplicationException("REFRESHTOKEN_EXPIRATIONMINUTES is not configured.");
 
             return tokenGenerator.GenerateToken(
-                configuration["Authentication:RefreshTokenSecret"]!,
+                key,
                 configuration["Authentication:Issuer"]!,
                 configuration["Authentication:Audience"]!,
-                double.Parse(configuration["Authentication:RefreshTokenExpirationMinutes"]!));
+                double.Parse(keyExpiration));
         }
     }
 }
