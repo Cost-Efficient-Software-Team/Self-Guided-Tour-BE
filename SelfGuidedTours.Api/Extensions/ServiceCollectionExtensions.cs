@@ -17,7 +17,15 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             //Inject services here
             services.AddScoped<IAuthService, AuthService>();
-
+            services.AddCors(Options =>
+            {
+                Options.AddPolicy("CorsPolicy", builder =>
+                {
+                    builder.WithOrigins("http://localhost:3000") // This is the Client app URL TODO: Change this after FE deployment
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+                });
+            });
             return services;
         }
         public static IServiceCollection AddApplicationDbContext(this IServiceCollection services, IConfiguration config)
