@@ -1,5 +1,4 @@
-﻿using Azure;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Models.Auth;
@@ -45,7 +44,7 @@ namespace SelfGuidedTours.Core.Services
                 .FirstOrDefaultAsync(au => au.Id == userId);
         }
 
-        private async Task<LoginResponse> AuthenticateAsync(ApplicationUser user, string responesMessage)
+        private async Task<AuthenticateResponse> AuthenticateAsync(ApplicationUser user, string responesMessage)
         {
             var accessToken = accessTokenGenerator.GenerateToken(user);
             var refreshToken = refreshTokenGenerator.GenerateToken();
@@ -58,7 +57,7 @@ namespace SelfGuidedTours.Core.Services
 
             await refreshTokenService.CreateAsync(refreshTokenDTO);
             
-            return new LoginResponse()
+            return new AuthenticateResponse()
             {
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
@@ -66,7 +65,7 @@ namespace SelfGuidedTours.Core.Services
             };
         }
 
-        public async Task<string> RegisterAsync(RegisterInputModel model)
+        public async Task<AuthenticateResponse> RegisterAsync(RegisterInputModel model)
         {
             if (await GetByEmailAsync(model.Email) != null)
             {
@@ -98,10 +97,10 @@ namespace SelfGuidedTours.Core.Services
             await repository.AddAsync(userRole);
             await repository.SaveChangesAsync();
 
-            return "User registered successfully!";
+            return await AuthenticateAsync(user, "User registered successfully!");
         }
 
-        public async Task<LoginResponse> LoginAsync(LoginInputModel model)
+        public async Task<AuthenticateResponse> LoginAsync(LoginInputModel model)
         {
             var user = await GetByEmailAsync(model.Email);
 
@@ -125,7 +124,7 @@ namespace SelfGuidedTours.Core.Services
             await refreshTokenService.DeleteAllAsync(userId);
         }
 
-        public async Task<LoginResponse> RefreshAsync(RefreshRequestModel model)
+        public async Task<AuthenticateResponse> RefreshAsync(RefreshRequestModel model)
         {
             var isValidRefreshToken = refreshTokenValidator.Validate(model.RefreshToken);
 

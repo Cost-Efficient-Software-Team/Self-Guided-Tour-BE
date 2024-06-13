@@ -20,7 +20,7 @@ namespace SelfGuidedTours.Api.Controllers
         }
 
         [HttpPost("register")]
-        [ProducesResponseType(typeof(string), 200)]
+        [ProducesResponseType(typeof(AuthenticateResponse), 200)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
         public async Task<IActionResult> Register([FromBody] RegisterInputModel model)
@@ -48,12 +48,12 @@ namespace SelfGuidedTours.Api.Controllers
             {
                 logger.LogError(ex, "Auth/register[POST] - Unexpected error");
 
-                return StatusCode(StatusCodes.Status500InternalServerError, "Internal server error");
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
 
         [HttpPost("login")]
-        [ProducesResponseType(typeof(LoginResponse), 200)]
+        [ProducesResponseType(typeof(AuthenticateResponse), 200)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 401)]
         [ProducesResponseType(typeof(string), 500)]
