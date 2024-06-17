@@ -6,6 +6,7 @@ using SelfGuidedTours.Core.Services.TokenGenerators;
 using SelfGuidedTours.Core.Services.TokenValidators;
 using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data.Models;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace SelfGuidedTours.Core.Services
 {
@@ -44,6 +45,17 @@ namespace SelfGuidedTours.Core.Services
                 .FirstOrDefaultAsync(au => au.Id == userId);
         }
 
+        private long GetTokenExpirationTime(string token)
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var jwtSecurityToken = handler.ReadJwtToken(token);
+           
+            var tokenExp = jwtSecurityToken.Claims.First(claim => claim.Type.Equals("exp")).Value;
+            var ticks = long.Parse(tokenExp);
+            
+            return ticks;
+        }
+
         private async Task<AuthenticateResponse> AuthenticateAsync(ApplicationUser user, string responesMessage)
         {
             var accessToken = accessTokenGenerator.GenerateToken(user);
@@ -61,7 +73,8 @@ namespace SelfGuidedTours.Core.Services
             {
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
-                ResponseMessage = responesMessage
+                ResponseMessage = responesMessage,
+                AccessTokenExpiration = GetTokenExpirationTime(accessToken)
             };
         }
 
