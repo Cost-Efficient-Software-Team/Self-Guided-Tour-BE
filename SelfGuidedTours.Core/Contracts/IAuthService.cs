@@ -1,4 +1,5 @@
 ﻿using SelfGuidedTours.Core.Models.Auth;
+using SelfGuidedTours.Core.Models.ExternalLogin;
 
 namespace SelfGuidedTours.Core.Contracts
 {
@@ -8,5 +9,6 @@ namespace SelfGuidedTours.Core.Contracts
         Task<AuthenticateResponse> LoginAsync(LoginInputModel model);
         Task LogoutAsync(string userId);
         Task<AuthenticateResponse> RefreshAsync(RefreshRequestModel model);
+        Task<AuthenticateResponse> GoogleSignInAsync(GoogleUserDto googleUser);
     }
 }
