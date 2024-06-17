@@ -2,7 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Models.Auth;
-using System.Security.Claims;
+using SelfGuidedTours.Core.Models.ExternalLogin;
+using System.Net.Http.Headers;
 
 namespace SelfGuidedTours.Api.Controllers
 {
@@ -12,11 +13,13 @@ namespace SelfGuidedTours.Api.Controllers
     {
         private readonly IAuthService authService;
         private readonly ILogger<AuthController> logger;
+        private readonly IGoogleAuthService googleAuthService;
 
-        public AuthController(IAuthService authService, ILogger<AuthController> logger)
+        public AuthController(IAuthService authService, ILogger<AuthController> logger, IGoogleAuthService googleAuthService)
         {
             this.authService = authService;
             this.logger = logger;
+            this.googleAuthService = googleAuthService;
         }
 
         [HttpPost("register")]
@@ -141,5 +144,32 @@ namespace SelfGuidedTours.Api.Controllers
         {
             return Ok("User is logged in.");
         }
+
+        
+        [HttpPost("google-signin")]
+        public async Task<IActionResult> HandleGoogleToken([FromBody] GoogleSignInVM model)
+        {
+            if (model == null || string.IsNullOrEmpty(model.IdToken))
+            {
+                return BadRequest("Invalid access token.");
+            }
+
+            try
+            {
+            var userInfo = await googleAuthService.GoogleSignIn(model);
+                return Ok(userInfo);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+
+        }
+
+
+
+      
+
     }
 }
