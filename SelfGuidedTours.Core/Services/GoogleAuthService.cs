@@ -24,7 +24,11 @@ namespace SelfGuidedTours.Core.Services
             {
                 PropertyNameCaseInsensitive = true
             });
-           
+            if (googleUser == null)
+            {
+                throw new Exception("Invalid Google Id Token");
+            }
+
             var userResponse = await authService.GoogleSignInAsync(googleUser);
 
             return userResponse;

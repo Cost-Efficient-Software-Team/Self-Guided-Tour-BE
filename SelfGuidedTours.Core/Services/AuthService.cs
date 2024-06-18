@@ -131,6 +131,11 @@ namespace SelfGuidedTours.Core.Services
         }
         public async Task<AuthenticateResponse> GoogleSignInAsync(GoogleUserDto googleUser)
         {
+            if (googleUser == null)
+            {
+                throw new ArgumentException("Invalid Google Id Token");
+            }
+
             var user = await GetByEmailAsync(googleUser.Email);
 
             if (user == null)
