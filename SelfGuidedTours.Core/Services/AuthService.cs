@@ -144,7 +144,7 @@ namespace SelfGuidedTours.Core.Services
                 {
                     Email = googleUser.Email,
                     UserName = googleUser.Email,
-                    Name = googleUser.Name
+                    Name = googleUser.Name,
                 };
                 var userRole = AssignUserRole(user.Id);
 
