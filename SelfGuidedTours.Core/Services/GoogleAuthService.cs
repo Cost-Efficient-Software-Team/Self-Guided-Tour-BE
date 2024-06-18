@@ -28,7 +28,7 @@ namespace SelfGuidedTours.Core.Services
             {
                 throw new Exception("Invalid Google Id Token");
             }
-
+           
             var userResponse = await authService.GoogleSignInAsync(googleUser);
 
             return userResponse;
