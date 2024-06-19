@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Models.Auth;
+using SelfGuidedTours.Core.Models.ExternalLogin;
 using SelfGuidedTours.Core.Services.TokenGenerators;
 using SelfGuidedTours.Core.Services.TokenValidators;
 using SelfGuidedTours.Infrastructure.Common;
@@ -100,11 +101,9 @@ namespace SelfGuidedTours.Core.Services
                 PasswordHash = hasher.HashPassword(null!, model.Password) // Hash the password
             };
             //Assign user role
-            var userRole = new IdentityUserRole<string>
-            {
-                UserId = user.Id,
-                RoleId = "4f8554d2-cfaa-44b5-90ce-e883c804ae90" //User Role Id
-            };
+            var userRole = AssignUserRole(user.Id);
+
+
 
             await repository.AddAsync(user);
             await repository.AddAsync(userRole);
@@ -131,7 +130,32 @@ namespace SelfGuidedTours.Core.Services
 
             return await AuthenticateAsync(user, "Successfully logged in!");
         }
+        public async Task<AuthenticateResponse> GoogleSignInAsync(GoogleUserDto googleUser)
+        {
+            if (googleUser == null)
+            {
+                throw new ArgumentException("Invalid Google Id Token");
+            }
 
+            var user = await GetByEmailAsync(googleUser.Email);
+
+            if (user == null)
+            {
+                user = new ApplicationUser
+                {
+                    Email = googleUser.Email,
+                    UserName = googleUser.Email,
+                    Name = googleUser.Name,
+                };
+                var userRole = AssignUserRole(user.Id);
+
+                await repository.AddAsync(userRole);
+                await repository.AddAsync(user);
+                await repository.SaveChangesAsync();
+            }
+
+            return await AuthenticateAsync(user, "Successfully logged in!");
+        }
         public async Task LogoutAsync(string userId)
         {
             await refreshTokenService.DeleteAllAsync(userId);
@@ -164,6 +188,13 @@ namespace SelfGuidedTours.Core.Services
 
             return await AuthenticateAsync(user, "Successfully got new tokens!");
         }
-
+        private IdentityUserRole<string> AssignUserRole(string userId)
+        {
+            return new IdentityUserRole<string>
+            {
+                UserId = userId,
+                RoleId = "4f8554d2-cfaa-44b5-90ce-e883c804ae90" //User Role Id
+            };
+        }
     }
 }

@@ -15,12 +15,13 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+        public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
         {
             //Inject services here
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+            services.AddScoped<IGoogleAuthService, GoogleAuthService>();
 
             //Token generators
             services.AddScoped<AccessTokenGenerator>();
@@ -28,17 +29,19 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<TokenGenerator>();
             services.AddScoped<RefreshTokenValidator>();
 
-          
-             services.AddCors(Options =>
-            {
-                Options.AddPolicy("CorsPolicy", builder =>
-                {
-                    builder.WithOrigins("http://localhost:3000") // This is the Client app URL TODO: Change this after FE deployment
-                    .AllowAnyMethod()
-                    .AllowAnyHeader();
-                });
-            });
-          
+
+            services.AddCors(Options =>
+           {
+               Options.AddPolicy("CorsPolicy", builder =>
+               {
+                   builder
+                   .WithOrigins("http://localhost:3000") // This is the Client app URL TODO: Change this after FE deployment
+                   .AllowAnyMethod()
+                   .AllowCredentials()
+                   .AllowAnyHeader();
+               });
+           });
+
 
             return services;
         }
@@ -99,6 +102,7 @@ namespace Microsoft.Extensions.DependencyInjection
                         ClockSkew = TimeSpan.Zero
                     };
                 });
+
 
             return services;
         }
