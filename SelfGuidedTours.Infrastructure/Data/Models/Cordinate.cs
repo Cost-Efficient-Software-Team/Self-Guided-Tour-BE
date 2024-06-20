@@ -15,5 +15,9 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         [Required]
         [Column(TypeName = "decimal(10, 2)")]
         public decimal Longitude { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        public DateTime? UpdatedAt { get; set; }
     }
 }

@@ -24,5 +24,6 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
 
         [Required]
         public DateTime PaymentDate { get; set; } = DateTime.Now;
+        public DateTime? UpdatedAt { get; set; }
     }
 }

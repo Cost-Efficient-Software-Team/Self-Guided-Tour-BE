@@ -27,6 +27,8 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         [Column(TypeName = "decimal(10, 2)")]
         public decimal? Price { get; set; }
         [Required]
+        public string Location { get; set; } = null!;
+        [Required]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         //TODO: Add Image and Video Urls validation
         [Required]
@@ -35,7 +37,8 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         public string ThumbnailImageUrl { get; set; } = null!;
         [Required]
         [Comment("Estiamted duration in minutes")]
-        public int EstimatedDuration { get; set; } 
+        public int EstimatedDuration { get; set; }
+        public DateTime? UpdatedAt { get; set; }
 
         public virtual ICollection<Landmark> Landmarks { get; set; } = new HashSet<Landmark>();
         public virtual ICollection<Payment> Payments { get; set; } = new HashSet<Payment>();

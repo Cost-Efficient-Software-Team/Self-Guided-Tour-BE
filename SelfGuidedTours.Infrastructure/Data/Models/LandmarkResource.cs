@@ -24,6 +24,8 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
             ErrorMessage = UrlLengthErrorMessage)]
         //TODO: figure out some url regex validation
         public string Url { get; set; } = null!;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime? UpdatedAt { get; set; }
 
     }
 }
