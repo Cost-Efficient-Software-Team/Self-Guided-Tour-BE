@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using static SelfGuidedTours.Common.ValidationConstants.ValidationConstants.Tour;
 using static SelfGuidedTours.Common.MessageConstants.ErrorMessages;
 using Microsoft.EntityFrameworkCore;
+using SelfGuidedTours.Infrastructure.Data.Enums;
 namespace SelfGuidedTours.Infrastructure.Data.Models
 {
     public class Tour
@@ -38,6 +39,8 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         [Required]
         [Comment("Estiamted duration in minutes")]
         public int EstimatedDuration { get; set; }
+        [Comment("On create, status is pending until approved or rejected by admin.")]
+        public Status Status { get; set; } = Status.Pending;
         public DateTime? UpdatedAt { get; set; }
 
         public virtual ICollection<Landmark> Landmarks { get; set; } = new HashSet<Landmark>();
