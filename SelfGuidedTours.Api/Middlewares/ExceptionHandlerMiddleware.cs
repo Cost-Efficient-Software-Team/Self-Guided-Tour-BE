@@ -22,33 +22,39 @@ namespace SelfGuidedTours.Api.Middlewares
             }
             catch(ArgumentException ex)
             {
+                string errorType = "https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.1";
                 logger.LogError($"Invalid argument: {ex} ");
-                await HandleExceptionAsync(httpContext, ex, HttpStatusCode.BadRequest);
+                await HandleExceptionAsync(httpContext, ex, HttpStatusCode.BadRequest, errorType);
             }
             catch (InvalidOperationException ex)
             {
+                string errorType = "https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.1";
                 logger.LogError($"Invalid operation: {ex} ");
-                await HandleExceptionAsync(httpContext, ex, HttpStatusCode.BadRequest);
+                await HandleExceptionAsync(httpContext, ex, HttpStatusCode.BadRequest, errorType);
             }
             catch (UnauthorizedAccessException ex)
             {
+                string errorType = "https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.2";
                 logger.LogError($"Unauthorized access: {ex} ");
-                await HandleExceptionAsync(httpContext, ex, HttpStatusCode.Unauthorized);
+                await HandleExceptionAsync(httpContext, ex, HttpStatusCode.Unauthorized, errorType);
             }
             catch (KeyNotFoundException ex)
             {
+                string errorType = "https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.5";
                 logger.LogError($"Key not found: {ex} ");
-                await HandleExceptionAsync(httpContext, ex, HttpStatusCode.NotFound);
+                await HandleExceptionAsync(httpContext, ex, HttpStatusCode.NotFound, errorType);
             }
             catch (TimeoutException ex)
             {
+                string errorType = "https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.9";
                 logger.LogError($"Request timed out: {ex} ");
-                await HandleExceptionAsync(httpContext, ex, HttpStatusCode.RequestTimeout);
+                await HandleExceptionAsync(httpContext, ex, HttpStatusCode.RequestTimeout, errorType);
             }
             catch (Exception ex)
             {
+                string errorType = "https://datatracker.ietf.org/doc/html/rfc9110#section-15.6.1";
                 logger.LogError($"Unexpected error: {ex} ");
-                await HandleExceptionAsync(httpContext, ex, HttpStatusCode.InternalServerError);
+                await HandleExceptionAsync(httpContext, ex, HttpStatusCode.InternalServerError, errorType);
             }
         }
         /// <summary>
@@ -57,7 +63,8 @@ namespace SelfGuidedTours.Api.Middlewares
         /// <param name="context"> HTTP Context</param>
         /// <param name="exception">The caught exception, that needs to be handled</param>
         /// <param name="statusCode">The HTTP status code that gets converted to int</param>
-        private Task HandleExceptionAsync(HttpContext context, Exception exception, HttpStatusCode statusCode)
+        /// <param name="errorType">The type of the error and a link to documentation about it, following REST principals</param>
+        private Task HandleExceptionAsync(HttpContext context, Exception exception, HttpStatusCode statusCode, string errorType)
         {
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)statusCode;
@@ -66,7 +73,8 @@ namespace SelfGuidedTours.Api.Middlewares
             {
                 ErrorId = Guid.NewGuid(),
                 StatusCode = context.Response.StatusCode,
-                Message = exception.Message
+                Message = exception.Message,
+                Type = errorType
             }.ToString());
         }
 
@@ -78,7 +86,10 @@ namespace SelfGuidedTours.Api.Middlewares
             public Guid ErrorId { get; set; }
             public int StatusCode { get; set; }
             public string Message { get; set; } = string.Empty;
+            public string Type { get; set; } = string.Empty;
 
+
+            //Override the ToString method to return the object as a JSON string
             public override string ToString()
             {
                 return JsonSerializer.Serialize(this);
