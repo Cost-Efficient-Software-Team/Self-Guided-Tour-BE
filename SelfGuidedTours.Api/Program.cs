@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi.Models;
+using SelfGuidedTours.Api.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,6 +54,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// Add custom middleware for exception handling to the pipeline
+app.UseMiddleware<ExceptionHandlerMiddleware>(); 
 
 app.UseCors("CorsPolicy"); // apply CORS policy from ServiceCollectionExtensions.cs
 app.UseHttpsRedirection();
