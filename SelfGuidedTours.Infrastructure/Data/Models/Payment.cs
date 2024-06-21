@@ -9,8 +9,8 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         public int PaymentId { get; set; }
 
         [Required]
-        [ForeignKey("User")]
         public string UserId { get; set; } = null!;
+        [ForeignKey(nameof(UserId))]
         public ApplicationUser User { get; set; } = null!;
 
         [Required]
@@ -24,5 +24,6 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
 
         [Required]
         public DateTime PaymentDate { get; set; } = DateTime.Now;
+        public DateTime? UpdatedAt { get; set; }
     }
 }

@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SelfGuidedTours.Infrastructure.Data.Models
 {
@@ -13,9 +9,15 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         public int CoordinateId { get; set; }
 
         [Required]
+        [Column(TypeName = "decimal(10, 2)")]
         public decimal Latitude { get; set; }
 
         [Required]
+        [Column(TypeName = "decimal(10, 2)")]
         public decimal Longitude { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        public DateTime? UpdatedAt { get; set; }
     }
 }
