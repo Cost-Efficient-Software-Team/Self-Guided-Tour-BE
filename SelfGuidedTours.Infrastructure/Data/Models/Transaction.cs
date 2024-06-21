@@ -22,5 +22,7 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
 
         [Required]
         public string TransactionType { get; set; } = null!; // Should be 'deposit' or 'withdrawal' could be a enum
+        public DateTime? UpdatedAt { get; set; }
+
     }
 }

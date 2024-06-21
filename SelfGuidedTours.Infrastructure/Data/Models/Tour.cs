@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using static SelfGuidedTours.Common.ValidationConstants.ValidationConstants.Tour;
 using static SelfGuidedTours.Common.MessageConstants.ErrorMessages;
 using Microsoft.EntityFrameworkCore;
+using SelfGuidedTours.Infrastructure.Data.Enums;
 namespace SelfGuidedTours.Infrastructure.Data.Models
 {
     public class Tour
@@ -27,6 +28,8 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         [Column(TypeName = "decimal(10, 2)")]
         public decimal? Price { get; set; }
         [Required]
+        public string Location { get; set; } = null!;
+        [Required]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         //TODO: Add Image and Video Urls validation
         [Required]
@@ -35,7 +38,10 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         public string ThumbnailImageUrl { get; set; } = null!;
         [Required]
         [Comment("Estiamted duration in minutes")]
-        public int EstimatedDuration { get; set; } 
+        public int EstimatedDuration { get; set; }
+        [Comment("On create, status is pending until approved or rejected by admin.")]
+        public Status Status { get; set; } = Status.Pending;
+        public DateTime? UpdatedAt { get; set; }
 
         public virtual ICollection<Landmark> Landmarks { get; set; } = new HashSet<Landmark>();
         public virtual ICollection<Payment> Payments { get; set; } = new HashSet<Payment>();

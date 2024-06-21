@@ -14,5 +14,6 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         public virtual ICollection<Review> Reviews { get; set; } = new HashSet<Review>();
         public virtual ICollection<UserTours> UserTours { get; set; } = new HashSet<UserTours>();
         public Wallet Wallet { get; set; } = null!;
+        public DateTime? UpdatedAt { get; set;}
     }
 }

@@ -34,7 +34,10 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         public int CoordinateId { get; set; }
         [ForeignKey(nameof(CoordinateId))]
         public Coordinate Coordinate { get; set; } = null!;
-      
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime? UpdatedAt { get; set; }
+
+
 
     }
        
