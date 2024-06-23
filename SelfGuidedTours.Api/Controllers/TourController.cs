@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 using SelfGuidedTours.Core.Models.Dto;
 using SelfGuidedTours.Infrastructure.Data.Enums;
 using System.Security.Claims;
+using SelfGuidedTours.Core.Models;
 
 namespace SelfGuidedTours.Api.Controllers
 {
@@ -38,9 +39,8 @@ namespace SelfGuidedTours.Api.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    var user = User?.Identity?.Name;
-                    var userId = User.FindFirstValue("id");
-                    if (user == null || userId == null)
+                    var creatorId = User.FindFirstValue("id");
+                    if (creatorId == null)
                     {
                         _response.StatusCode = HttpStatusCode.Unauthorized;
                         _response.IsSuccess = false;
@@ -57,7 +57,7 @@ namespace SelfGuidedTours.Api.Controllers
                         CreatedAt = DateTime.Now,
                         ThumbnailImageUrl = tourCreateDTO.ThumbnailImageUrl,
                         EstimatedDuration = tourCreateDTO.EstimatedDuration,
-                        CreatorId = userId,
+                        CreatorId = creatorId,
                         Status = Status.Pending,
                         UpdatedAt = DateTime.Now
                     };
@@ -118,14 +118,28 @@ namespace SelfGuidedTours.Api.Controllers
 
         // Update
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateTour(int id, Tour tour)
+        public async Task<IActionResult> UpdateTour(int id, [FromForm] TourUpdateDTO tourUpdateDTO)
         {
-            if (id != tour.TourId)
+            if (id != tourUpdateDTO.TourId)
             {
                 return BadRequest();
             }
 
+            var tour = await _context.Tours.FindAsync(id);
+            if (tour == null)
+            {
+                return NotFound();
+            }
+
+            tour.Title = tourUpdateDTO.Title;
+            tour.Description = tourUpdateDTO.Description;
+            tour.Price = tourUpdateDTO.Price;
+            tour.Location = tourUpdateDTO.Location;
+            tour.ThumbnailImageUrl = tourUpdateDTO.ThumbnailImageUrl;
+            tour.EstimatedDuration = tourUpdateDTO.EstimatedDuration;
             tour.UpdatedAt = DateTime.Now;
+            tour.Status = Status.Pending; // Set status to pending on update
+
             _context.Entry(tour).State = EntityState.Modified;
 
             try
@@ -167,13 +181,5 @@ namespace SelfGuidedTours.Api.Controllers
         {
             return _context.Tours.Any(e => e.TourId == id);
         }
-    }
-
-    public class ApiResponse
-    {
-        public HttpStatusCode StatusCode { get; set; }
-        public bool IsSuccess { get; set; } = true;
-        public List<string> ErrorMessages { get; set; } = new List<string>();
-        public object Result { get; set; }
     }
 }

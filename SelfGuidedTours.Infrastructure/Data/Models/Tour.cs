@@ -23,8 +23,8 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         [Required]
         [StringLength(DescriptionMaxLength, MinimumLength = DescriptionMinLength, ErrorMessage = LengthErrorMessage)]
         public string Description { get; set; } = null!;
-        [Column(TypeName = "decimal(10, 2)")]
 
+        [Column(TypeName = "decimal(10, 2)")]
         public decimal? Price { get; set; }
 
         [Required]
@@ -32,11 +32,10 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
 
         [Required]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
-        //TODO: Add Image and Video Urls validation
 
+        //TODO: Add Image and Video Urls validation
         [Required]
         [MaxLength(ThumbnailImageUrlMaxLength, ErrorMessage = UrlLengthErrorMessage)]
-
         public string ThumbnailImageUrl { get; set; } = null!;
 
         [Required]
