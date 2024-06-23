@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 using SelfGuidedTours.Core.Models.Dto;
 using SelfGuidedTours.Infrastructure.Data.Enums;
+using System.Security.Claims;
 
 namespace SelfGuidedTours.Api.Controllers
 {
@@ -37,17 +38,15 @@ namespace SelfGuidedTours.Api.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    var user = await _userManager.GetUserAsync(User);
-                    if (user == null)
+                    var user = User?.Identity?.Name;
+                    var userId = User.FindFirstValue("id");
+                    if (user == null || userId == null)
                     {
                         _response.StatusCode = HttpStatusCode.Unauthorized;
                         _response.IsSuccess = false;
                         _response.ErrorMessages.Add("Unauthorized user.");
                         return Unauthorized(_response);
                     }
-
-                    var userId = user.Id;
-                    var userName = user.UserName;
 
                     Tour tourToCreate = new Tour
                     {

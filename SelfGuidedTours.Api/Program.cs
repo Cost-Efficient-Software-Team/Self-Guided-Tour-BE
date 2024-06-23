@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi.Models;
+using SelfGuidedTours.Api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
