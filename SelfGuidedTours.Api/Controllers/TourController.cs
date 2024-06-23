@@ -23,12 +23,13 @@ namespace SelfGuidedTours.Api.Controllers
     {
         private readonly SelfGuidedToursDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly ApiResponse _response = new ApiResponse();
+        private readonly ApiResponse _response;
 
         public TourController(SelfGuidedToursDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _userManager = userManager;
+            _response = new ApiResponse();
         }
 
         // Create
@@ -118,63 +119,92 @@ namespace SelfGuidedTours.Api.Controllers
 
         // Update
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateTour(int id, [FromForm] TourUpdateDTO tourUpdateDTO)
+        public async Task<ActionResult<ApiResponse>> UpdateTour(int id, [FromForm] TourUpdateDTO tourUpdateDTO)
         {
-            if (id != tourUpdateDTO.TourId)
-            {
-                return BadRequest();
-            }
-
-            var tour = await _context.Tours.FindAsync(id);
-            if (tour == null)
-            {
-                return NotFound();
-            }
-
-            tour.Title = tourUpdateDTO.Title;
-            tour.Description = tourUpdateDTO.Description;
-            tour.Price = tourUpdateDTO.Price;
-            tour.Location = tourUpdateDTO.Location;
-            tour.ThumbnailImageUrl = tourUpdateDTO.ThumbnailImageUrl;
-            tour.EstimatedDuration = tourUpdateDTO.EstimatedDuration;
-            tour.UpdatedAt = DateTime.Now;
-            tour.Status = Status.Pending; // Set status to pending on update
-
-            _context.Entry(tour).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!TourExists(id))
+                if (ModelState.IsValid)
                 {
-                    return NotFound();
+                    if (tourUpdateDTO == null || id != tourUpdateDTO.TourId)
+                    {
+                        _response.StatusCode = HttpStatusCode.BadRequest;
+                        _response.IsSuccess = false;
+                        return BadRequest(_response);
+                    }
+
+                    var tour = await _context.Tours.FindAsync(id);
+                    if (tour == null)
+                    {
+                        _response.StatusCode = HttpStatusCode.NotFound;
+                        _response.IsSuccess = false;
+                        return NotFound(_response);
+                    }
+
+                    tour.Title = tourUpdateDTO.Title;
+                    tour.Description = tourUpdateDTO.Description;
+                    tour.Price = tourUpdateDTO.Price;
+                    tour.Location = tourUpdateDTO.Location;
+                    tour.ThumbnailImageUrl = tourUpdateDTO.ThumbnailImageUrl;
+                    tour.EstimatedDuration = tourUpdateDTO.EstimatedDuration;
+                    tour.UpdatedAt = DateTime.Now;
+                    tour.Status = Status.Pending; 
+
+                    _context.Entry(tour).State = EntityState.Modified;
+
+                    await _context.SaveChangesAsync();
+                    _response.StatusCode = HttpStatusCode.NoContent;
+                    return Ok(_response);
                 }
                 else
                 {
-                    throw;
+                    _response.IsSuccess = false;
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.ErrorMessages = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(_response);
                 }
             }
-
-            return NoContent();
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.ErrorMessages = new List<string> { ex.ToString() };
+                return StatusCode((int)HttpStatusCode.InternalServerError, _response);
+            }
         }
 
         // Delete
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteTour(int id)
+        [HttpDelete("{id:int}")]
+        public async Task<ActionResult<ApiResponse>> DeleteTour(int id)
         {
-            var tour = await _context.Tours.FindAsync(id);
-            if (tour == null)
+            try
             {
-                return NotFound();
+                if (id == 0)
+                {
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.IsSuccess = false;
+                    return BadRequest(_response);
+                }
+
+                var tour = await _context.Tours.FindAsync(id);
+                if (tour == null)
+                {
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.IsSuccess = false;
+                    return BadRequest(_response);
+                }
+
+                _context.Tours.Remove(tour);
+                await _context.SaveChangesAsync();
+
+                _response.StatusCode = HttpStatusCode.NoContent;
+                return Ok(_response);
             }
-
-            _context.Tours.Remove(tour);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+                _response.ErrorMessages = new List<string> { ex.ToString() };
+                return StatusCode((int)HttpStatusCode.InternalServerError, _response);
+            }
         }
 
         private bool TourExists(int id)
