@@ -87,9 +87,16 @@ namespace SelfGuidedTours.Api.Controllers
         }
 
         // Read by Id
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Tour>> GetTour(int id)
+        [HttpGet("{id:int}", Name = "GetTour")]
+        public async Task<IActionResult> GetTour(int id)
         {
+            if (id == 0)
+            {
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                _response.IsSuccess = false;
+                return BadRequest(_response);
+            }
+
             var tour = await _context.Tours
                 .Include(t => t.Landmarks)
                 .Include(t => t.Payments)
@@ -99,22 +106,30 @@ namespace SelfGuidedTours.Api.Controllers
 
             if (tour == null)
             {
-                return NotFound();
+                _response.StatusCode = HttpStatusCode.NotFound;
+                _response.IsSuccess = false;
+                return NotFound(_response);
             }
 
-            return tour;
+            _response.Result = tour;
+            _response.StatusCode = HttpStatusCode.OK;
+            return Ok(_response);
         }
 
         // Read all
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Tour>>> GetTours()
+        public async Task<IActionResult> GetTours()
         {
-            return await _context.Tours
+            var tours = await _context.Tours
                 .Include(t => t.Landmarks)
                 .Include(t => t.Payments)
                 .Include(t => t.Reviews)
                 .Include(t => t.UserTours)
                 .ToListAsync();
+
+            _response.Result = tours;
+            _response.StatusCode = HttpStatusCode.OK;
+            return Ok(_response);
         }
 
         // Update
