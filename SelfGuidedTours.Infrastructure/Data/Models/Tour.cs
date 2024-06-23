@@ -17,30 +17,35 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         public ApplicationUser Creator { get; set; } = null!;
 
         [Required]
-        [StringLength(TitleMaxLength,MinimumLength = TitleMinLength,
-            ErrorMessage =LengthErrorMessage)]
+        [StringLength(TitleMaxLength,MinimumLength = TitleMinLength, ErrorMessage = LengthErrorMessage)]
         public string Title { get; set; } = null!;
        
         [Required]
-        [StringLength(DescriptionMaxLength, MinimumLength = DescriptionMinLength,
-                       ErrorMessage = LengthErrorMessage)]
+        [StringLength(DescriptionMaxLength, MinimumLength = DescriptionMinLength, ErrorMessage = LengthErrorMessage)]
         public string Description { get; set; } = null!;
         [Column(TypeName = "decimal(10, 2)")]
+
         public decimal? Price { get; set; }
+
         [Required]
         public string Location { get; set; } = null!;
+
         [Required]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         //TODO: Add Image and Video Urls validation
+
         [Required]
-        [MaxLength(ThumbnailImageUrlMaxLength,
-            ErrorMessage = UrlLengthErrorMessage)]
+        [MaxLength(ThumbnailImageUrlMaxLength, ErrorMessage = UrlLengthErrorMessage)]
+
         public string ThumbnailImageUrl { get; set; } = null!;
+
         [Required]
-        [Comment("Estiamted duration in minutes")]
+        [Comment("Estimated duration in minutes")]
         public int EstimatedDuration { get; set; }
+
         [Comment("On create, status is pending until approved or rejected by admin.")]
         public Status Status { get; set; } = Status.Pending;
+
         public DateTime? UpdatedAt { get; set; }
 
         public virtual ICollection<Landmark> Landmarks { get; set; } = new HashSet<Landmark>();
