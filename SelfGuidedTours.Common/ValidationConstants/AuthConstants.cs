@@ -9,7 +9,14 @@
         {
             public const int PasswordMinLength = 6;
 
+            public const string InvalidPasswordMessage = "Password must contain at least 6 characters, one uppercase letter, one lowercase letter, one digit and one special character!";
+
             public const string PasswordsDoNotMatchMessage = "Passwords do not match!";
+
+            public const string EmailRegex = @"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,})+)$";
+
+            public const string PasswordRegex = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{6,}$";
+
         }
     }
 }
