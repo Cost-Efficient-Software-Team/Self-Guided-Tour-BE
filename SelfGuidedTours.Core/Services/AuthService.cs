@@ -103,8 +103,6 @@ namespace SelfGuidedTours.Core.Services
             //Assign user role
             var userRole = AssignUserRole(user.Id);
 
-
-
             await repository.AddAsync(user);
             await repository.AddAsync(userRole);
             await repository.SaveChangesAsync();
