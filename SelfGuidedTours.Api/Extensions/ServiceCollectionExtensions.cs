@@ -22,6 +22,7 @@ namespace SelfGuidedTours.Api.Extensions
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IRefreshTokenService, RefreshTokenService>();
             services.AddScoped<IGoogleAuthService, GoogleAuthService>();
+            services.AddScoped<TourService>();
 
             //Token generators
             services.AddScoped<AccessTokenGenerator>();
