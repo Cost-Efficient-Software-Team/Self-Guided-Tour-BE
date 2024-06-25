@@ -225,26 +225,5 @@ namespace SelfGuidedTours.Core.Services
             return response;
         }
 
-        public async Task<AuthenticateResponse> ChanghePasswordAsync(ChangePasswordModel model)
-        {
-            var user = await GetByIdAsync(model.UserId);
-
-            if (user is null) throw new UnauthorizedAccessException("User not found");
-            //User created via external login doesent have an assigned password
-            if (user.PasswordHash is null) throw new UnauthorizedAccessException("User has no assigned password!");
-
-            var hasher = new PasswordHasher<ApplicationUser>();
-
-            var result = hasher.VerifyHashedPassword(user, user.PasswordHash, model.CurrentPassword);
-
-            if (result != PasswordVerificationResult.Success) throw new UnauthorizedAccessException("Invalid password");
-            //Update the user's password with the new one
-            user.PasswordHash = hasher.HashPassword(user, model.NewPassword);
-
-            await repository.UpdateAsync(user);
-            await repository.SaveChangesAsync();
-            //TODO: Fix response
-            return new AuthenticateResponse();
-        }
     }
 }
