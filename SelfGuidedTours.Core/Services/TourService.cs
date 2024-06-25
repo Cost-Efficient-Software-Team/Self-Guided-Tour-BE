@@ -27,12 +27,9 @@ namespace SelfGuidedTours.Core.Services
                 Description = model.Description,
                 Price = model.Price,
                 Location = model.Location,
-                CreatedAt = DateTime.Now,
                 ThumbnailImageUrl = model.ThumbnailImageUrl,
                 EstimatedDuration = model.EstimatedDuration,
                 CreatorId = creatorId,
-                Status = Status.Pending,
-                UpdatedAt = DateTime.Now
             };
 
             await repository.AddAsync(tourToAdd);
