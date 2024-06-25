@@ -10,5 +10,7 @@ namespace SelfGuidedTours.Core.Contracts
         Task LogoutAsync(string userId);
         Task<AuthenticateResponse> RefreshAsync(RefreshRequestModel model);
         Task<AuthenticateResponse> GoogleSignInAsync(GoogleUserDto googleUser);
+        Task<AuthenticateResponse> ChanghePasswordAsync(ChangePasswordModel model);
+        
     }
 }
