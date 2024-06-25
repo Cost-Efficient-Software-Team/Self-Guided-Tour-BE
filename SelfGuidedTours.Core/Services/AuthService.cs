@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SelfGuidedTours.Core.Contracts;
+using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Models.Auth;
 using SelfGuidedTours.Core.Models.ExternalLogin;
 using SelfGuidedTours.Core.Services.TokenGenerators;
@@ -8,6 +9,7 @@ using SelfGuidedTours.Core.Services.TokenValidators;
 using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 
 namespace SelfGuidedTours.Core.Services
 {
@@ -23,7 +25,8 @@ namespace SelfGuidedTours.Core.Services
             AccessTokenGenerator accessTokenGenerator,
             RefreshTokenGenerator refreshTokenGenerator,
             RefreshTokenValidator refreshTokenValidator,
-            IRefreshTokenService refreshTokenService)
+            IRefreshTokenService refreshTokenService
+            )
         {
             this.repository = repository;
             this.accessTokenGenerator = accessTokenGenerator;
@@ -195,7 +198,7 @@ namespace SelfGuidedTours.Core.Services
             };
         }
 
-        public async Task<AuthenticateResponse> ChanghePasswordAsync(ChangePasswordModel model)
+        public async Task<ApiResponse> ChanghePasswordAsync(ChangePasswordModel model)
         {
             var user = await GetByIdAsync(model.UserId);
 
@@ -214,7 +217,12 @@ namespace SelfGuidedTours.Core.Services
             await repository.UpdateAsync(user);
             await repository.SaveChangesAsync();
             //TODO: Fix response
-            return new AuthenticateResponse();
+            var response = new ApiResponse
+            {
+                StatusCode = HttpStatusCode.OK,
+                Result = "Password changed successfully!"
+            };
+            return response;
         }
     }
 }
