@@ -18,27 +18,25 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         public int StopOrder { get; set; }
 
         [Required]
-        [StringLength(NameMaxLength, MinimumLength = NameMinLength,
-            ErrorMessage = LengthErrorMessage)]
+        [StringLength(NameMaxLength, MinimumLength = NameMinLength, ErrorMessage = LengthErrorMessage)]
         public string Name { get; set; } = null!;
+
         [Required]
-        [StringLength(DescriptionMaxLength, MinimumLength = DescriptionMinLength,
-            ErrorMessage = LengthErrorMessage)]
+        [StringLength(DescriptionMaxLength, MinimumLength = DescriptionMinLength, ErrorMessage = LengthErrorMessage)]
         public string Description { get; set; } = null!;
+
         [Required]
-        [StringLength(HistoryMaxLength, MinimumLength = HistoryMinLength,
-            ErrorMessage = LengthErrorMessage)]
+        [StringLength(HistoryMaxLength, MinimumLength = HistoryMinLength, ErrorMessage = LengthErrorMessage)]
         public string History { get; set; } = null!;
 
         [Required]
         public int CoordinateId { get; set; }
+
         [ForeignKey(nameof(CoordinateId))]
         public Coordinate Coordinate { get; set; } = null!;
+
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+
         public DateTime? UpdatedAt { get; set; }
-
-
-
     }
-       
 }
