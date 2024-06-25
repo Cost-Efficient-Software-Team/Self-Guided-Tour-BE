@@ -50,10 +50,10 @@ namespace SelfGuidedTours.Core.Services
         {
             var handler = new JwtSecurityTokenHandler();
             var jwtSecurityToken = handler.ReadJwtToken(token);
-           
+
             var tokenExp = jwtSecurityToken.Claims.First(claim => claim.Type.Equals("exp")).Value;
             var ticks = long.Parse(tokenExp);
-            
+
             return ticks;
         }
 
@@ -69,7 +69,7 @@ namespace SelfGuidedTours.Core.Services
             };
 
             await refreshTokenService.CreateAsync(refreshTokenDTO);
-            
+
             return new AuthenticateResponse()
             {
                 AccessToken = accessToken,
@@ -172,7 +172,7 @@ namespace SelfGuidedTours.Core.Services
 
             var refreshTokenDTO = await refreshTokenService.GetByTokenAsync(model.RefreshToken);
 
-            if(refreshTokenDTO == null)
+            if (refreshTokenDTO == null)
             {
                 throw new ArgumentException("Refresh token was not found!");
             }
@@ -181,7 +181,7 @@ namespace SelfGuidedTours.Core.Services
 
             var user = await GetByIdAsync(refreshTokenDTO.UserId);
 
-            if(user == null)
+            if (user == null)
             {
                 throw new ArgumentException("User was not found!");
             }
@@ -195,6 +195,28 @@ namespace SelfGuidedTours.Core.Services
                 UserId = userId,
                 RoleId = "4f8554d2-cfaa-44b5-90ce-e883c804ae90" //User Role Id
             };
+        }
+
+        public async Task<AuthenticateResponse> ChanghePasswordAsync(ChangePasswordModel model)
+        {
+            var user = await GetByIdAsync(model.UserId);
+
+            if (user is null) throw new UnauthorizedAccessException("User not found");
+            //User created via external login doesent have an assigned password
+            if (user.PasswordHash is null) throw new UnauthorizedAccessException("User has no assigned password!");
+
+            var hasher = new PasswordHasher<ApplicationUser>();
+
+            var result = hasher.VerifyHashedPassword(user, user.PasswordHash, model.CurrentPassword);
+
+            if (result != PasswordVerificationResult.Success) throw new UnauthorizedAccessException("Invalid password");
+            //Update the user's password with the new one
+            user.PasswordHash = hasher.HashPassword(user, model.NewPassword);
+
+            await repository.UpdateAsync(user);
+            await repository.SaveChangesAsync();
+            //TODO: Fix response
+            return new AuthenticateResponse();
         }
     }
 }
