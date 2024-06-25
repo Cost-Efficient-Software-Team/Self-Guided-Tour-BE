@@ -7,17 +7,19 @@ namespace SelfGuidedTours.Core.Models.Auth
     public class RegisterInputModel
     {
         [Display(Name = nameof(Email))]
+        [EmailAddress]
         [Required(ErrorMessage = RequiredMessage)]
-        [EmailAddress(ErrorMessage = InvalidEmailAddressMessage)]
+        [RegularExpression(EmailRegex, ErrorMessage = InvalidEmailAddressMessage)]
         public string Email { get; set; } = null!;
 
         [Display(Name = nameof(Name))]
         [Required(ErrorMessage = RequiredMessage)]
         public string Name { get; set; } = null!;
 
-        [Display(Name = nameof(Password))]
         [Required(ErrorMessage = RequiredMessage)]
+        [Display(Name = nameof(Password))]
         [MinLength(PasswordMinLength, ErrorMessage = LengthErrorMessage)]
+        [RegularExpression(PasswordRegex, ErrorMessage = InvalidPasswordMessage)]
         public string Password { get; set; } = null!;
 
         [Display(Name = "Repeat Password")]

@@ -36,7 +36,7 @@ namespace SelfGuidedTours.Api.Extensions
                Options.AddPolicy("CorsPolicy", builder =>
                {
                    builder
-                   .WithOrigins("http://localhost:3000") // This is the Client app URL TODO: Change this after FE deployment
+                   .WithOrigins("http://localhost:3000", "https://self-guided-tour-fe.vercel.app/") // This will work for the local enviroment and with the current deployment URL
                    .AllowAnyMethod()
                    .AllowCredentials()
                    .AllowAnyHeader();
