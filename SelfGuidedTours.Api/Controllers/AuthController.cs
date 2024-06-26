@@ -192,6 +192,7 @@ namespace SelfGuidedTours.Api.Controllers
             };
 
             var response = await authService.ChanghePasswordAsync(changePasswordModel);
+            // In case something goes wrong, an exception is thrown in the authService and it gets automaticaly caught from the middleware
 
             return Ok(response);
         }
