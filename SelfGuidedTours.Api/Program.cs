@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using SelfGuidedTours.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,11 +50,10 @@ builder.Services.AddSwaggerGen(options =>
 var app = builder.Build();
 
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+//Apply swagger middleware on every enviroment
+app.UseSwagger();
+app.UseSwaggerUI();
+
 
 app.UseCors("CorsPolicy"); // apply CORS policy from ServiceCollectionExtensions.cs
 app.UseHttpsRedirection();
@@ -61,5 +62,16 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+//Apply migrations on startup if in production
+if (app.Environment.IsProduction())
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
+        var context = services.GetRequiredService<SelfGuidedToursDbContext>();
+        context.Database.Migrate();
+    }
+}
 
 app.Run();
