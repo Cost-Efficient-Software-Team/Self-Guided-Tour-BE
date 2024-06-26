@@ -198,7 +198,7 @@ namespace SelfGuidedTours.Core.Services
             };
         }
 
-        public async Task<ApiResponse> ChanghePasswordAsync(ChangePasswordModel model)
+        public async Task<ApiResponse> ChangePasswordAsync(ChangePasswordModel model)
         {
             if (model.CurrentPassword == model.NewPassword) throw new ArgumentException("New password can't be the same as the current one!");
 
