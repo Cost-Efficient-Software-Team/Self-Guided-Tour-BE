@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SelfGuidedTours.Core.Contracts;
+using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Models.Auth;
 using SelfGuidedTours.Core.Models.ExternalLogin;
 using SelfGuidedTours.Core.Services.TokenGenerators;
@@ -8,6 +9,7 @@ using SelfGuidedTours.Core.Services.TokenValidators;
 using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 
 namespace SelfGuidedTours.Core.Services
 {
@@ -23,7 +25,8 @@ namespace SelfGuidedTours.Core.Services
             AccessTokenGenerator accessTokenGenerator,
             RefreshTokenGenerator refreshTokenGenerator,
             RefreshTokenValidator refreshTokenValidator,
-            IRefreshTokenService refreshTokenService)
+            IRefreshTokenService refreshTokenService
+            )
         {
             this.repository = repository;
             this.accessTokenGenerator = accessTokenGenerator;
@@ -50,10 +53,10 @@ namespace SelfGuidedTours.Core.Services
         {
             var handler = new JwtSecurityTokenHandler();
             var jwtSecurityToken = handler.ReadJwtToken(token);
-           
+
             var tokenExp = jwtSecurityToken.Claims.First(claim => claim.Type.Equals("exp")).Value;
             var ticks = long.Parse(tokenExp);
-            
+
             return ticks;
         }
 
@@ -69,7 +72,7 @@ namespace SelfGuidedTours.Core.Services
             };
 
             await refreshTokenService.CreateAsync(refreshTokenDTO);
-            
+
             return new AuthenticateResponse()
             {
                 AccessToken = accessToken,
@@ -170,7 +173,7 @@ namespace SelfGuidedTours.Core.Services
 
             var refreshTokenDTO = await refreshTokenService.GetByTokenAsync(model.RefreshToken);
 
-            if(refreshTokenDTO == null)
+            if (refreshTokenDTO == null)
             {
                 throw new ArgumentException("Refresh token was not found!");
             }
@@ -179,7 +182,7 @@ namespace SelfGuidedTours.Core.Services
 
             var user = await GetByIdAsync(refreshTokenDTO.UserId);
 
-            if(user == null)
+            if (user == null)
             {
                 throw new ArgumentException("User was not found!");
             }
@@ -194,5 +197,35 @@ namespace SelfGuidedTours.Core.Services
                 RoleId = "4f8554d2-cfaa-44b5-90ce-e883c804ae90" //User Role Id
             };
         }
+
+        public async Task<ApiResponse> ChangePasswordAsync(ChangePasswordModel model)
+        {
+            if (model.CurrentPassword == model.NewPassword) throw new ArgumentException("New password can't be the same as the current one!");
+
+            var user = await GetByIdAsync(model.UserId);
+
+            if (user is null) throw new UnauthorizedAccessException("User not found");
+            //User created via external login doesent have an assigned password and shouldnt be able to acces this method
+            if (user.PasswordHash is null) throw new UnauthorizedAccessException("User has no assigned password!");
+
+            var hasher = new PasswordHasher<ApplicationUser>();
+
+            var result = hasher.VerifyHashedPassword(user, user.PasswordHash, model.CurrentPassword);
+
+            if (result != PasswordVerificationResult.Success) throw new UnauthorizedAccessException("Invalid password");
+            //Update the user's password with the new one
+            user.PasswordHash = hasher.HashPassword(user, model.NewPassword);
+
+            await repository.UpdateAsync(user);
+            await repository.SaveChangesAsync();
+            //TODO: Fix response
+            var response = new ApiResponse
+            {
+                StatusCode = HttpStatusCode.OK,
+                Result = "Password changed successfully!"
+            };
+            return response;
+        }
+
     }
 }

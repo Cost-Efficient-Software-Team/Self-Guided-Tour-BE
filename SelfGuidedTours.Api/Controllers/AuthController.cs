@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SelfGuidedTours.Core.Contracts;
+using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Models.Auth;
 using SelfGuidedTours.Core.Models.ExternalLogin;
 using System.Net.Http.Headers;
+using System.Security.Claims;
 
 namespace SelfGuidedTours.Api.Controllers
 {
@@ -168,6 +170,33 @@ namespace SelfGuidedTours.Api.Controllers
         }
 
 
+        [HttpPost("change-password")]
+        [ProducesResponseType(typeof(ApiResponse), 200)]
+        [ProducesResponseType(typeof(ApiResponse), 400)]
+        [ProducesResponseType(typeof(ApiResponse), 401)]
+        [Authorize]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDto model)
+        {
+            if(!ModelState.IsValid)
+            {
+                logger.LogWarning("Invalid model state for change password request!");
+                return BadRequest("Invalid model state");
+            }
+
+            string userId = User.Claims.First().Value;
+
+            var changePasswordModel = new ChangePasswordModel
+            {
+                UserId = userId,
+                CurrentPassword = model.CurrentPassword,
+                NewPassword = model.NewPassword
+            };
+
+            var response = await authService.ChangePasswordAsync(changePasswordModel);
+            // In case something goes wrong, an exception is thrown in the authService and it gets automaticaly caught from the middleware
+
+            return Ok(response);
+        }
 
       
 
