@@ -63,15 +63,5 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-//Apply migrations on startup if in production
-if (app.Environment.IsProduction())
-{
-    using (var scope = app.Services.CreateScope())
-    {
-        var services = scope.ServiceProvider;
-        var context = services.GetRequiredService<SelfGuidedToursDbContext>();
-        context.Database.Migrate();
-    }
-}
 
 app.Run();
