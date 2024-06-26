@@ -5,10 +5,10 @@ namespace SelfGuidedTours.Core.Models.Auth
     public class ChangePasswordRequestDto
     {
         [Required]
-        public string CurrentPassword { get; set; }
+        public string CurrentPassword { get; set; } = null!;
         [Required]
-        [MinLength(PasswordMinLength,
-            ErrorMessage = InvalidPasswordMessage)]
+        [RegularExpression(PasswordRegex,
+        ErrorMessage = InvalidPasswordMessage)]
         public string NewPassword { get; set; } = null!;
     }
 }
