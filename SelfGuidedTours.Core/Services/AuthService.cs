@@ -200,10 +200,12 @@ namespace SelfGuidedTours.Core.Services
 
         public async Task<ApiResponse> ChanghePasswordAsync(ChangePasswordModel model)
         {
+            if (model.CurrentPassword == model.NewPassword) throw new ArgumentException("New password can't be the same as the current one!");
+
             var user = await GetByIdAsync(model.UserId);
 
             if (user is null) throw new UnauthorizedAccessException("User not found");
-            //User created via external login doesent have an assigned password
+            //User created via external login doesent have an assigned password and shouldnt be able to acces this method
             if (user.PasswordHash is null) throw new UnauthorizedAccessException("User has no assigned password!");
 
             var hasher = new PasswordHasher<ApplicationUser>();
