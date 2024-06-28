@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SelfGuidedTours.Api.CustomActionFilters;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Models.Auth;
 using SelfGuidedTours.Core.Models.ExternalLogin;
-using System.Net.Http.Headers;
 
 namespace SelfGuidedTours.Api.Controllers
 {
@@ -26,33 +26,14 @@ namespace SelfGuidedTours.Api.Controllers
         [ProducesResponseType(typeof(AuthenticateResponse), 200)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
+        [ValidateModel]
         public async Task<IActionResult> Register([FromBody] RegisterInputModel model)
         {
-            if (!ModelState.IsValid)
-            {
-                logger.LogWarning("Invalid model state for register input model!");
 
-                return BadRequest("Invalid model state!");
-            }
+            var result = await authService.RegisterAsync(model);
 
-            try
-            {
-                var result = await authService.RegisterAsync(model);
+            return Ok(result);
 
-                return Ok(result);
-            }
-            catch (ArgumentException aex)
-            {
-                logger.LogError(aex, "Auth/register[POST] - Argument exception");
-
-                return BadRequest(aex.Message);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Auth/register[POST] - Unexpected error");
-
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
         }
 
         [HttpPost("login")]
@@ -60,40 +41,20 @@ namespace SelfGuidedTours.Api.Controllers
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 401)]
         [ProducesResponseType(typeof(string), 500)]
+        [ValidateModel]
         public async Task<IActionResult> Login([FromBody] LoginInputModel model)
         {
-            if (!ModelState.IsValid)
-            {
-                logger.LogWarning("Invalid model state for login input model!");
 
-                return BadRequest("Invalid model state!");
+            var response = await authService.LoginAsync(model);
+
+            if (response.AccessToken == null)
+            {
+                logger.LogWarning("Unauthorized access attempt with email: {Email}", model.Email);
+
+                return Unauthorized(response.ResponseMessage);
             }
 
-            try
-            {
-                var response = await authService.LoginAsync(model);
-
-                if(response.AccessToken == null)
-                {
-                    logger.LogWarning("Unauthorized access attempt with email: {Email}", model.Email);
-
-                    return Unauthorized(response.ResponseMessage);
-                }
-
-                return Ok(response);
-            }
-            catch (ArgumentException aex)
-            {
-                logger.LogError(aex, "Auth/login[POST] - Argument exception");
-
-                return BadRequest(aex.Message);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Auth/login[POST] - Unexpected error");
-
-                return StatusCode(StatusCodes.Status500InternalServerError, "Internal server error");
-            }
+            return Ok(response);
         }
 
         [Authorize]
@@ -109,31 +70,16 @@ namespace SelfGuidedTours.Api.Controllers
         }
 
         [HttpPost("refresh")]
+        [ProducesResponseType(typeof(AuthenticateResponse), 200)]
+        [ProducesResponseType(typeof(string), 400)]
+        [ValidateModel]
         public async Task<IActionResult> Refresh([FromBody] RefreshRequestModel model)
         {
-            if(!ModelState.IsValid)
-            {
-                return BadRequest();
-            }
 
-            try
-            {
-                var response = await authService.RefreshAsync(model);
+            var response = await authService.RefreshAsync(model);
 
-                return Ok(response);
-            }
-            catch(ArgumentException aex)
-            {
-                logger.LogError(aex, "Auth/refresh[POST] - Argument exception");
+            return Ok(response);
 
-                return BadRequest();
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Auth/refresh[POST] - Unexpected error");
-
-                return StatusCode(StatusCodes.Status500InternalServerError, "Internal server error");
-            }
         }
 
         [Authorize]
@@ -145,31 +91,28 @@ namespace SelfGuidedTours.Api.Controllers
             return Ok("User is logged in.");
         }
 
-        
+
         [HttpPost("google-signin")]
+        [ProducesResponseType(typeof(AuthenticateResponse), 200)]
+        [ProducesResponseType(typeof(string), 400)]
+        [ProducesResponseType(typeof(string), 401)]
         public async Task<IActionResult> HandleGoogleToken([FromBody] GoogleSignInVM model)
         {
+
             if (model == null || string.IsNullOrEmpty(model.IdToken))
             {
                 return BadRequest("Invalid access token.");
             }
 
-            try
-            {
-            var userInfo = await googleAuthService.GoogleSignIn(model);
-                return Ok(userInfo);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+                var userInfo = await googleAuthService.GoogleSignIn(model);
 
+                return Ok(userInfo);
 
         }
 
 
 
-      
+
 
     }
 }
