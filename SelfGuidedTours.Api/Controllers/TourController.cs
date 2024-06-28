@@ -8,6 +8,7 @@ using SelfGuidedTours.Infrastructure.Data.Models;
 using System.Net;
 using System.Security.Claims;
 using SelfGuidedTours.Core.Contracts;
+using SelfGuidedTours.Api.CustomActionFilters;
 
 namespace SelfGuidedTours.Api.Controllers
 {
@@ -30,16 +31,9 @@ namespace SelfGuidedTours.Api.Controllers
         [HttpPost]
         [ProducesResponseType(typeof(int), 201)]
         [ProducesResponseType(typeof(ApiResponse), 400)]
+        [ValidateModel]
         public async Task<IActionResult> CreateTour([FromForm] TourCreateDTO tourCreateDTO)
         {
-            if(!ModelState.IsValid)
-            {
-                _response.IsSuccess = false;
-                _response.StatusCode = HttpStatusCode.BadRequest;
-                _response.ErrorMessages = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
-                return BadRequest(_response);
-            }
-            
             var creatorId = User.Claims.First().Value;
 
             var result = await _tourService.AddAsync(tourCreateDTO, creatorId);
