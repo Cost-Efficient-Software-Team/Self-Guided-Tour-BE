@@ -18,7 +18,7 @@ namespace SelfGuidedTours.Core.Services
             var payload = await ValidateGoogleIdToken(model.IdToken);
             if (payload == null)
             {
-                throw new Exception("Invalid Google Id Token");
+                throw new UnauthorizedAccessException("Invalid Google Id Token");
             }
             var googleUser = JsonSerializer.Deserialize<GoogleUserDto>(payload, new JsonSerializerOptions
             {
@@ -26,7 +26,7 @@ namespace SelfGuidedTours.Core.Services
             });
             if (googleUser == null)
             {
-                throw new Exception("Invalid Google Id Token");
+                throw new UnauthorizedAccessException("Invalid Google Id Token");
             }
            
             var userResponse = await authService.GoogleSignInAsync(googleUser);
