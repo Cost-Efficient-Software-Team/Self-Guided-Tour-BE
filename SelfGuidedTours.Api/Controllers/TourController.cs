@@ -27,10 +27,10 @@ namespace SelfGuidedTours.Api.Controllers
             _response = new ApiResponse();
         }
 
-        [HttpPost]
+        [HttpPost("create-tour")]
         [ProducesResponseType(typeof(int), 201)]
         [ProducesResponseType(typeof(ApiResponse), 400)]
-        public async Task<IActionResult> CreateTour([FromForm] TourCreateDTO tourCreateDTO)
+        public async Task<IActionResult> CreateTour([FromQuery] TourCreateDTO tourCreateDTO)
         {
             if(!ModelState.IsValid)
             {

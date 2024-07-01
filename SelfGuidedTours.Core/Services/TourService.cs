@@ -5,6 +5,10 @@ using System.Net;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data.Models;
+using SelfGuidedTours.Core.Contracts.BlobStorage;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
+using Org.BouncyCastle.Asn1.Cmp;
 
 namespace SelfGuidedTours.Core.Services
 {
@@ -12,33 +16,113 @@ namespace SelfGuidedTours.Core.Services
     {
         private readonly IRepository repository;
         private readonly ApiResponse response;
+        private readonly IBlobService blobService;
 
-        public TourService(IRepository repository)
+        public TourService(IRepository repository, IBlobService blobService)
         {
              this.repository = repository;
+             this.blobService = blobService;
              response = new ApiResponse();
         }
 
         public async Task<ApiResponse> AddAsync(TourCreateDTO model, string creatorId)
         {
+            var blobNameThumnailImage = $"{Guid.NewGuid()}_{model.ThumbnailImageUrl.FileName}";
+            await blobService.UploadFileAsync(model.ThumbnailImageUrl, blobNameThumnailImage);
+
+            //Tour
             var tourToAdd = new Tour()
             {
                 Title = model.Title,
                 Description = model.Description,
                 Price = model.Price,
                 Location = model.Location,
-                ThumbnailImageUrl = model.ThumbnailImageUrl,
+                ThumbnailImageUrl = blobService.GetFileUrl(blobNameThumnailImage),
                 EstimatedDuration = model.EstimatedDuration,
-                CreatorId = creatorId,
+                CreatorId = creatorId
             };
 
             await repository.AddAsync(tourToAdd);
             await repository.SaveChangesAsync();
 
+            //Coordinate
+            foreach (var landmark in model.Landmarks)
+            {
+                var coordinate = landmark.Coordinates;
+                var coordinateToAdd = new Coordinate()
+                {
+                    Latitude = coordinate.Latitude,
+                    Longitude = coordinate.Longitude,
+                    City = coordinate.City,
+                    Country = coordinate.Country
+                };
+
+                await repository.AddAsync(coordinateToAdd);
+                await repository.SaveChangesAsync();
+
+                var coordinateFromDb = await repository.AllReadOnly<Coordinate>()
+                    .Where(c => c.Latitude == coordinate.Latitude && c.Longitude == coordinate.Longitude)
+                    .FirstAsync();
+
+                var tourFromDb = await repository.AllReadOnly<Tour>()
+                    .Where(t => t.Title == tourToAdd.Title && tourToAdd.Description == tourToAdd.Description)
+                    .FirstAsync();
+
+                var landmarkToAdd = new Landmark()
+                {
+                    CoordinateId = coordinateFromDb.CoordinateId,
+                    Name = landmark.Name,
+                    Description = landmark.Description,
+                    TourId = tourFromDb.TourId
+                };
+
+                tourToAdd.Landmarks.Add(landmarkToAdd);
+                
+                await repository.AddAsync(landmarkToAdd);
+                await repository.SaveChangesAsync();
+
+                var landmarkFromDb = await repository.AllReadOnly<Landmark>()
+                    .Where(l => l.CoordinateId == coordinateFromDb.CoordinateId && l.Name == landmarkToAdd.Name && l.Description == landmarkToAdd.Description)
+                    .FirstAsync();
+
+                var landmarkResources = landmark.Resources;
+                foreach (var resource in landmarkResources!)
+                {
+                    if(resource.Length > 0)
+                    {
+                        var blobName = $"{Guid.NewGuid()}_{resource.FileName}";
+                        await blobService.UploadFileAsync(resource, blobName);
+
+                        var landmarkResourceToAdd = new LandmarkResource()
+                        {
+                            LandmarkId = landmarkFromDb.LandmarkId,
+                            Type = GetResourceType(resource.ContentType),
+                            Url = blobService.GetFileUrl(blobName),
+                        };
+                        await repository.AddAsync(landmarkResourceToAdd);
+                    }
+                }
+
+                await repository.SaveChangesAsync();
+            }
+
             response.Result = tourToAdd;
             response.StatusCode = HttpStatusCode.Created;
 
             return response;
+        }
+        private ResourceType GetResourceType(string contentType)
+        {
+            return contentType switch
+            {
+                "image/jpeg" => ResourceType.Image,
+                "image/png" => ResourceType.Image,
+                "video/mp4" => ResourceType.Video,
+                "audio/mpeg" => ResourceType.Audio,
+                "text/plain" => ResourceType.Text,
+                "application/pdf" => ResourceType.Text,
+                _ => ResourceType.Unknown
+            };
         }
 
         //public async Task<Tour> GetTourById(int id)
