@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using static SelfGuidedTours.Common.ValidationConstants.ValidationConstants.LandmarkResource;
 using static SelfGuidedTours.Common.MessageConstants.ErrorMessages;
+using Microsoft.AspNetCore.Http;
 namespace SelfGuidedTours.Infrastructure.Data.Models
 {
     public class LandmarkResource
