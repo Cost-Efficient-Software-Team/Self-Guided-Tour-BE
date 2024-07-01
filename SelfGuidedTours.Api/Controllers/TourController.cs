@@ -28,7 +28,7 @@ namespace SelfGuidedTours.Api.Controllers
             _response = new ApiResponse();
         }
 
-        [HttpPost]
+        [HttpPost("create-tour")]
         [ProducesResponseType(typeof(int), 201)]
         [ProducesResponseType(typeof(ApiResponse), 400)]
         [ValidateModel]
