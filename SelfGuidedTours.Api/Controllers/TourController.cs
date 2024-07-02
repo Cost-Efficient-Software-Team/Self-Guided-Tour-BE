@@ -8,6 +8,7 @@ using SelfGuidedTours.Infrastructure.Data.Models;
 using System.Net;
 using System.Security.Claims;
 using SelfGuidedTours.Core.Contracts;
+using System.Linq;
 
 namespace SelfGuidedTours.Api.Controllers
 {
@@ -32,21 +33,29 @@ namespace SelfGuidedTours.Api.Controllers
         [ProducesResponseType(typeof(ApiResponse), 400)]
         public async Task<IActionResult> CreateTour([FromQuery] TourCreateDTO tourCreateDTO)
         {
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 _response.IsSuccess = false;
                 _response.StatusCode = HttpStatusCode.BadRequest;
                 _response.ErrorMessages = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
                 return BadRequest(_response);
             }
-            
+
             var creatorId = User.Claims.First().Value;
 
             var result = await _tourService.AddAsync(tourCreateDTO, creatorId);
-          
+
             return CreatedAtAction(nameof(CreateTour), new { id = ((Tour)result.Result).TourId }, result);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetAllTours([FromQuery] string title = null, [FromQuery] string location = null, [FromQuery] decimal? minPrice = null, [FromQuery] decimal? maxPrice = null, [FromQuery] int? minEstimatedDuration = null, [FromQuery] int? maxEstimatedDuration = null)
+        {
+            var tours = await _tourService.GetFilteredTours(title, location, minPrice, maxPrice, minEstimatedDuration, maxEstimatedDuration);
+            _response.Result = tours;
+            _response.StatusCode = HttpStatusCode.OK;
+            return Ok(_response);
+        }
         //[HttpGet("{id:int}", Name = "GetTour")]
         //public async Task<IActionResult> GetTour(int id)
         //{
@@ -66,15 +75,6 @@ namespace SelfGuidedTours.Api.Controllers
         //    }
 
         //    _response.Result = tour;
-        //    _response.StatusCode = HttpStatusCode.OK;
-        //    return Ok(_response);
-        //}
-
-        //[HttpGet]
-        //public async Task<IActionResult> GetTours()
-        //{
-        //    var tours = await _tourService.GetAllTours();
-        //    _response.Result = tours;
         //    _response.StatusCode = HttpStatusCode.OK;
         //    return Ok(_response);
         //}

@@ -1,14 +1,15 @@
-﻿using SelfGuidedTours.Core.Models.Dto;
-using SelfGuidedTours.Core.Models;
-using SelfGuidedTours.Infrastructure.Data.Enums;
-using System.Net;
+﻿using Microsoft.EntityFrameworkCore;
 using SelfGuidedTours.Core.Contracts;
+using SelfGuidedTours.Core.Contracts.BlobStorage;
+using SelfGuidedTours.Core.Models;
+using SelfGuidedTours.Core.Models.Dto;
 using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data.Models;
-using SelfGuidedTours.Core.Contracts.BlobStorage;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Http;
-using Org.BouncyCastle.Asn1.Cmp;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using SelfGuidedTours.Infrastructure.Data.Enums;
 
 namespace SelfGuidedTours.Core.Services
 {
@@ -20,9 +21,9 @@ namespace SelfGuidedTours.Core.Services
 
         public TourService(IRepository repository, IBlobService blobService)
         {
-             this.repository = repository;
-             this.blobService = blobService;
-             response = new ApiResponse();
+            this.repository = repository;
+            this.blobService = blobService;
+            response = new ApiResponse();
         }
 
         public async Task<ApiResponse> AddAsync(TourCreateDTO model, string creatorId)
@@ -77,18 +78,18 @@ namespace SelfGuidedTours.Core.Services
                 };
 
                 tourToAdd.Landmarks.Add(landmarkToAdd);
-                
+
                 await repository.AddAsync(landmarkToAdd);
                 await repository.SaveChangesAsync();
 
                 var landmarkFromDb = await repository.AllReadOnly<Landmark>()
-                    .Where(l => l.CoordinateId == coordinateFromDb.CoordinateId && l.Name == landmarkToAdd.Name && l.Description == landmarkToAdd.Description)
+                    .Where(l => l.CoordinateId == coordinateFromDb.CoordinateId && l.Name == landmarkToAdd.Name && landmarkToAdd.Description == landmarkToAdd.Description)
                     .FirstAsync();
 
                 var landmarkResources = landmark.Resources;
                 foreach (var resource in landmarkResources!)
                 {
-                    if(resource.Length > 0)
+                    if (resource.Length > 0)
                     {
                         var blobName = $"{Guid.NewGuid()}_{resource.FileName}";
                         await blobService.UploadFileAsync(resource, blobName);
@@ -125,6 +126,58 @@ namespace SelfGuidedTours.Core.Services
             };
         }
 
+        public async Task<List<Tour>> GetAllTours()
+        {
+            return await repository.All<Tour>()
+                .Include(t => t.Landmarks)
+                .Include(t => t.Payments)
+                .Include(t => t.Reviews)
+                .Include(t => t.UserTours)
+                .ToListAsync();
+        }
+
+        public async Task<List<Tour>> GetFilteredTours(string title, string location, decimal? minPrice, decimal? maxPrice, int? minEstimatedDuration, int? maxEstimatedDuration)
+        {
+            var query = repository.All<Tour>().AsQueryable();
+
+            if (!string.IsNullOrEmpty(title))
+            {
+                query = query.Where(t => t.Title.Contains(title));
+            }
+
+            if (!string.IsNullOrEmpty(location))
+            {
+                query = query.Where(t => t.Location.Contains(location));
+            }
+
+            if (minPrice.HasValue)
+            {
+                query = query.Where(t => t.Price >= minPrice);
+            }
+
+            if (maxPrice.HasValue)
+            {
+                query = query.Where(t => t.Price <= maxPrice);
+            }
+
+            if (minEstimatedDuration.HasValue)
+            {
+                query = query.Where(t => t.EstimatedDuration >= minEstimatedDuration);
+            }
+
+            if (maxEstimatedDuration.HasValue)
+            {
+                query = query.Where(t => t.EstimatedDuration <= maxEstimatedDuration);
+            }
+
+            return await query
+                .Include(t => t.Landmarks)
+                .Include(t => t.Payments)
+                .Include(t => t.Reviews)
+                .Include(t => t.UserTours)
+                .ToListAsync();
+        }
+
         //public async Task<Tour> GetTourById(int id)
         //{
         //    return await _context.Tours
@@ -133,16 +186,6 @@ namespace SelfGuidedTours.Core.Services
         //        .Include(t => t.Reviews)
         //        .Include(t => t.UserTours)
         //        .FirstOrDefaultAsync(t => t.TourId == id);
-        //}
-
-        //public async Task<List<Tour>> GetAllTours()
-        //{
-        //    return await _context.Tours
-        //        .Include(t => t.Landmarks)
-        //        .Include(t => t.Payments)
-        //        .Include(t => t.Reviews)
-        //        .Include(t => t.UserTours)
-        //        .ToListAsync();
         //}
 
         //public async Task<ApiResponse> UpdateTour(int id, TourUpdateDTO tourUpdateDTO)
