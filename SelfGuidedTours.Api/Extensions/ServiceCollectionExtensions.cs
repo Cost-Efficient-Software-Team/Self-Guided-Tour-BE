@@ -1,10 +1,14 @@
-﻿using System.Text;
+﻿using System.Configuration;
+using System.Text;
+using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SelfGuidedTours.Core.Contracts;
+using SelfGuidedTours.Core.Contracts.BlobStorage;
 using SelfGuidedTours.Core.Services;
+using SelfGuidedTours.Core.Services.BlobStorage;
 using SelfGuidedTours.Core.Services.TokenGenerators;
 using SelfGuidedTours.Core.Services.TokenValidators;
 using SelfGuidedTours.Infrastructure.Common;
@@ -24,12 +28,18 @@ namespace SelfGuidedTours.Api.Extensions
             services.AddScoped<IGoogleAuthService, GoogleAuthService>();
             services.AddScoped<ITourService, TourService>();
 
+            //Configure connection string and container account - Azure BLOB Storage
+            var connectionString = config.GetConnectionString("StorageAccount:ConnectionString")!;
+            var containerName = config.GetConnectionString("StorageAccount:ContainerName")!;
+
+            services.AddScoped<IBlobService>(provider =>
+                new BlobService(connectionString, containerName));
+
             //Token generators
             services.AddScoped<AccessTokenGenerator>();
             services.AddScoped<RefreshTokenGenerator>();
             services.AddScoped<TokenGenerator>();
             services.AddScoped<RefreshTokenValidator>();
-
 
             services.AddCors(Options =>
            {
@@ -42,7 +52,6 @@ namespace SelfGuidedTours.Api.Extensions
                    .AllowAnyHeader();
                });
            });
-
 
             return services;
         }

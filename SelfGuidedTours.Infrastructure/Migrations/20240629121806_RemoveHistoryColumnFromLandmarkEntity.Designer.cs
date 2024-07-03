@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SelfGuidedTours.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SelfGuidedTours.Infrastructure.Data;
 namespace SelfGuidedTours.Infrastructure.Migrations
 {
     [DbContext(typeof(SelfGuidedToursDbContext))]
-    partial class SelfGuidedToursDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240629121806_RemoveHistoryColumnFromLandmarkEntity")]
+    partial class RemoveHistoryColumnFromLandmarkEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -259,14 +262,6 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CoordinateId"));
-
-                    b.Property<string>("City")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Country")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -622,17 +617,17 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         {
                             Id = "27d78708-8671-4b05-bd5e-17aa91392224",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "bb889606-411a-43a7-9367-9966e88e2247",
+                            ConcurrencyStamp = "c88d9339-d6b6-4ae2-9227-29d205b68e2d",
                             Email = "admin@selfguidedtours.bg",
                             EmailConfirmed = false,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@SELFGUIDEDTOURS.BG",
                             NormalizedUserName = "ADMIN ADMINOV",
-                            PasswordHash = "AQAAAAIAAYagAAAAEFGW5xzT5u8SWB17ORyqkvT80WbDbfIRh0vrYi78CPgWgEHRuRoSSguYvuCrMJWVNg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEMW/kCfCOgN9E5COHScM2IMGJTEb+LR500fcw9cwRMPpAdllGK0Q4WHU3L0U8bNmVA==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "74ee551f-8585-4cab-8180-0c92b2b19b3a",
+                            SecurityStamp = "2ab821c2-a43a-4924-ba68-eec96b82e724",
                             TwoFactorEnabled = false,
-                            CreatedAt = new DateTime(2024, 6, 29, 15, 24, 36, 114, DateTimeKind.Local).AddTicks(8627),
+                            CreatedAt = new DateTime(2024, 6, 29, 15, 18, 5, 196, DateTimeKind.Local).AddTicks(9971),
                             Name = "Admin Adminov"
                         });
                 });
