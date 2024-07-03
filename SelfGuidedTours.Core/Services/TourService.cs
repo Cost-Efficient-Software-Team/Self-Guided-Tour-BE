@@ -124,14 +124,17 @@ namespace SelfGuidedTours.Core.Services
             };
         }
 
-        public async Task<Tour> GetTourById(int id)
+        public async Task<Tour?> GetTourByIdAsync(int id)
         {
-            return await repository.AllReadOnly<Tour>()
-                .Include(t => t.Landmarks)
-                .Include(t => t.Payments)
-                .Include(t => t.Reviews)
-                .Include(t => t.UserTours)
+            var tour = await repository.AllReadOnly<Tour>()
                 .FirstOrDefaultAsync(t => t.TourId == id);
+
+            if(tour == null)
+            {
+                throw new KeyNotFoundException("Tour was not found!");
+            }
+
+            return tour;
         }
     }
 }
