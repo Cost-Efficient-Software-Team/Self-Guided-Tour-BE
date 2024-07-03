@@ -100,8 +100,10 @@ namespace SelfGuidedTours.Core.Services
             {
                 Email = model.Email,
                 NormalizedEmail = model.Email.ToUpper(),
+                UserName = model.Email, // needed for the reset pass
+                NormalizedUserName = model.Email.ToUpper(), // needed for the reset pass
                 Name = model.Name,
-                PasswordHash = hasher.HashPassword(null!, model.Password) // Hash the password
+                PasswordHash = hasher.HashPassword(null!, model.Password)
             };
             //Assign user role
             var userRole = AssignUserRole(user.Id);
