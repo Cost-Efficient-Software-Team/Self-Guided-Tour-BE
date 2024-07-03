@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi.Models;
-
 using SelfGuidedTours.Api.Extensions;
-
 using SelfGuidedTours.Api.Middlewares;
 
 
