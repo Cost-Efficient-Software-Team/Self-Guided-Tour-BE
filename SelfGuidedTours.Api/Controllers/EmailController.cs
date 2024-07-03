@@ -22,33 +22,22 @@ namespace SelfGuidedTours.Api.Controllers
         [ProducesResponseType(typeof(string), 500)]
         public async Task<IActionResult> SendEmail([FromBody] SendEmailDto sendEmailRequest)
         {
-            try
-            {
-               await emailService.SendEmail(sendEmailRequest, "html");
+            await emailService.SendEmail(sendEmailRequest, "html");
 
-                return Ok("Email sent successfully!");
-            }
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Iternal Server Error");
-            }
+            return Ok("Email sent successfully!");
         }
-        
+
         [HttpPost("send-html")]
+        [ProducesResponseType(typeof(string), 200)]
+        [ProducesResponseType(typeof(string), 400)]
+        [ProducesResponseType(typeof(string), 500)]
         public async Task<IActionResult> SendHtmlEmail([FromBody] SendEmailDto sendEmailRequest)
         {
-            try
-            {
-                await emailService.SendEmail(sendEmailRequest, "html");
+            await emailService.SendEmail(sendEmailRequest, "html");
 
-                return Ok("Email sent successfully!");
-            }
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error");
-            }
+            return Ok("Email sent successfully!");
         }
     }
 
-    
+
 }
