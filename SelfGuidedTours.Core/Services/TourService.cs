@@ -123,7 +123,7 @@ namespace SelfGuidedTours.Core.Services
                 _ => ResourceType.Unknown
             };
         }
-
+        
         public async Task<ApiResponse> DeleteTourAsync(int id)
         {
             var response = new ApiResponse();
@@ -161,6 +161,18 @@ namespace SelfGuidedTours.Core.Services
 
             response.StatusCode = HttpStatusCode.NoContent;
             return response;
+        }
+        public async Task<Tour?> GetTourByIdAsync(int id)
+        {
+            var tour = await repository.AllReadOnly<Tour>()
+                .FirstOrDefaultAsync(t => t.TourId == id);
+
+            if(tour == null)
+            {
+                throw new KeyNotFoundException("Tour was not found!");
+            }
+
+            return tour;
         }
     }
 }

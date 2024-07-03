@@ -6,6 +6,8 @@ using SelfGuidedTours.Core.Models.Dto;
 using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using System.Net;
+using SelfGuidedTours.Api.CustomActionFilters;
+
 
 namespace SelfGuidedTours.Api.Controllers
 {
@@ -28,16 +30,9 @@ namespace SelfGuidedTours.Api.Controllers
         [HttpPost("create-tour")]
         [ProducesResponseType(typeof(int), 201)]
         [ProducesResponseType(typeof(ApiResponse), 400)]
-        public async Task<IActionResult> CreateTour([FromQuery] TourCreateDTO tourCreateDTO)
+        [ValidateModel]
+        public async Task<IActionResult> CreateTour([FromForm] TourCreateDTO tourCreateDTO)
         {
-            if (!ModelState.IsValid)
-            {
-                _response.IsSuccess = false;
-                _response.StatusCode = HttpStatusCode.BadRequest;
-                _response.ErrorMessages = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
-                return BadRequest(_response);
-            }
-
             var creatorId = User.Claims.First().Value;
 
             var result = await _tourService.AddAsync(tourCreateDTO, creatorId);
@@ -63,6 +58,19 @@ namespace SelfGuidedTours.Api.Controllers
             }
 
             return NoContent();
+        }
+            return CreatedAtAction(nameof(CreateTour), new { id = ((Tour)result.Result!).TourId }, result);
+        }
+
+        [HttpGet("{id:int}", Name = "get-tour")]
+        public async Task<IActionResult> GetTour(int id)
+        {
+            var tour = await _tourService.GetTourByIdAsync(id);//TODO: Change Tour to TourDTO model
+
+            _response.Result = tour!;
+            _response.StatusCode = HttpStatusCode.OK;
+          
+            return Ok(_response);
         }
     }
 }
