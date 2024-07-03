@@ -123,7 +123,45 @@ namespace SelfGuidedTours.Core.Services
                 _ => ResourceType.Unknown
             };
         }
+        
+        public async Task<ApiResponse> DeleteTourAsync(int id)
+        {
+            var response = new ApiResponse();
 
+            var tour = await repository.GetByIdAsync<Tour>(id);
+            if (tour == null)
+            {
+                response.StatusCode = HttpStatusCode.NotFound;
+                response.IsSuccess = false;
+                return response;
+            }
+
+            var landmarks = await repository.All<Landmark>().Where(l => l.TourId == id).ToListAsync();
+
+            foreach (var landmark in landmarks)
+            {
+                var resources = await repository.All<LandmarkResource>().Where(r => r.LandmarkId == landmark.LandmarkId).ToListAsync();
+                foreach(var resource in resources)
+                {
+                    await blobService.DeleteFileAsync(resource.Url);
+                    repository.Delete(resource);
+                }
+                
+                var coordinates = await repository.All<Coordinate>().Where(r => r.CoordinateId == landmark.CoordinateId).ToListAsync();
+                foreach (var coordinate in coordinates)
+                {    
+                    repository.Delete(coordinate);
+                }
+            }
+
+            await repository.DeleteAllAsync(landmarks);
+
+            repository.Delete(tour);
+            await repository.SaveChangesAsync();
+
+            response.StatusCode = HttpStatusCode.NoContent;
+            return response;
+        }
         public async Task<Tour?> GetTourByIdAsync(int id)
         {
             var tour = await repository.AllReadOnly<Tour>()

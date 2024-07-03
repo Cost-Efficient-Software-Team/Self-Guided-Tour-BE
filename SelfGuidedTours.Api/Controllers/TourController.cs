@@ -8,6 +8,7 @@ using SelfGuidedTours.Infrastructure.Data.Models;
 using System.Net;
 using SelfGuidedTours.Api.CustomActionFilters;
 
+
 namespace SelfGuidedTours.Api.Controllers
 {
     [Route("api/[controller]")]
@@ -36,6 +37,28 @@ namespace SelfGuidedTours.Api.Controllers
 
             var result = await _tourService.AddAsync(tourCreateDTO, creatorId);
 
+            return CreatedAtAction(nameof(CreateTour), new { id = ((Tour)result.Result).TourId }, result);
+        }
+        
+        [HttpDelete("{id:int}", Name = "delete-tour")]
+        public async Task<IActionResult> DeleteTour([FromRoute] int id)
+        {
+            var result = await _tourService.DeleteTourAsync(id);
+
+            if (!result.IsSuccess)
+            {
+                if (result.StatusCode == HttpStatusCode.BadRequest)
+                {
+                    return BadRequest(result);
+                }
+                else if (result.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return NotFound(result);
+                }
+            }
+
+            return NoContent();
+        }
             return CreatedAtAction(nameof(CreateTour), new { id = ((Tour)result.Result!).TourId }, result);
         }
 
@@ -49,6 +72,5 @@ namespace SelfGuidedTours.Api.Controllers
           
             return Ok(_response);
         }
-
     }
 }
