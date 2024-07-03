@@ -10,6 +10,15 @@ using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
+using Microsoft.AspNetCore.Identity;
+using SelfGuidedTours.Core.Contracts;
+using SelfGuidedTours.Core.Models.Auth;
+using SelfGuidedTours.Infrastructure.Data.Models;
+using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 
 namespace SelfGuidedTours.Core.Services
 {
@@ -20,25 +29,27 @@ namespace SelfGuidedTours.Core.Services
         private readonly RefreshTokenGenerator refreshTokenGenerator;
         private readonly RefreshTokenValidator refreshTokenValidator;
         private readonly IRefreshTokenService refreshTokenService;
+        private readonly IProfileService profileService;  
 
-        public AuthService(IRepository repository,
+        public AuthService(
+            IRepository repository,
             AccessTokenGenerator accessTokenGenerator,
             RefreshTokenGenerator refreshTokenGenerator,
             RefreshTokenValidator refreshTokenValidator,
-            IRefreshTokenService refreshTokenService
-            )
+            IRefreshTokenService refreshTokenService,
+            IProfileService profileService  
+        )
         {
             this.repository = repository;
             this.accessTokenGenerator = accessTokenGenerator;
             this.refreshTokenGenerator = refreshTokenGenerator;
             this.refreshTokenValidator = refreshTokenValidator;
             this.refreshTokenService = refreshTokenService;
+            this.profileService = profileService;  
         }
 
         private async Task<ApplicationUser?> GetByEmailAsync(string email)
         {
-            //In that case if the current user is not registered with the provided email yet, the method will return null.
-
             return await repository.AllReadOnly<ApplicationUser>()
                 .FirstOrDefaultAsync(au => au.Email == email);
         }
@@ -60,7 +71,7 @@ namespace SelfGuidedTours.Core.Services
             return ticks;
         }
 
-        private async Task<AuthenticateResponse> AuthenticateAsync(ApplicationUser user, string responesMessage)
+        private async Task<AuthenticateResponse> AuthenticateAsync(ApplicationUser user, string responseMessage)
         {
             var accessToken = accessTokenGenerator.GenerateToken(user);
             var refreshToken = refreshTokenGenerator.GenerateToken();
@@ -77,7 +88,7 @@ namespace SelfGuidedTours.Core.Services
             {
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
-                ResponseMessage = responesMessage,
+                ResponseMessage = responseMessage,
                 AccessTokenExpiration = GetTokenExpirationTime(accessToken)
             };
         }
@@ -105,12 +116,21 @@ namespace SelfGuidedTours.Core.Services
                 Name = model.Name,
                 PasswordHash = hasher.HashPassword(null!, model.Password)
             };
-            //Assign user role
+
             var userRole = AssignUserRole(user.Id);
 
             await repository.AddAsync(user);
             await repository.AddAsync(userRole);
             await repository.SaveChangesAsync();
+
+            var userProfile = new UserProfile
+            {
+                UserId = Guid.Parse(user.Id),
+                Name = model.Name,
+                Email = model.Email
+            };
+
+            await profileService.CreateProfileAsync(userProfile);
 
             return await AuthenticateAsync(user, "User registered successfully!");
         }
@@ -133,6 +153,7 @@ namespace SelfGuidedTours.Core.Services
 
             return await AuthenticateAsync(user, "Successfully logged in!");
         }
+
         public async Task<AuthenticateResponse> GoogleSignInAsync(GoogleUserDto googleUser)
         {
             if (googleUser == null)
@@ -159,6 +180,7 @@ namespace SelfGuidedTours.Core.Services
 
             return await AuthenticateAsync(user, "Successfully logged in!");
         }
+
         public async Task LogoutAsync(string userId)
         {
             await refreshTokenService.DeleteAllAsync(userId);
@@ -191,6 +213,7 @@ namespace SelfGuidedTours.Core.Services
 
             return await AuthenticateAsync(user, "Successfully got new tokens!");
         }
+
         private IdentityUserRole<string> AssignUserRole(string userId)
         {
             return new IdentityUserRole<string>
@@ -202,25 +225,37 @@ namespace SelfGuidedTours.Core.Services
 
         public async Task<ApiResponse> ChangePasswordAsync(ChangePasswordModel model)
         {
-            if (model.CurrentPassword == model.NewPassword) throw new ArgumentException("New password can't be the same as the current one!");
+            if (model.CurrentPassword == model.NewPassword)
+            {
+                throw new ArgumentException("New password can't be the same as the current one!");
+            }
 
             var user = await GetByIdAsync(model.UserId);
 
-            if (user is null) throw new UnauthorizedAccessException("User not found");
-            //User created via external login doesent have an assigned password and shouldnt be able to acces this method
-            if (user.PasswordHash is null) throw new UnauthorizedAccessException("User has no assigned password!");
+            if (user is null)
+            {
+                throw new UnauthorizedAccessException("User not found");
+            }
+
+            if (user.PasswordHash is null)
+            {
+                throw new UnauthorizedAccessException("User has no assigned password!");
+            }
 
             var hasher = new PasswordHasher<ApplicationUser>();
 
             var result = hasher.VerifyHashedPassword(user, user.PasswordHash, model.CurrentPassword);
 
-            if (result != PasswordVerificationResult.Success) throw new UnauthorizedAccessException("Invalid password");
-            //Update the user's password with the new one
+            if (result != PasswordVerificationResult.Success)
+            {
+                throw new UnauthorizedAccessException("Invalid password");
+            }
+
             user.PasswordHash = hasher.HashPassword(user, model.NewPassword);
 
             await repository.UpdateAsync(user);
             await repository.SaveChangesAsync();
-            //TODO: Fix response
+
             var response = new ApiResponse
             {
                 StatusCode = HttpStatusCode.OK,
@@ -228,6 +263,5 @@ namespace SelfGuidedTours.Core.Services
             };
             return response;
         }
-
     }
 }
