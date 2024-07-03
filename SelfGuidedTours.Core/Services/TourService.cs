@@ -239,5 +239,6 @@ namespace SelfGuidedTours.Core.Services
         //{
         //    return _context.Tours.Any(e => e.TourId == id);
         //}
+
     }
 }
