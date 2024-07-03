@@ -37,7 +37,7 @@ namespace SelfGuidedTours.Api.Controllers
 
             var result = await _tourService.AddAsync(tourCreateDTO, creatorId);
 
-            return CreatedAtAction(nameof(CreateTour), new { id = ((Tour)result.Result).TourId }, result);
+            return CreatedAtAction(nameof(CreateTour), new { id = ((Tour)result.Result!).TourId }, result);
         }
         
         [HttpDelete("{id:int}", Name = "delete-tour")]
@@ -58,8 +58,6 @@ namespace SelfGuidedTours.Api.Controllers
             }
 
             return NoContent();
-        }
-            return CreatedAtAction(nameof(CreateTour), new { id = ((Tour)result.Result!).TourId }, result);
         }
 
         [HttpGet("{id:int}", Name = "get-tour")]
