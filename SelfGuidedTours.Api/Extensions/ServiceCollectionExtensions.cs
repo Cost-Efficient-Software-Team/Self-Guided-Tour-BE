@@ -2,9 +2,11 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Azure;
 using Microsoft.IdentityModel.Tokens;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Services;
+using SelfGuidedTours.Core.Services.Storage;
 using SelfGuidedTours.Core.Services.TokenGenerators;
 using SelfGuidedTours.Core.Services.TokenValidators;
 using SelfGuidedTours.Infrastructure.Common;
@@ -23,6 +25,9 @@ namespace SelfGuidedTours.Api.Extensions
             services.AddScoped<IRefreshTokenService, RefreshTokenService>();
             services.AddScoped<IGoogleAuthService, GoogleAuthService>();
             services.AddScoped<ITourService, TourService>();
+            services.AddScoped<IBlobService, BlobService>();
+            services.AddScoped<ILandmarkService, LandmarkService>();
+            services.AddScoped<IResourceService, ResourceService>();
 
             //Token generators
             services.AddScoped<AccessTokenGenerator>();
@@ -54,6 +59,13 @@ namespace SelfGuidedTours.Api.Extensions
                 options.UseSqlServer(connectionString);
             });
 
+            var storageConnectionString = config.GetConnectionString("BlobStorage");
+
+            services.AddAzureClients(azureBuilder=>
+            {
+                azureBuilder.AddBlobServiceClient(storageConnectionString);
+            });
+            
             services.AddScoped<IRepository, Repository>();
 
             return services;

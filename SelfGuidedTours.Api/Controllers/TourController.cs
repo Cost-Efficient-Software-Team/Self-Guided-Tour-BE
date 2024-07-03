@@ -18,12 +18,14 @@ namespace SelfGuidedTours.Api.Controllers
     {
         private readonly ITourService _tourService;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IBlobService blobService;
         private readonly ApiResponse _response;
 
-        public TourController(ITourService tourService, UserManager<ApplicationUser> userManager)
+        public TourController(ITourService tourService, UserManager<ApplicationUser> userManager, IBlobService blobService)
         {
             _tourService = tourService;
             _userManager = userManager;
+            this.blobService = blobService;
             _response = new ApiResponse();
         }
 
@@ -32,19 +34,22 @@ namespace SelfGuidedTours.Api.Controllers
         [ProducesResponseType(typeof(ApiResponse), 400)]
         public async Task<IActionResult> CreateTour([FromForm] TourCreateDTO tourCreateDTO)
         {
-            if(!ModelState.IsValid)
-            {
-                _response.IsSuccess = false;
-                _response.StatusCode = HttpStatusCode.BadRequest;
-                _response.ErrorMessages = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
-                return BadRequest(_response);
-            }
             
             var creatorId = User.Claims.First().Value;
 
-            var result = await _tourService.AddAsync(tourCreateDTO, creatorId);
+            var result = await _tourService.CreateTourAsync(tourCreateDTO, creatorId);
           
-            return CreatedAtAction(nameof(CreateTour), new { id = ((Tour)result.Result).TourId }, result);
+            return Ok(result);
+        }
+        
+
+        [HttpPost]
+        [Route("upload")]
+        public async Task<IActionResult> UploadFile([FromForm] ResourceDto resource)
+        {
+            var result = await blobService.UploadFileAsync("tour-images", resource.File, resource.FileName);
+
+            return Ok(result);
         }
 
         //[HttpGet("{id:int}", Name = "GetTour")]

@@ -4,11 +4,16 @@ using Microsoft.OpenApi.Models;
 using SelfGuidedTours.Api.Extensions;
 
 using SelfGuidedTours.Api.Middlewares;
+using System.Text.Json.Serialization;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+    options.JsonSerializerOptions.WriteIndented = true;
+});
 
 builder.Services.AddEndpointsApiExplorer();
 

@@ -25,9 +25,7 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         [StringLength(DescriptionMaxLength, MinimumLength = DescriptionMinLength, ErrorMessage = LengthErrorMessage)]
         public string Description { get; set; } = null!;
 
-        [Required]
-        [StringLength(HistoryMaxLength, MinimumLength = HistoryMinLength, ErrorMessage = LengthErrorMessage)]
-        public string History { get; set; } = null!;
+        
 
         [Required]
         public int CoordinateId { get; set; }

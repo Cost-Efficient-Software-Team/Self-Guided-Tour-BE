@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SelfGuidedTours.Core.Models.Dto
@@ -18,9 +19,11 @@ namespace SelfGuidedTours.Core.Models.Dto
         public string Location { get; set; } = null!;
 
         [Required]
-        public string ThumbnailImageUrl { get; set; } = null!;
+        public IFormFile ThumbnailImage { get; set; } = null!;
 
         [Required]
         public int EstimatedDuration { get; set; }
+        [Required]
+        public ICollection<LandmarkCreateTourDTO> Landmarks { get; set; } = new List<LandmarkCreateTourDTO>();
     }
 }

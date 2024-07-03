@@ -11,6 +11,7 @@ namespace SelfGuidedTours.Infrastructure.Data.Enums
         Image,
         Video,
         Audio,
-        Text
+        Text,
+        Unknown
     }
 }
