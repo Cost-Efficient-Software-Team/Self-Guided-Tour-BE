@@ -6,5 +6,6 @@ namespace SelfGuidedTours.Core.Contracts
     public interface ITourService
     {
         Task<ApiResponse> AddAsync(TourCreateDTO model, string creatorId);
+        Task<ApiResponse> DeleteTour(int id);
     }
 }
