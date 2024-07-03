@@ -10,7 +10,6 @@ using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
-
 namespace SelfGuidedTours.Core.Services
 {
     public class AuthService : IAuthService
@@ -20,25 +19,26 @@ namespace SelfGuidedTours.Core.Services
         private readonly RefreshTokenGenerator refreshTokenGenerator;
         private readonly RefreshTokenValidator refreshTokenValidator;
         private readonly IRefreshTokenService refreshTokenService;
+        private readonly UserManager<ApplicationUser> userManager;
 
         public AuthService(IRepository repository,
             AccessTokenGenerator accessTokenGenerator,
             RefreshTokenGenerator refreshTokenGenerator,
             RefreshTokenValidator refreshTokenValidator,
-            IRefreshTokenService refreshTokenService
-            )
+            IRefreshTokenService refreshTokenService,
+            UserManager<ApplicationUser> userManager
+        )
         {
             this.repository = repository;
             this.accessTokenGenerator = accessTokenGenerator;
             this.refreshTokenGenerator = refreshTokenGenerator;
             this.refreshTokenValidator = refreshTokenValidator;
             this.refreshTokenService = refreshTokenService;
+            this.userManager = userManager;
         }
 
-        private async Task<ApplicationUser?> GetByEmailAsync(string email)
+        public async Task<ApplicationUser?> GetByEmailAsync(string email)
         {
-            //In that case if the current user is not registered with the provided email yet, the method will return null.
-
             return await repository.AllReadOnly<ApplicationUser>()
                 .FirstOrDefaultAsync(au => au.Email == email);
         }
@@ -131,6 +131,7 @@ namespace SelfGuidedTours.Core.Services
 
             return await AuthenticateAsync(user, "Successfully logged in!");
         }
+
         public async Task<AuthenticateResponse> GoogleSignInAsync(GoogleUserDto googleUser)
         {
             if (googleUser == null)
@@ -157,6 +158,7 @@ namespace SelfGuidedTours.Core.Services
 
             return await AuthenticateAsync(user, "Successfully logged in!");
         }
+
         public async Task LogoutAsync(string userId)
         {
             await refreshTokenService.DeleteAllAsync(userId);
@@ -189,6 +191,7 @@ namespace SelfGuidedTours.Core.Services
 
             return await AuthenticateAsync(user, "Successfully got new tokens!");
         }
+
         private IdentityUserRole<string> AssignUserRole(string userId)
         {
             return new IdentityUserRole<string>
@@ -225,6 +228,36 @@ namespace SelfGuidedTours.Core.Services
                 Result = "Password changed successfully!"
             };
             return response;
+        }
+
+        public async Task<string> GeneratePasswordResetTokenAsync(ApplicationUser user)
+        {
+            var token = await userManager.GeneratePasswordResetTokenAsync(user);
+            return token;
+        }
+
+        public async Task<IdentityResult> ResetPasswordAsync(string token, string newPassword)
+        {
+            var users = await userManager.Users.ToListAsync(); // Извличане на всички потребители
+            var user = users.FirstOrDefault(u => userManager.VerifyUserTokenAsync(u, userManager.Options.Tokens.PasswordResetTokenProvider, "ResetPassword", token).Result);
+
+            if (user == null)
+            {
+                return IdentityResult.Failed(new IdentityError { Description = "Invalid token." });
+            }
+
+            // Логиране на потребителското име за диагностика
+            Console.WriteLine($"User attempting password reset: {user.UserName}");
+
+            var result = await userManager.ResetPasswordAsync(user, token, newPassword);
+
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                return IdentityResult.Failed(new IdentityError { Description = $"Password reset failed: {errors}" });
+            }
+
+            return result;
         }
 
     }
