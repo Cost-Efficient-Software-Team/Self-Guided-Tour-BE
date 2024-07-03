@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using SelfGuidedTours.Infrastructure.Data;
+using SelfGuidedTours.Infrastructure.Data.Models;
 
 namespace SelfGuidedTours.Infrastructure.Common
 {
@@ -55,6 +56,26 @@ namespace SelfGuidedTours.Infrastructure.Common
         {
             context.RemoveRange(entities);
             await Task.CompletedTask;
+        }
+
+        public async Task<UserProfile?> GetProfileAsync(Guid userId)
+        {
+            return await context.UserProfiles.FindAsync(userId);
+        }
+
+        public async Task<UserProfile?> UpdateProfileAsync(Guid userId, UserProfile profile)
+        {
+            var existingProfile = await context.UserProfiles.FindAsync(userId);
+            if (existingProfile == null)
+            {
+                return null;
+            }
+
+            existingProfile.Name = profile.Name;
+            existingProfile.Email = profile.Email;
+
+            await context.SaveChangesAsync();
+            return existingProfile;
         }
     }
 }
