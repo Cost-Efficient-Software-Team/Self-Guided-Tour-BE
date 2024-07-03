@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Models.Auth;
@@ -20,6 +21,7 @@ namespace SelfGuidedTours.Core.Services
         private readonly RefreshTokenValidator refreshTokenValidator;
         private readonly IRefreshTokenService refreshTokenService;
         private readonly UserManager<ApplicationUser> userManager;
+        private readonly ILogger<AuthService> logger;
 
         public AuthService(IRepository repository,
             AccessTokenGenerator accessTokenGenerator,
@@ -27,6 +29,9 @@ namespace SelfGuidedTours.Core.Services
             RefreshTokenValidator refreshTokenValidator,
             IRefreshTokenService refreshTokenService,
             UserManager<ApplicationUser> userManager
+            ,
+            ILogger<AuthService> logger
+
         )
         {
             this.repository = repository;
@@ -35,6 +40,7 @@ namespace SelfGuidedTours.Core.Services
             this.refreshTokenValidator = refreshTokenValidator;
             this.refreshTokenService = refreshTokenService;
             this.userManager = userManager;
+            this.logger = logger;
         }
 
         public async Task<ApplicationUser?> GetByEmailAsync(string email)
@@ -100,6 +106,8 @@ namespace SelfGuidedTours.Core.Services
             {
                 Email = model.Email,
                 NormalizedEmail = model.Email.ToUpper(),
+                UserName = model.Email, // needed for the reset pass
+                NormalizedUserName = model.Email.ToUpper(), // needed for the reset pass
                 Name = model.Name,
                 PasswordHash = hasher.HashPassword(null!, model.Password) // Hash the password
             };
@@ -235,30 +243,41 @@ namespace SelfGuidedTours.Core.Services
             var token = await userManager.GeneratePasswordResetTokenAsync(user);
             return token;
         }
-
-        public async Task<IdentityResult> ResetPasswordAsync(string token, string newPassword)
+        public async Task<IdentityResult> ResetPasswordAsync(string email, string token, string newPassword)
         {
-            var users = await userManager.Users.ToListAsync(); // Извличане на всички потребители
-            var user = users.FirstOrDefault(u => userManager.VerifyUserTokenAsync(u, userManager.Options.Tokens.PasswordResetTokenProvider, "ResetPassword", token).Result);
-
+            var user = await userManager.FindByEmailAsync(email);
             if (user == null)
             {
+                return IdentityResult.Failed(new IdentityError { Description = "Invalid email." });
+            }
+
+            // Лог за проверка на потребителя
+            logger.LogInformation($"User found: {user.Email}");
+
+            var isTokenValid = await userManager.VerifyUserTokenAsync(user, userManager.Options.Tokens.PasswordResetTokenProvider, "ResetPassword", token);
+            if (!isTokenValid)
+            {
+                // Лог за невалиден токен
+                logger.LogWarning($"Invalid token for user: {user.Email}");
                 return IdentityResult.Failed(new IdentityError { Description = "Invalid token." });
             }
 
-            // Логиране на потребителското име за диагностика
-            Console.WriteLine($"User attempting password reset: {user.UserName}");
-
             var result = await userManager.ResetPasswordAsync(user, token, newPassword);
-
             if (!result.Succeeded)
             {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                // Лог за неуспешен ресет на паролата
+                logger.LogError($"Password reset failed for user: {user.Email}. Errors: {errors}");
                 return IdentityResult.Failed(new IdentityError { Description = $"Password reset failed: {errors}" });
             }
 
+            // Лог за успешен ресет на паролата
+            logger.LogInformation($"Password reset succeeded for user: {user.Email}");
             return result;
         }
+
+
+
 
     }
 }

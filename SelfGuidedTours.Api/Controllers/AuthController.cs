@@ -128,7 +128,6 @@ namespace SelfGuidedTours.Api.Controllers
             };
 
             var response = await authService.ChangePasswordAsync(changePasswordModel);
-            // In case something goes wrong, an exception is thrown in the authService and it gets automatically caught from the middleware
 
             return Ok(response);
         }
@@ -161,7 +160,7 @@ namespace SelfGuidedTours.Api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var result = await authService.ResetPasswordAsync(model.Token, model.Password);
+            var result = await authService.ResetPasswordAsync(model.Email, model.Token, model.Password);
             if (!result.Succeeded)
             {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
@@ -171,9 +170,6 @@ namespace SelfGuidedTours.Api.Controllers
             return Ok("Password has been reset.");
         }
 
-
-
-
         [HttpGet("reset-password")]
         [ProducesResponseType(typeof(string), 200)]
         [ProducesResponseType(typeof(string), 400)]
@@ -181,8 +177,5 @@ namespace SelfGuidedTours.Api.Controllers
         {
             return Ok($"Token received: {token}");
         }
-
-       
-
     }
 }
