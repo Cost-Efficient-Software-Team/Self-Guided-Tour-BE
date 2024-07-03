@@ -6,6 +6,7 @@ using SelfGuidedTours.Api.CustomActionFilters;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Models.Auth;
+using SelfGuidedTours.Core.Models.Auth.ResetPassword;
 using SelfGuidedTours.Core.Models.ExternalLogin;
 using SelfGuidedTours.Core.Services;
 using SelfGuidedTours.Infrastructure.Data.Models;
@@ -20,7 +21,7 @@ namespace SelfGuidedTours.Api.Controllers
         private readonly IAuthService authService;
         private readonly ILogger<AuthController> logger;
         private readonly IGoogleAuthService googleAuthService;
-        private readonly IEmailService emailService; // Добавяне на emailService
+        private readonly IEmailService emailService;
       
 
         public AuthController(IAuthService authService, ILogger<AuthController> logger, IGoogleAuthService googleAuthService, IEmailService emailService)
@@ -28,7 +29,7 @@ namespace SelfGuidedTours.Api.Controllers
             this.authService = authService;
             this.logger = logger;
             this.googleAuthService = googleAuthService;
-            this.emailService = emailService; // Инжектиране на emailService
+            this.emailService = emailService; 
         }
 
         [HttpPost("register")]

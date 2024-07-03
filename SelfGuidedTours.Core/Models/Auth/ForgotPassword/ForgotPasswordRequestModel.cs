@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SelfGuidedTours.Core.Models
+namespace SelfGuidedTours.Core.Models.Auth.ResetPassword
 {
     public class ForgotPasswordRequestModel
     {

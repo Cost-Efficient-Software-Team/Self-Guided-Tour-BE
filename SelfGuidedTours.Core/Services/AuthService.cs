@@ -109,7 +109,7 @@ namespace SelfGuidedTours.Core.Services
                 UserName = model.Email, // needed for the reset pass
                 NormalizedUserName = model.Email.ToUpper(), // needed for the reset pass
                 Name = model.Name,
-                PasswordHash = hasher.HashPassword(null!, model.Password) // Hash the password
+                PasswordHash = hasher.HashPassword(null!, model.Password) 
             };
             //Assign user role
             var userRole = AssignUserRole(user.Id);
@@ -216,7 +216,7 @@ namespace SelfGuidedTours.Core.Services
             var user = await GetByIdAsync(model.UserId);
 
             if (user is null) throw new UnauthorizedAccessException("User not found");
-            //User created via external login doesent have an assigned password and shouldnt be able to acces this method
+
             if (user.PasswordHash is null) throw new UnauthorizedAccessException("User has no assigned password!");
 
             var hasher = new PasswordHasher<ApplicationUser>();
@@ -224,7 +224,6 @@ namespace SelfGuidedTours.Core.Services
             var result = hasher.VerifyHashedPassword(user, user.PasswordHash, model.CurrentPassword);
 
             if (result != PasswordVerificationResult.Success) throw new UnauthorizedAccessException("Invalid password");
-            //Update the user's password with the new one
             user.PasswordHash = hasher.HashPassword(user, model.NewPassword);
 
             await repository.UpdateAsync(user);
@@ -251,13 +250,11 @@ namespace SelfGuidedTours.Core.Services
                 return IdentityResult.Failed(new IdentityError { Description = "Invalid email." });
             }
 
-            // Лог за проверка на потребителя
             logger.LogInformation($"User found: {user.Email}");
 
             var isTokenValid = await userManager.VerifyUserTokenAsync(user, userManager.Options.Tokens.PasswordResetTokenProvider, "ResetPassword", token);
             if (!isTokenValid)
             {
-                // Лог за невалиден токен
                 logger.LogWarning($"Invalid token for user: {user.Email}");
                 return IdentityResult.Failed(new IdentityError { Description = "Invalid token." });
             }
@@ -266,18 +263,12 @@ namespace SelfGuidedTours.Core.Services
             if (!result.Succeeded)
             {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                // Лог за неуспешен ресет на паролата
                 logger.LogError($"Password reset failed for user: {user.Email}. Errors: {errors}");
                 return IdentityResult.Failed(new IdentityError { Description = $"Password reset failed: {errors}" });
             }
 
-            // Лог за успешен ресет на паролата
             logger.LogInformation($"Password reset succeeded for user: {user.Email}");
             return result;
         }
-
-
-
-
     }
 }
