@@ -27,6 +27,8 @@ namespace SelfGuidedTours.Api.Extensions
             services.AddScoped<IRefreshTokenService, RefreshTokenService>();
             services.AddScoped<IGoogleAuthService, GoogleAuthService>();
             services.AddScoped<ITourService, TourService>();
+            services.AddScoped<IProfileService, ProfileService>();
+
 
             //Configure connection string and container account - Azure BLOB Storage
             var connectionString = config.GetConnectionString("StorageAccount:ConnectionString")!;
