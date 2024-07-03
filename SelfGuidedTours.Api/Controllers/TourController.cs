@@ -44,18 +44,11 @@ namespace SelfGuidedTours.Api.Controllers
 
             return CreatedAtAction(nameof(CreateTour), new { id = ((Tour)result.Result).TourId }, result);
         }
-
-        [HttpDelete("{id:int}")]
-        public async Task<IActionResult> DeleteTour(int id)
+        
+        [HttpDelete("{id:int}", Name = "delete-tour")]
+        public async Task<IActionResult> DeleteTour([FromRoute] int id)
         {
-            if (id == 0)
-            {
-                _response.StatusCode = HttpStatusCode.BadRequest;
-                _response.IsSuccess = false;
-                return BadRequest(_response);
-            }
-
-            var result = await _tourService.DeleteTour(id);
+            var result = await _tourService.DeleteTourAsync(id);
 
             if (!result.IsSuccess)
             {

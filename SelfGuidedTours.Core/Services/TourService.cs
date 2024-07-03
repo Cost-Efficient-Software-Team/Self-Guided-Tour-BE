@@ -124,7 +124,7 @@ namespace SelfGuidedTours.Core.Services
             };
         }
 
-        public async Task<ApiResponse> DeleteTour(int id)
+        public async Task<ApiResponse> DeleteTourAsync(int id)
         {
             var response = new ApiResponse();
 
@@ -136,28 +136,31 @@ namespace SelfGuidedTours.Core.Services
                 return response;
             }
 
-            var landmarks = repository.AllReadOnly<Landmark>().Where(l => l.TourId == id).ToList();
+            var landmarks = await repository.All<Landmark>().Where(l => l.TourId == id).ToListAsync();
+
             foreach (var landmark in landmarks)
             {
-                var resources = repository.AllReadOnly<LandmarkResource>().Where(r => r.LandmarkId == landmark.LandmarkId).ToList();
-                foreach (var resource in resources)
+                var resources = await repository.All<LandmarkResource>().Where(r => r.LandmarkId == landmark.LandmarkId).ToListAsync();
+                foreach(var resource in resources)
                 {
                     await blobService.DeleteFileAsync(resource.Url);
                     repository.Delete(resource);
                 }
-                repository.Delete(landmark);
+                
+                var coordinates = await repository.All<Coordinate>().Where(r => r.CoordinateId == landmark.CoordinateId).ToListAsync();
+                foreach (var coordinate in coordinates)
+                {    
+                    repository.Delete(coordinate);
+                }
             }
+
+            await repository.DeleteAllAsync(landmarks);
 
             repository.Delete(tour);
             await repository.SaveChangesAsync();
 
             response.StatusCode = HttpStatusCode.NoContent;
             return response;
-        }
-
-        public bool TourExists(int id)
-        {
-            return repository.AllReadOnly<Tour>().Any(e => e.TourId == id);
         }
     }
 }
