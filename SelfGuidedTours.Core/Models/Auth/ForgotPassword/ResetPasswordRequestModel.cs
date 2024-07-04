@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
+using static SelfGuidedTours.Common.ValidationConstants.AuthConstants;
+using static SelfGuidedTours.Common.ValidationConstants.AuthConstants.Register;
 
 namespace SelfGuidedTours.Core.Models.Auth.ResetPassword
 {
@@ -11,13 +8,15 @@ namespace SelfGuidedTours.Core.Models.Auth.ResetPassword
     {
         [Required]
         [EmailAddress]
-        public string Email { get; set; }
+        public string Email { get; set; } = null!;
 
         [Required]
-        public string Token { get; set; }
+        public string Token { get; set; } = null!;
 
-        [Required]
-        [StringLength(100, MinimumLength = 6)]
-        public string Password { get; set; }
+        [Required(ErrorMessage = RequiredMessage)]
+        [Display(Name = nameof(Password))]
+        [MinLength(PasswordMinLength, ErrorMessage = LengthErrorMessage)]
+        [RegularExpression(PasswordRegex, ErrorMessage = InvalidPasswordMessage)]
+        public string Password { get; set; } = null!;
     }
 }
