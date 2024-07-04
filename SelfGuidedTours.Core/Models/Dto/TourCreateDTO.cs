@@ -9,7 +9,7 @@ namespace SelfGuidedTours.Core.Models.Dto
         {
             Landmarks = new HashSet<LandmarkCreateTourDTO>();
         }
-
+        //TODO: add validation
         [Required]
         public string Title { get; set; } = null!;
 
