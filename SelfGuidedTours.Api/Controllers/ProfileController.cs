@@ -67,10 +67,10 @@ namespace SelfGuidedTours.Api.Controllers
             }
 
             existingUser.Email = profile.Email;
-            existingUser.UserName = profile.Email;  // Това ще осигури, че потребителското име също се обновява, ако използвате имейла като потребителско име
+            existingUser.UserName = profile.Email;  
             existingUser.NormalizedEmail = profile.Email.ToUpper();
             existingUser.NormalizedUserName = profile.Email.ToUpper();
-            existingUser.Name = profile.Name; // Актуализиране на името
+            existingUser.Name = profile.Name; 
 
             var updateResult = await _userManager.UpdateAsync(existingUser);
             if (!updateResult.Succeeded)
