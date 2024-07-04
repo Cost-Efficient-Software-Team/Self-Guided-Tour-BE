@@ -15,113 +15,50 @@ namespace SelfGuidedTours.Core.Services
         private readonly IRepository repository;
         private readonly ApiResponse response;
         private readonly IBlobService blobService;
+        private readonly ILandmarkService landmarkService;
 
-        public TourService(IRepository repository, IBlobService blobService)
+        public TourService(IRepository repository, IBlobService blobService, ILandmarkService landmarkService)
         {
             this.repository = repository;
             this.blobService = blobService;
             response = new ApiResponse();
+            this.landmarkService = landmarkService;
         }
 
-        public async Task<ApiResponse> AddAsync(TourCreateDTO model, string creatorId)
+        public async Task<Tour> CreateAsync(TourCreateDTO model, string creatorId)
         {
-            var blobNameThumnailImage = $"{Guid.NewGuid()}_{model.ThumbnailImageUrl.FileName}";
-            await blobService.UploadFileAsync(model.ThumbnailImageUrl, blobNameThumnailImage);
+            if (model == null) throw new ArgumentException();
 
-            //Tour
-            var tourToAdd = new Tour()
+            var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME");
+
+            if (containerName == null) throw new Exception("CONTAINER_NAME is not configured");
+
+            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(model.ThumbnailImage.FileName)}";
+            var thumbnailUrl = await blobService.UploadFileAsync(containerName, model.ThumbnailImage, fileName, true);
+
+            if (thumbnailUrl == null) throw new Exception("Error uploading image");
+
+            var tourToAdd = new Tour
             {
+                CreatorId = creatorId,
                 Title = model.Title,
                 Description = model.Description,
                 Price = model.Price,
                 Location = model.Location,
-                ThumbnailImageUrl = blobService.GetFileUrl(blobNameThumnailImage),
-                EstimatedDuration = model.EstimatedDuration,
-                CreatorId = creatorId
+                ThumbnailImageUrl = thumbnailUrl,
+                EstimatedDuration = model.EstimatedDuration
             };
+
 
             await repository.AddAsync(tourToAdd);
+
+            await landmarkService.CreateLandmarskForTourAsync(model.Landmarks, tourToAdd);
+
             await repository.SaveChangesAsync();
 
-            //Coordinate
-            foreach (var landmark in model.Landmarks)
-            {
-                var coordinate = landmark.Coordinates;
-                var coordinateToAdd = new Coordinate()
-                {
-                    Latitude = coordinate.Latitude,
-                    Longitude = coordinate.Longitude,
-                    City = coordinate.City,
-                    Country = coordinate.Country
-                };
-
-                await repository.AddAsync(coordinateToAdd);
-                await repository.SaveChangesAsync();
-
-                var coordinateFromDb = await repository.AllReadOnly<Coordinate>()
-                    .Where(c => c.Latitude == coordinate.Latitude && c.Longitude == coordinate.Longitude)
-                    .FirstAsync();
-
-                var tourFromDb = await repository.AllReadOnly<Tour>()
-                    .Where(t => t.Title == tourToAdd.Title && tourToAdd.Description == tourToAdd.Description)
-                    .FirstAsync();
-
-                var landmarkToAdd = new Landmark()
-                {
-                    CoordinateId = coordinateFromDb.CoordinateId,
-                    Name = landmark.Name,
-                    Description = landmark.Description,
-                    TourId = tourFromDb.TourId
-                };
-
-                tourToAdd.Landmarks.Add(landmarkToAdd);
-
-                await repository.AddAsync(landmarkToAdd);
-                await repository.SaveChangesAsync();
-
-                var landmarkFromDb = await repository.AllReadOnly<Landmark>()
-                    .Where(l => l.CoordinateId == coordinateFromDb.CoordinateId && l.Name == landmarkToAdd.Name && l.Description == landmarkToAdd.Description)
-                    .FirstAsync();
-
-                var landmarkResources = landmark.Resources;
-                foreach (var resource in landmarkResources!)
-                {
-                    if (resource.Length > 0)
-                    {
-                        var blobName = $"{Guid.NewGuid()}_{resource.FileName}";
-                        await blobService.UploadFileAsync(resource, blobName);
-
-                        var landmarkResourceToAdd = new LandmarkResource()
-                        {
-                            LandmarkId = landmarkFromDb.LandmarkId,
-                            Type = GetResourceType(resource.ContentType),
-                            Url = blobService.GetFileUrl(blobName),
-                        };
-                        await repository.AddAsync(landmarkResourceToAdd);
-                    }
-                }
-
-                await repository.SaveChangesAsync();
-            }
-
-            response.Result = tourToAdd;
             response.StatusCode = HttpStatusCode.Created;
 
-            return response;
-        }
-
-        private ResourceType GetResourceType(string contentType)
-        {
-            return contentType switch
-            {
-                "image/jpeg" => ResourceType.Image,
-                "image/png" => ResourceType.Image,
-                "video/mp4" => ResourceType.Video,
-                "audio/mpeg" => ResourceType.Audio,
-                "text/plain" => ResourceType.Text,
-                "application/pdf" => ResourceType.Text,
-                _ => ResourceType.Unknown
-            };
+            return tourToAdd;
         }
         
         public async Task<ApiResponse> DeleteTourAsync(int id)
@@ -138,12 +75,17 @@ namespace SelfGuidedTours.Core.Services
 
             var landmarks = await repository.All<Landmark>().Where(l => l.TourId == id).ToListAsync();
 
+            var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME") ??
+                         throw new ApplicationException("CONTAINER_NAME is not configured.");
+
+            await blobService.DeleteFileAsync(tour.ThumbnailImageUrl, containerName);
+
             foreach (var landmark in landmarks)
             {
                 var resources = await repository.All<LandmarkResource>().Where(r => r.LandmarkId == landmark.LandmarkId).ToListAsync();
                 foreach(var resource in resources)
                 {
-                    await blobService.DeleteFileAsync(resource.Url);
+                    await blobService.DeleteFileAsync(resource.Url, containerName);
                     repository.Delete(resource);
                 }
                 

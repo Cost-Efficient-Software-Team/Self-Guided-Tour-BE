@@ -23,7 +23,7 @@ namespace SelfGuidedTours.Core.Models.Dto
         public string Location { get; set; } = null!;
 
         [Required]
-        public IFormFile ThumbnailImageUrl { get; set; } = null!;
+        public IFormFile ThumbnailImage { get; set; } = null!;
 
         [Required]
         public int EstimatedDuration { get; set; }

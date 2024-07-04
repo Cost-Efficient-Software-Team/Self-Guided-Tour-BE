@@ -1,6 +1,7 @@
 ﻿using System.Configuration;
 using System.Text;
 using Azure.Storage.Blobs;
+using Microsoft.Extensions.Azure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -27,13 +28,10 @@ namespace SelfGuidedTours.Api.Extensions
             services.AddScoped<IRefreshTokenService, RefreshTokenService>();
             services.AddScoped<IGoogleAuthService, GoogleAuthService>();
             services.AddScoped<ITourService, TourService>();
+            services.AddScoped<ILandmarkService, LandmarkService>();
+            services.AddScoped<ILandmarkResourceService, LandmarkResourceService>();
+            services.AddScoped<IBlobService, BlobService>();
 
-            //Configure connection string and container account - Azure BLOB Storage
-            var connectionString = config.GetConnectionString("StorageAccount:ConnectionString")!;
-            var containerName = config.GetConnectionString("StorageAccount:ContainerName")!;
-
-            services.AddScoped<IBlobService>(provider =>
-                new BlobService(connectionString, containerName));
 
             //Token generators
             services.AddScoped<AccessTokenGenerator>();
@@ -61,6 +59,13 @@ namespace SelfGuidedTours.Api.Extensions
             services.AddDbContext<SelfGuidedToursDbContext>(options =>
             {
                 options.UseSqlServer(connectionString);
+            });
+
+            var storageConnectionString = config.GetConnectionString("BlobStorage");
+
+            services.AddAzureClients(azureBuilder =>
+            {
+                azureBuilder.AddBlobServiceClient(storageConnectionString);
             });
 
             services.AddScoped<IRepository, Repository>();

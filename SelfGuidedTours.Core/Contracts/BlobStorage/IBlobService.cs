@@ -4,8 +4,8 @@ namespace SelfGuidedTours.Core.Contracts.BlobStorage
 {
     public interface IBlobService
     {
-        Task UploadFileAsync(IFormFile file, string blobName);
-        Task DeleteFileAsync(string blobName);
-        string GetFileUrl(string blobName);   
+        Task<string> UploadFileAsync(string containerName, IFormFile file, string blobName, bool isThubmnail = false);
+        Task DeleteFileAsync(string blobName, string containerName);
+        string GetFileUrl(string blobName, string containerName);   
     }
 }

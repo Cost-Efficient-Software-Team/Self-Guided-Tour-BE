@@ -35,9 +35,9 @@ namespace SelfGuidedTours.Api.Controllers
         {
             var creatorId = User.Claims.First().Value;
 
-            var result = await _tourService.AddAsync(tourCreateDTO, creatorId);
+            var result = await _tourService.CreateAsync(tourCreateDTO, creatorId);
 
-            return CreatedAtAction(nameof(CreateTour), new { id = ((Tour)result.Result!).TourId }, result);
+            return CreatedAtAction(nameof(CreateTour), new { id = (result.TourId, result) });
         }
         
         [HttpDelete("{id:int}", Name = "delete-tour")]
