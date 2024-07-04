@@ -7,6 +7,7 @@ using SelfGuidedTours.Infrastructure.Data.Models;
 using System.Net;
 using Microsoft.EntityFrameworkCore;
 using SelfGuidedTours.Infrastructure.Data.Enums;
+using static SelfGuidedTours.Common.MessageConstants.ErrorMessages;
 
 namespace SelfGuidedTours.Core.Services
 {
@@ -31,12 +32,12 @@ namespace SelfGuidedTours.Core.Services
 
             var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME");
 
-            if (containerName == null) throw new Exception("CONTAINER_NAME is not configured");
+            if (containerName == null) throw new Exception(ContainerNameErrorMessage);
 
             var fileName = $"{Guid.NewGuid()}{Path.GetExtension(model.ThumbnailImage.FileName)}";
             var thumbnailUrl = await blobService.UploadFileAsync(containerName, model.ThumbnailImage, fileName, true);
 
-            if (thumbnailUrl == null) throw new Exception("Error uploading image");
+            if (thumbnailUrl == null) throw new Exception(BlobStorageErrorMessage);
 
             var tourToAdd = new Tour
             {
@@ -76,7 +77,7 @@ namespace SelfGuidedTours.Core.Services
             var landmarks = await repository.All<Landmark>().Where(l => l.TourId == id).ToListAsync();
 
             var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME") ??
-                         throw new ApplicationException("CONTAINER_NAME is not configured.");
+                         throw new ApplicationException(ContainerNameErrorMessage);
 
             await blobService.DeleteFileAsync(tour.ThumbnailImageUrl, containerName);
 
@@ -111,7 +112,7 @@ namespace SelfGuidedTours.Core.Services
 
             if(tour == null)
             {
-                throw new KeyNotFoundException("Tour was not found!");
+                throw new KeyNotFoundException(TourNotFoundErrorMessage);
             }
 
             return tour;
