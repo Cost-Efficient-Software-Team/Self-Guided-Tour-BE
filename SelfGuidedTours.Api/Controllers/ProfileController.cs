@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using SelfGuidedTours.Core.Models;
-using System.Net;
 using SelfGuidedTours.Api.CustomActionFilters;
 using SelfGuidedTours.Core.Contracts;
+using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Infrastructure.Data.Models;
+using System;
+using System.Net;
+using System.Threading.Tasks;
 
 namespace SelfGuidedTours.Api.Controllers
 {
@@ -54,6 +56,28 @@ namespace SelfGuidedTours.Api.Controllers
                 _response.ErrorMessages.Add("Invalid data");
                 return BadRequest(_response);
             }
+
+            var existingUser = await _userManager.FindByIdAsync(userId.ToString());
+            if (existingUser == null)
+            {
+                _response.StatusCode = HttpStatusCode.NotFound;
+                _response.ErrorMessages.Add("User not found");
+                return NotFound(_response);
+            }
+
+            existingUser.Email = profile.Email;
+            existingUser.UserName = profile.Email;  // Това ще осигури, че потребителското име също се обновява, ако използвате имейла като потребителско име
+            existingUser.NormalizedEmail = profile.Email.ToUpper();
+            existingUser.NormalizedUserName = profile.Email.ToUpper();
+
+            var updateResult = await _userManager.UpdateAsync(existingUser);
+            if (!updateResult.Succeeded)
+            {
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                _response.ErrorMessages.AddRange(updateResult.Errors.Select(e => e.Description));
+                return BadRequest(_response);
+            }
+
             var updatedProfile = await _profileService.UpdateProfileAsync(userId, profile);
             if (updatedProfile == null)
             {

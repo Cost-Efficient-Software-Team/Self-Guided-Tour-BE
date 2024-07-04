@@ -1,5 +1,4 @@
 ﻿using SelfGuidedTours.Core.Contracts;
-using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data.Models;
 
@@ -21,7 +20,18 @@ namespace SelfGuidedTours.Core.Services
 
         public async Task<UserProfile?> UpdateProfileAsync(Guid userId, UserProfile profile)
         {
-            return await _repository.UpdateProfileAsync(userId, profile);
+            var existingProfile = await _repository.GetProfileAsync(userId);
+            if (existingProfile == null)
+            {
+                return null;
+            }
+
+            existingProfile.Name = profile.Name;
+            existingProfile.Email = profile.Email;
+
+            await _repository.UpdateAsync(existingProfile);
+            await _repository.SaveChangesAsync();
+            return existingProfile;
         }
 
         public async Task CreateProfileAsync(UserProfile userProfile)
