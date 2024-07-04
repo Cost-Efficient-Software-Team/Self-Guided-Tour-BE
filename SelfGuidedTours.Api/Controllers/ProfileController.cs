@@ -1,13 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using SelfGuidedTours.Api.CustomActionFilters;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using System;
 using System.Net;
 using System.Threading.Tasks;
+using System.Linq;
+using SelfGuidedTours.Api.CustomActionFilters;
 
 namespace SelfGuidedTours.Api.Controllers
 {
@@ -69,6 +70,7 @@ namespace SelfGuidedTours.Api.Controllers
             existingUser.UserName = profile.Email;  // Това ще осигури, че потребителското име също се обновява, ако използвате имейла като потребителско име
             existingUser.NormalizedEmail = profile.Email.ToUpper();
             existingUser.NormalizedUserName = profile.Email.ToUpper();
+            existingUser.Name = profile.Name; // Актуализиране на името
 
             var updateResult = await _userManager.UpdateAsync(existingUser);
             if (!updateResult.Succeeded)
