@@ -4,7 +4,7 @@ using SelfGuidedTours.Core.Contracts.BlobStorage;
 using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data.Enums;
 using SelfGuidedTours.Infrastructure.Data.Models;
-
+using static SelfGuidedTours.Common.MessageConstants.ErrorMessages;
 namespace SelfGuidedTours.Core.Services
 {
     public class LandmarkResourceService : ILandmarkResourceService
@@ -19,11 +19,11 @@ namespace SelfGuidedTours.Core.Services
         }
         public async Task CreateLandmarkResoursecAsync(ICollection<IFormFile> resources, Landmark landmark)
         {
-            if (landmark is null) throw new ArgumentException("Landmark is required");
+            if (landmark is null) throw new ArgumentException(TourWithNoLandmarksErrorMessage);
 
             var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME");
 
-            if (containerName is null) throw new Exception("Resource Container is not configured");
+            if (containerName is null) throw new Exception(ContainerNameErrorMessage);
 
             //Think about validating if there are 0 resources, is that okay or not
             foreach (var resource in resources)
@@ -33,15 +33,13 @@ namespace SelfGuidedTours.Core.Services
 
                 var landmarkResource = new LandmarkResource
                 {
-                    //LandmarkId = landmarkId,
                     Url = resourceUrl,
                     Type = GetResourceType(resource.ContentType),
                     Landmark = landmark
                 };
 
                 await repository.AddAsync(landmarkResource);
-                //await repository.SaveChangesAsync();
-                // upload resource to blob storage
+     
             }
 
         }
