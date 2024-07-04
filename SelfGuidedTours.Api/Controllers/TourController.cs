@@ -37,7 +37,7 @@ namespace SelfGuidedTours.Api.Controllers
 
             var result = await _tourService.CreateAsync(tourCreateDTO, creatorId);
 
-            return CreatedAtAction(nameof(CreateTour), new { id = (result.TourId, result) });
+            return CreatedAtAction(nameof(GetTour), new { id = (result.TourId) },result); //TODO: Change Tour to TourDTO model
         }
         
         [HttpDelete("{id:int}", Name = "delete-tour")]
