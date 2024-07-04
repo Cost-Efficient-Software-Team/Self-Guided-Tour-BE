@@ -1,14 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using SelfGuidedTours.Api.CustomActionFilters;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Models;
+using SelfGuidedTours.Core.Models.Dto;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using System;
 using System.Net;
 using System.Threading.Tasks;
-using System.Linq;
-using SelfGuidedTours.Api.CustomActionFilters;
 
 namespace SelfGuidedTours.Api.Controllers
 {
@@ -29,7 +29,7 @@ namespace SelfGuidedTours.Api.Controllers
         }
 
         [HttpGet("{userId}")]
-        [ProducesResponseType(typeof(UserProfile), 200)]
+        [ProducesResponseType(typeof(UserProfileDto), 200)]
         [ProducesResponseType(typeof(ApiResponse), 404)]
         public async Task<IActionResult> GetProfile(Guid userId)
         {

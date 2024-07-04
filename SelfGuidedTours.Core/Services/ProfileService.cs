@@ -1,4 +1,6 @@
-﻿using SelfGuidedTours.Core.Contracts;
+﻿using Microsoft.AspNetCore.Identity;
+using SelfGuidedTours.Core.Contracts;
+using SelfGuidedTours.Core.Models.Dto;
 using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data.Models;
 
@@ -7,15 +9,35 @@ namespace SelfGuidedTours.Core.Services
     public class ProfileService : IProfileService
     {
         private readonly IRepository _repository;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public ProfileService(IRepository repository)
+        public ProfileService(IRepository repository, UserManager<ApplicationUser> userManager)
         {
             _repository = repository;
+            _userManager = userManager;
         }
 
-        public async Task<UserProfile?> GetProfileAsync(Guid userId)
+        public async Task<UserProfileDto?> GetProfileAsync(Guid userId)
         {
-            return await _repository.GetProfileAsync(userId);
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null)
+            {
+                return null;
+            }
+
+            var profile = await _repository.GetProfileAsync(userId);
+            if (profile == null)
+            {
+                return null;
+            }
+
+            return new UserProfileDto
+            {
+                UserId = Guid.Parse(user.Id),
+                Name = user.Name,
+                Email = user.Email
+                // Добавете други полета, които искате да включите
+            };
         }
 
         public async Task<UserProfile?> UpdateProfileAsync(Guid userId, UserProfile profile)
