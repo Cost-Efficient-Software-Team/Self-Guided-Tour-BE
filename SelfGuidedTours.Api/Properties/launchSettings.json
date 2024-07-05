@@ -37,7 +37,7 @@
         "ACCESSTOKEN_EXPIRATIONMINUTES": "5",
         "ISSUER": "https://localhost:7038",
         "AUDIENCE": "https://localhost:7038",
-        "CONTAINER_NAME": "selfguidedstorage"
+        "CONTAINER_NAME": "landmark-resources"
       }
     },
     "IIS Express": {
