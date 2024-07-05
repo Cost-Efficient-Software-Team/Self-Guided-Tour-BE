@@ -37,7 +37,7 @@ namespace SelfGuidedTours.Api.Controllers
             var creatorId = User.Claims.First().Value;
 
             var tour = await _tourService.CreateAsync(tourCreateDTO, creatorId);
-            // Think about AutoMapper
+
             var tourResponse = _tourService.MapTourToTourResponseDto(tour);
 
 
