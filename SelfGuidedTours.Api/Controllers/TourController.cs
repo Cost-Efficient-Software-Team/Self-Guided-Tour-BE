@@ -38,32 +38,7 @@ namespace SelfGuidedTours.Api.Controllers
 
             var tour = await _tourService.CreateAsync(tourCreateDTO, creatorId);
             // Think about AutoMapper
-            var tourResponse = new TourResponseDto
-            {
-                TourId = tour.TourId,
-                ThumbnailImageUrl = tour.ThumbnailImageUrl,
-                Location = tour.Location,
-                Description = tour.Description,
-                EstimatedDuration = tour.EstimatedDuration,
-                Price = tour.Price,
-                Status = tour.Status.ToString(),
-                Title = tour.Title,
-                Landmarks = tour.Landmarks.Select(l => new LandmarkResponseDto
-                {
-                    LandmarkId = l.LandmarkId,
-                    LandmarkName = l.Name,
-                    Description = l.Description,
-                    StopOrder = l.StopOrder,
-                    Latitude =l.Coordinate.Latitude,
-                    Longitude = l.Coordinate.Longitude,
-                    Resources = l.Resources.Select(r => new ResourceResponseDto
-                    {
-                        ResourceId = r.LandmarkResourceId,
-                        ResourceUrl = r.Url,
-                        ResourceType = r.Type.ToString()
-                    }).ToList()
-                }).ToList()
-            };
+            var tourResponse = _tourService.MapTourToTourResponseDto(tour);
 
 
             return CreatedAtAction(nameof(GetTour), new { id = (tourResponse.TourId) },tourResponse); 
@@ -94,7 +69,7 @@ namespace SelfGuidedTours.Api.Controllers
         {
             var tour = await _tourService.GetTourByIdAsync(id);//TODO: Change Tour to TourDTO model
 
-            _response.Result = tour!;
+            _response.Result = _tourService.MapTourToTourResponseDto(tour!);
             _response.StatusCode = HttpStatusCode.OK;
           
             return Ok(_response);
