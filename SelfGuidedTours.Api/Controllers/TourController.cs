@@ -7,6 +7,7 @@ using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using System.Net;
 using SelfGuidedTours.Api.CustomActionFilters;
+using SelfGuidedTours.Core.Models.ResponseDto;
 
 
 namespace SelfGuidedTours.Api.Controllers
@@ -35,9 +36,37 @@ namespace SelfGuidedTours.Api.Controllers
         {
             var creatorId = User.Claims.First().Value;
 
-            var result = await _tourService.CreateAsync(tourCreateDTO, creatorId);
+            var tour = await _tourService.CreateAsync(tourCreateDTO, creatorId);
+            // Think about AutoMapper
+            var tourResponse = new TourResponseDto
+            {
+                TourId = tour.TourId,
+                ThumbnailImageUrl = tour.ThumbnailImageUrl,
+                Location = tour.Location,
+                Description = tour.Description,
+                EstimatedDuration = tour.EstimatedDuration,
+                Price = tour.Price,
+                Status = tour.Status.ToString(),
+                Title = tour.Title,
+                Landmarks = tour.Landmarks.Select(l => new LandmarkResponseDto
+                {
+                    LandmarkId = l.LandmarkId,
+                    LandmarkName = l.Name,
+                    Description = l.Description,
+                    StopOrder = l.StopOrder,
+                    Latitude =l.Coordinate.Latitude,
+                    Longitude = l.Coordinate.Longitude,
+                    Resources = l.Resources.Select(r => new ResourceResponseDto
+                    {
+                        ResourceId = r.LandmarkResourceId,
+                        ResourceUrl = r.Url,
+                        ResourceType = r.Type.ToString()
+                    }).ToList()
+                }).ToList()
+            };
 
-            return CreatedAtAction(nameof(GetTour), new { id = (result.TourId) },result); //TODO: Change Tour to TourDTO model
+
+            return CreatedAtAction(nameof(GetTour), new { id = (tourResponse.TourId) },tourResponse); 
         }
         
         [HttpDelete("{id:int}", Name = "delete-tour")]
