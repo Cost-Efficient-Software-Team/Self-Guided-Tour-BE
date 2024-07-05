@@ -28,6 +28,7 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         public decimal? Price { get; set; }
 
         [Required]
+        [StringLength(LocationMaxLength, MinimumLength = LocationMinLength, ErrorMessage = LengthErrorMessage)]
         public string Location { get; set; } = null!;
 
         [Required]
