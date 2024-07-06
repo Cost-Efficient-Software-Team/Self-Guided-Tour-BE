@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using SelfGuidedTours.Api.Extensions;
 using SelfGuidedTours.Api.Middlewares;
@@ -54,11 +55,10 @@ builder.Services.AddSwaggerGen(options =>
 var app = builder.Build();
 
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+//Apply swagger middleware on every enviroment
+app.UseSwagger();
+app.UseSwaggerUI();
+
 
 // Add custom middleware for exception handling to the pipeline
 app.UseMiddleware<ExceptionHandlerMiddleware>(); 
@@ -70,5 +70,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
 
 app.Run();
