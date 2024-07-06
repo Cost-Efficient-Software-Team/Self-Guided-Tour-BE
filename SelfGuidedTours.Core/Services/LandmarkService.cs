@@ -2,7 +2,7 @@
 using SelfGuidedTours.Core.Models.Dto;
 using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data.Models;
-
+using static SelfGuidedTours.Common.MessageConstants.ErrorMessages;
 namespace SelfGuidedTours.Core.Services
 {
     public class LandmarkService : ILandmarkService
@@ -17,7 +17,7 @@ namespace SelfGuidedTours.Core.Services
         }
         public async Task<ICollection<Landmark>> CreateLandmarskForTourAsync(ICollection<LandmarkCreateTourDTO> landmarksDto, Tour tour)
         {
-            if (landmarksDto.Count == 0) throw new ArgumentException("A tour must have at least one landmark");
+            if (landmarksDto.Count == 0) throw new ArgumentException(TourWithNoLandmarksErrorMessage);
             var ladnmarksToAdd = new List<Landmark>();
             foreach (var landmarkDto in landmarksDto)
             {
@@ -29,20 +29,16 @@ namespace SelfGuidedTours.Core.Services
                 };
 
                 await repository.AddAsync(cordinate);
-                // await repository.SaveChangesAsync();
 
                 var landmark = new Landmark
                 {
                     Name = landmarkDto.Name,
                     Description = landmarkDto.Description,
-                    // CoordinateId = cordinate.CoordinateId,
-                    //TourId = tourId,
                     Coordinate = cordinate,
                     Tour = tour
                 };
 
                 await repository.AddAsync(landmark);
-                //await repository.SaveChangesAsync();
 
                 await resourceService.CreateLandmarkResoursecAsync(landmarkDto.Resources!, landmark);
             }

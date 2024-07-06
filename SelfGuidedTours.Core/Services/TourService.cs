@@ -7,6 +7,8 @@ using SelfGuidedTours.Infrastructure.Data.Models;
 using System.Net;
 using Microsoft.EntityFrameworkCore;
 using SelfGuidedTours.Infrastructure.Data.Enums;
+using static SelfGuidedTours.Common.MessageConstants.ErrorMessages;
+using SelfGuidedTours.Core.Models.ResponseDto;
 
 namespace SelfGuidedTours.Core.Services
 {
@@ -31,12 +33,12 @@ namespace SelfGuidedTours.Core.Services
 
             var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME");
 
-            if (containerName == null) throw new Exception("CONTAINER_NAME is not configured");
+            if (containerName == null) throw new Exception(ContainerNameErrorMessage);
 
             var fileName = $"{Guid.NewGuid()}{Path.GetExtension(model.ThumbnailImage.FileName)}";
             var thumbnailUrl = await blobService.UploadFileAsync(containerName, model.ThumbnailImage, fileName, true);
 
-            if (thumbnailUrl == null) throw new Exception("Error uploading image");
+            if (thumbnailUrl == null) throw new Exception(BlobStorageErrorMessage);
 
             var tourToAdd = new Tour
             {
@@ -76,7 +78,7 @@ namespace SelfGuidedTours.Core.Services
             var landmarks = await repository.All<Landmark>().Where(l => l.TourId == id).ToListAsync();
 
             var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME") ??
-                         throw new ApplicationException("CONTAINER_NAME is not configured.");
+                         throw new ApplicationException(ContainerNameErrorMessage);
 
             await blobService.DeleteFileAsync(tour.ThumbnailImageUrl, containerName);
 
@@ -107,14 +109,49 @@ namespace SelfGuidedTours.Core.Services
         public async Task<Tour?> GetTourByIdAsync(int id)
         {
             var tour = await repository.AllReadOnly<Tour>()
+                .Include(t => t.Landmarks)
+                .ThenInclude(l => l.Resources)
+                .Include(t => t.Landmarks)
+                .ThenInclude(l => l.Coordinate)
                 .FirstOrDefaultAsync(t => t.TourId == id);
 
             if(tour == null)
             {
-                throw new KeyNotFoundException("Tour was not found!");
+                throw new KeyNotFoundException(TourNotFoundErrorMessage);
             }
 
             return tour;
+        }
+
+        public TourResponseDto MapTourToTourResponseDto(Tour tour)
+        {
+            var tourResponse = new TourResponseDto
+            {
+                TourId = tour.TourId,
+                ThumbnailImageUrl = tour.ThumbnailImageUrl,
+                Location = tour.Location,
+                Description = tour.Description,
+                EstimatedDuration = tour.EstimatedDuration,
+                Price = tour.Price,
+                Status = tour.Status.ToString(),
+                Title = tour.Title,
+                Landmarks = tour.Landmarks.Select(l => new LandmarkResponseDto
+                {
+                    LandmarkId = l.LandmarkId,
+                    LandmarkName = l.Name,
+                    Description = l.Description,
+                    StopOrder = l.StopOrder,
+                    Latitude = l.Coordinate.Latitude,
+                    Longitude = l.Coordinate.Longitude,
+                    Resources = l.Resources.Select(r => new ResourceResponseDto
+                    {
+                        ResourceId = r.LandmarkResourceId,
+                        ResourceUrl = r.Url,
+                        ResourceType = r.Type.ToString()
+                    }).ToList()
+                }).ToList()
+            };
+            return tourResponse;
         }
     }
 }

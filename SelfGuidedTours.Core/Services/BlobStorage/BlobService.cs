@@ -59,12 +59,12 @@ namespace SelfGuidedTours.Core.Services.BlobStorage
         }
         private void ValidateFileUpload(IFormFile request, bool isThumbnail = false)
         {
-            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", "mp4", "mp3", "txt" }; // add all file extensions 
-            var maxFileSizeInBytes = MaxFileSyzeInBytes; // 100 megabytes 
+            var allowedExtensions = AllowedExtensions; // add all file extensions 
+            long maxFileSizeInBytes = MaxFileSyzeInBytes; // 100 megabytes 
 
             if (isThumbnail)
             {
-                allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+                allowedExtensions = AllowedThumbnailExtensions;
                 maxFileSizeInBytes = MaxThumbnailFileSyzeInBytes; // 10 megabytes 
             }
 
@@ -74,9 +74,13 @@ namespace SelfGuidedTours.Core.Services.BlobStorage
             }
             if (request.Length > maxFileSizeInBytes)
             {
-                throw new ArgumentException("File size is too large, max 10mb");
+                throw new ArgumentException($"File size is too large, max {ConvertBytesToMegabytes(maxFileSizeInBytes)} mb.");
             }
 
+        }
+        private double ConvertBytesToMegabytes(long bytes)
+        {
+            return (bytes / 1024f) / 1024f;
         }
     }
 }

@@ -7,6 +7,7 @@ using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using System.Net;
 using SelfGuidedTours.Api.CustomActionFilters;
+using SelfGuidedTours.Core.Models.ResponseDto;
 
 
 namespace SelfGuidedTours.Api.Controllers
@@ -35,9 +36,12 @@ namespace SelfGuidedTours.Api.Controllers
         {
             var creatorId = User.Claims.First().Value;
 
-            var result = await _tourService.CreateAsync(tourCreateDTO, creatorId);
+            var tour = await _tourService.CreateAsync(tourCreateDTO, creatorId);
 
-            return CreatedAtAction(nameof(CreateTour), new { id = (result.TourId, result) });
+            var tourResponse = _tourService.MapTourToTourResponseDto(tour);
+
+
+            return CreatedAtAction(nameof(GetTour), new { id = (tourResponse.TourId) },tourResponse); 
         }
         
         [HttpDelete("{id:int}", Name = "delete-tour")]
@@ -65,7 +69,7 @@ namespace SelfGuidedTours.Api.Controllers
         {
             var tour = await _tourService.GetTourByIdAsync(id);//TODO: Change Tour to TourDTO model
 
-            _response.Result = tour!;
+            _response.Result = _tourService.MapTourToTourResponseDto(tour!);
             _response.StatusCode = HttpStatusCode.OK;
           
             return Ok(_response);
