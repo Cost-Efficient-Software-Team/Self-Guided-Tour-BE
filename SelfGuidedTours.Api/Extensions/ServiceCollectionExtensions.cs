@@ -1,17 +1,22 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using System.Configuration;
+using System.Text;
+using Azure.Storage.Blobs;
+using Microsoft.Extensions.Azure;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SelfGuidedTours.Core.Contracts;
+using SelfGuidedTours.Core.Contracts.BlobStorage;
 using SelfGuidedTours.Core.Services;
+using SelfGuidedTours.Core.Services.BlobStorage;
 using SelfGuidedTours.Core.Services.TokenGenerators;
 using SelfGuidedTours.Core.Services.TokenValidators;
 using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data;
 using SelfGuidedTours.Infrastructure.Data.Models;
-using System.Text;
 
-namespace Microsoft.Extensions.DependencyInjection
+namespace SelfGuidedTours.Api.Extensions
 {
     public static class ServiceCollectionExtensions
     {
@@ -22,6 +27,11 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IRefreshTokenService, RefreshTokenService>();
             services.AddScoped<IGoogleAuthService, GoogleAuthService>();
+            services.AddScoped<ITourService, TourService>();
+            services.AddScoped<ILandmarkService, LandmarkService>();
+            services.AddScoped<ILandmarkResourceService, LandmarkResourceService>();
+            services.AddScoped<IBlobService, BlobService>();
+
 
             //Token generators
             services.AddScoped<AccessTokenGenerator>();
@@ -29,19 +39,17 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<TokenGenerator>();
             services.AddScoped<RefreshTokenValidator>();
 
-
             services.AddCors(Options =>
            {
                Options.AddPolicy("CorsPolicy", builder =>
                {
                    builder
-                   .WithOrigins("http://localhost:3000") // This is the Client app URL TODO: Change this after FE deployment
+                   .WithOrigins("http://localhost:3000", "https://self-guided-tour-fe.vercel.app/") // This will work for the local enviroment and with the current deployment URL
                    .AllowAnyMethod()
                    .AllowCredentials()
                    .AllowAnyHeader();
                });
            });
-
 
             return services;
         }
@@ -51,6 +59,13 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddDbContext<SelfGuidedToursDbContext>(options =>
             {
                 options.UseSqlServer(connectionString);
+            });
+
+            var storageConnectionString = config.GetConnectionString("BlobStorage");
+
+            services.AddAzureClients(azureBuilder =>
+            {
+                azureBuilder.AddBlobServiceClient(storageConnectionString);
             });
 
             services.AddScoped<IRepository, Repository>();

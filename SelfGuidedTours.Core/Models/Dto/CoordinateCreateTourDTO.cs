@@ -1,13 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 
-namespace SelfGuidedTours.Infrastructure.Data.Models
+namespace SelfGuidedTours.Core.Models.Dto
 {
-    public class Coordinate
+    public class CoordinateCreateTourDTO
     {
-        [Key]
-        public int CoordinateId { get; set; }
-
         [Required]
         [Column(TypeName = "decimal(10, 2)")]
         public decimal Latitude { get; set; }
@@ -21,9 +18,5 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
 
         [Required]
         public string Country { get; set; } = string.Empty;
-
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
-
-        public DateTime? UpdatedAt { get; set; }
     }
 }

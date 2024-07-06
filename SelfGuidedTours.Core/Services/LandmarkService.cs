@@ -1,0 +1,49 @@
+﻿using SelfGuidedTours.Core.Contracts;
+using SelfGuidedTours.Core.Models.Dto;
+using SelfGuidedTours.Infrastructure.Common;
+using SelfGuidedTours.Infrastructure.Data.Models;
+using static SelfGuidedTours.Common.MessageConstants.ErrorMessages;
+namespace SelfGuidedTours.Core.Services
+{
+    public class LandmarkService : ILandmarkService
+    {
+        private readonly IRepository repository;
+        private readonly ILandmarkResourceService resourceService;
+
+        public LandmarkService(IRepository repository, ILandmarkResourceService resourceService)
+        {
+            this.repository = repository;
+            this.resourceService = resourceService;
+        }
+        public async Task<ICollection<Landmark>> CreateLandmarskForTourAsync(ICollection<LandmarkCreateTourDTO> landmarksDto, Tour tour)
+        {
+            if (landmarksDto.Count == 0) throw new ArgumentException(TourWithNoLandmarksErrorMessage);
+            var ladnmarksToAdd = new List<Landmark>();
+            foreach (var landmarkDto in landmarksDto)
+            {
+                var cordinate = new Coordinate
+                {
+                    Latitude = landmarkDto.Latitude,
+                    Longitude = landmarkDto.Longitude,
+                    City = landmarkDto.City
+                };
+
+                await repository.AddAsync(cordinate);
+
+                var landmark = new Landmark
+                {
+                    Name = landmarkDto.Name,
+                    Description = landmarkDto.Description,
+                    Coordinate = cordinate,
+                    Tour = tour
+                };
+
+                await repository.AddAsync(landmark);
+
+                await resourceService.CreateLandmarkResoursecAsync(landmarkDto.Resources!, landmark);
+            }
+
+            return ladnmarksToAdd;
+        }
+    }
+}

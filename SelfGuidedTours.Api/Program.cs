@@ -1,9 +1,18 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using SelfGuidedTours.Infrastructure.Data;
+using SelfGuidedTours.Api.Extensions;
+using SelfGuidedTours.Api.Middlewares;
+using System.Text.Json.Serialization;
+
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    });
 
 builder.Services.AddControllers();
 
@@ -20,15 +29,13 @@ builder.Services.AddSwaggerGen(options =>
     options.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme,
         new OpenApiSecurityScheme
         {
-            Description =
-                "JWT Authorization header using the Bearer scheme. \r\n\r\n " +
-                "Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\n" +
-                "Example: \"Bearer 12345abcdef\"",
+            Description = "JWT Authorization header using the Bearer scheme.",
             Name = "Authorization",
             In = ParameterLocation.Header,
             Scheme = JwtBearerDefaults.AuthenticationScheme
         });
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement()
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
             new OpenApiSecurityScheme
@@ -36,10 +43,8 @@ builder.Services.AddSwaggerGen(options =>
                 Reference = new OpenApiReference
                 {
                     Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
+                    Id = JwtBearerDefaults.AuthenticationScheme
                 },
-                Scheme = "oauth2",
-                Name = "Bearer",
                 In = ParameterLocation.Header
             },
             new List<string>()
@@ -54,6 +59,9 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
+
+// Add custom middleware for exception handling to the pipeline
+app.UseMiddleware<ExceptionHandlerMiddleware>(); 
 
 app.UseCors("CorsPolicy"); // apply CORS policy from ServiceCollectionExtensions.cs
 app.UseHttpsRedirection();
