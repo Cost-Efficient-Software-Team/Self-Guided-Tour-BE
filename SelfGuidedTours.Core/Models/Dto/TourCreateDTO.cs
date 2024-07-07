@@ -16,15 +16,15 @@ namespace SelfGuidedTours.Core.Models.Dto
         public string Title { get; set; } = null!;
 
         [Required]
-        [StringLength(DescriptionMaxLength, MinimumLength = DescriptionMinLength, ErrorMessage = LengthErrorMessage)]
-        public string Description { get; set; } = null!;
+        [StringLength(SummaryMaxLength, MinimumLength = SummaryMinLength, ErrorMessage = LengthErrorMessage)]
+        public string Summary { get; set; } = null!;
 
         [Range(PriceMinValue, int.MaxValue)]
         public decimal? Price { get; set; } = null!;
 
         [Required]
-        [StringLength(LocationMaxLength, MinimumLength = LocationMinLength, ErrorMessage = LengthErrorMessage)]
-        public string Location { get; set; } = null!;
+        [StringLength(DestinationMaxLength, MinimumLength = DestinationMinLength, ErrorMessage = LengthErrorMessage)]
+        public string Destination { get; set; } = null!;
 
         [Required]
         public IFormFile ThumbnailImage { get; set; } = null!;

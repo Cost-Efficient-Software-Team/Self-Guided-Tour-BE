@@ -44,9 +44,9 @@ namespace SelfGuidedTours.Core.Services
             {
                 CreatorId = creatorId,
                 Title = model.Title,
-                Description = model.Description,
+                Summary = model.Summary,
                 Price = model.Price,
-                Location = model.Location,
+                Destination = model.Destination,
                 ThumbnailImageUrl = thumbnailUrl,
                 EstimatedDuration = model.EstimatedDuration
             };
@@ -129,8 +129,8 @@ namespace SelfGuidedTours.Core.Services
             {
                 TourId = tour.TourId,
                 ThumbnailImageUrl = tour.ThumbnailImageUrl,
-                Location = tour.Location,
-                Description = tour.Description,
+                Destination = tour.Destination,
+                Summary = tour.Summary,
                 EstimatedDuration = tour.EstimatedDuration,
                 Price = tour.Price,
                 Status = tour.Status.ToString(),

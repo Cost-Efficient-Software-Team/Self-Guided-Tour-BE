@@ -468,18 +468,14 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("Description")
+                    b.Property<string>("Destination")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("EstimatedDuration")
                         .HasColumnType("int")
                         .HasComment("Estimated duration in minutes");
-
-                    b.Property<string>("Location")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal?>("Price")
                         .HasColumnType("decimal(10, 2)");
@@ -487,6 +483,11 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int")
                         .HasComment("On create, status is pending until approved or rejected by admin.");
+
+                    b.Property<string>("Summary")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("ThumbnailImageUrl")
                         .IsRequired()
@@ -622,17 +623,17 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         {
                             Id = "27d78708-8671-4b05-bd5e-17aa91392224",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "bb889606-411a-43a7-9367-9966e88e2247",
+                            ConcurrencyStamp = "81d9bf75-8194-4fc7-bfe7-d80fddb4e405",
                             Email = "admin@selfguidedtours.bg",
                             EmailConfirmed = false,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@SELFGUIDEDTOURS.BG",
                             NormalizedUserName = "ADMIN ADMINOV",
-                            PasswordHash = "AQAAAAIAAYagAAAAEFGW5xzT5u8SWB17ORyqkvT80WbDbfIRh0vrYi78CPgWgEHRuRoSSguYvuCrMJWVNg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEHDvqswVHp9+h68iTd3h2JbtlmOQjPssLqpHtI2TmFwv8rJBTKmZRHKbL+SA/mbiGA==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "74ee551f-8585-4cab-8180-0c92b2b19b3a",
+                            SecurityStamp = "187e4505-cd19-449e-81db-c650049cd07d",
                             TwoFactorEnabled = false,
-                            CreatedAt = new DateTime(2024, 6, 29, 15, 24, 36, 114, DateTimeKind.Local).AddTicks(8627),
+                            CreatedAt = new DateTime(2024, 7, 7, 22, 33, 25, 998, DateTimeKind.Local).AddTicks(8956),
                             Name = "Admin Adminov"
                         });
                 });
@@ -710,7 +711,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
             modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.LandmarkResource", b =>
                 {
                     b.HasOne("SelfGuidedTours.Infrastructure.Data.Models.Landmark", "Landmark")
-                        .WithMany()
+                        .WithMany("Resources")
                         .HasForeignKey("LandmarkId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -817,6 +818,11 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.Landmark", b =>
+                {
+                    b.Navigation("Resources");
                 });
 
             modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.Tour", b =>
