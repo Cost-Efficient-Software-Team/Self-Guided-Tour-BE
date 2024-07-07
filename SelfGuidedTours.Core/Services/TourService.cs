@@ -141,6 +141,7 @@ namespace SelfGuidedTours.Core.Services
                     LandmarkName = l.Name,
                     Description = l.Description,
                     StopOrder = l.StopOrder,
+                    City = l.Coordinate.City,
                     Latitude = l.Coordinate.Latitude,
                     Longitude = l.Coordinate.Longitude,
                     Resources = l.Resources.Select(r => new ResourceResponseDto

@@ -35,6 +35,7 @@ namespace SelfGuidedTours.Core.Services
                     Name = landmarkDto.Name,
                     Description = landmarkDto.Description,
                     Coordinate = cordinate,
+                    StopOrder = landmarkDto.StopOrder,
                     Tour = tour
                 };
 
