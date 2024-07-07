@@ -27,7 +27,9 @@ namespace SelfGuidedTours.Core.Models.Dto
         [Required]
         [StringLength(NameMaxLength, MinimumLength = NameMinLength, ErrorMessage = LengthErrorMessage)]
         public string Name { get; set; } = null!;
-        
+        [Required]
+        public int StopOrder { get; set; }
+
         [Required]
         [StringLength(DescriptionMaxLength, MinimumLength = DescriptionMinLength, ErrorMessage = LengthErrorMessage)]
         public string Description { get; set; } = null!;
