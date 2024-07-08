@@ -32,7 +32,7 @@ namespace SelfGuidedTours.Core.Services
 
                 var landmark = new Landmark
                 {
-                    Name = landmarkDto.LocationName,
+                    LocationName = landmarkDto.LocationName,
                     Description = landmarkDto.Description,
                     Coordinate = cordinate,
                     StopOrder = landmarkDto.StopOrder,

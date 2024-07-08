@@ -138,7 +138,7 @@ namespace SelfGuidedTours.Core.Services
                 Landmarks = tour.Landmarks.Select(l => new LandmarkResponseDto
                 {
                     LandmarkId = l.LandmarkId,
-                    LandmarkName = l.Name,
+                    LocationName = l.LocationName,
                     Description = l.Description,
                     StopOrder = l.StopOrder,
                     City = l.Coordinate.City,
