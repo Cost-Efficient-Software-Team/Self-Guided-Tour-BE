@@ -6,7 +6,7 @@
 
         public string City { get; set; } = string.Empty;
 
-        public string LandmarkName { get; set; } = null!;
+        public string LocationName { get; set; } = null!;
 
         public string Description { get; set; } = null!;
         public int StopOrder { get; set; }
