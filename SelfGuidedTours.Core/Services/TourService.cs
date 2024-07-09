@@ -44,9 +44,9 @@ namespace SelfGuidedTours.Core.Services
             {
                 CreatorId = creatorId,
                 Title = model.Title,
-                Description = model.Description,
+                Summary = model.Summary,
                 Price = model.Price,
-                Location = model.Location,
+                Destination = model.Destination,
                 ThumbnailImageUrl = thumbnailUrl,
                 EstimatedDuration = model.EstimatedDuration
             };
@@ -129,8 +129,8 @@ namespace SelfGuidedTours.Core.Services
             {
                 TourId = tour.TourId,
                 ThumbnailImageUrl = tour.ThumbnailImageUrl,
-                Location = tour.Location,
-                Description = tour.Description,
+                Destination = tour.Destination,
+                Summary = tour.Summary,
                 EstimatedDuration = tour.EstimatedDuration,
                 Price = tour.Price,
                 Status = tour.Status.ToString(),
@@ -138,9 +138,10 @@ namespace SelfGuidedTours.Core.Services
                 Landmarks = tour.Landmarks.Select(l => new LandmarkResponseDto
                 {
                     LandmarkId = l.LandmarkId,
-                    LandmarkName = l.Name,
+                    LocationName = l.LocationName,
                     Description = l.Description,
                     StopOrder = l.StopOrder,
+                    City = l.Coordinate.City,
                     Latitude = l.Coordinate.Latitude,
                     Longitude = l.Coordinate.Longitude,
                     Resources = l.Resources.Select(r => new ResourceResponseDto
