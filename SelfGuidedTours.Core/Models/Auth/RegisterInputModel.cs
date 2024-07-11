@@ -18,7 +18,6 @@ namespace SelfGuidedTours.Core.Models.Auth
 
         [Required(ErrorMessage = RequiredMessage)]
         [Display(Name = nameof(Password))]
-        [MinLength(PasswordMinLength, ErrorMessage = LengthErrorMessage)]
         [RegularExpression(PasswordRegex, ErrorMessage = InvalidPasswordMessage)]
         public string Password { get; set; } = null!;
 
