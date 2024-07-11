@@ -1,17 +1,13 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using SelfGuidedTours.Api.Extensions;
 using SelfGuidedTours.Api.Middlewares;
-using SelfGuidedTours.Core.Models.ErrorResponse;
-using System.Text.Json.Serialization;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 
-builder.Services.AddCustomizedControllers();
+builder.Services.AddCustomizedControllers(); // This replaces the AddControllers method, comes from ServiceCollectionExtensions.cs
 
 builder.Services.AddEndpointsApiExplorer();
 
