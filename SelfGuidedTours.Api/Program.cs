@@ -10,38 +10,8 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-    })
-    .ConfigureApiBehaviorOptions(options =>  //Customize the response for invalid model state, by overriding the default behavior
-    {
-        options.InvalidModelStateResponseFactory = ContextBoundObject =>
-        {
-            var errors = ContextBoundObject.ModelState
-                .Where(e => e.Value?.Errors.Count > 0)
-                .ToDictionary(
-                    kvp => kvp.Key,
-                    kvp => kvp.Value?.Errors[0].ErrorMessage
-                  );
-            var errorResponse = new ErrorDetails
-            {
-                ErrorId = Guid.NewGuid(),
-                StatusCode = StatusCodes.Status400BadRequest,
-                Message = "One or more validation errors occured",
-                Errors = errors,
-                Type = "https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.1"
-            };
-            
 
-            return new BadRequestObjectResult(errorResponse)
-            {
-                ContentTypes = { "application/json" },
-            };
-        };
-    });
-
+builder.Services.AddCustomizedControllers();
 
 builder.Services.AddEndpointsApiExplorer();
 
