@@ -70,13 +70,19 @@ namespace SelfGuidedTours.Api.Middlewares
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)statusCode;
 
-            return context.Response.WriteAsync(new ErrorDetails()
+            var json = JsonSerializer.Serialize(new ErrorDetails()
             {
                 ErrorId = Guid.NewGuid(),
                 StatusCode = context.Response.StatusCode,
                 Message = exception.Message,
-                Type = errorType
-            }.ToString());
+                Type = errorType,
+                Errors = { { "Error", exception.Message } }
+            }, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            return context.Response.WriteAsync(json);
         }
 
        

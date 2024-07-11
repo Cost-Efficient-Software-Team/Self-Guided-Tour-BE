@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using SelfGuidedTours.Api.Extensions;
 using SelfGuidedTours.Api.Middlewares;
+using SelfGuidedTours.Core.Models.ErrorResponse;
 using System.Text.Json.Serialization;
 
 
@@ -12,9 +14,34 @@ builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    })
+    .ConfigureApiBehaviorOptions(options =>  //Customize the response for invalid model state, by overriding the default behavior
+    {
+        options.InvalidModelStateResponseFactory = ContextBoundObject =>
+        {
+            var errors = ContextBoundObject.ModelState
+                .Where(e => e.Value?.Errors.Count > 0)
+                .ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value?.Errors[0].ErrorMessage
+                  );
+            var errorResponse = new ErrorDetails
+            {
+                ErrorId = Guid.NewGuid(),
+                StatusCode = StatusCodes.Status400BadRequest,
+                Message = "One or more validation errors occured",
+                Errors = errors,
+                Type = "https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.1"
+            };
+            
+
+            return new BadRequestObjectResult(errorResponse)
+            {
+                ContentTypes = { "application/json" },
+            };
+        };
     });
 
-builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -61,7 +88,7 @@ app.UseSwaggerUI();
 
 
 // Add custom middleware for exception handling to the pipeline
-app.UseMiddleware<ExceptionHandlerMiddleware>(); 
+app.UseMiddleware<ExceptionHandlerMiddleware>();
 
 app.UseCors("CorsPolicy"); // apply CORS policy from ServiceCollectionExtensions.cs
 app.UseHttpsRedirection();
