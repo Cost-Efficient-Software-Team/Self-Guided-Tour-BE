@@ -80,6 +80,6 @@ namespace SelfGuidedTours.Api.Middlewares
         }
 
        
-        }
+        
     }
 }
