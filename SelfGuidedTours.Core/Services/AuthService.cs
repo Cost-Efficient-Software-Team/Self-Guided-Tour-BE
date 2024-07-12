@@ -28,8 +28,7 @@ namespace SelfGuidedTours.Core.Services
             RefreshTokenGenerator refreshTokenGenerator,
             RefreshTokenValidator refreshTokenValidator,
             IRefreshTokenService refreshTokenService,
-            UserManager<ApplicationUser> userManager
-            ,
+            UserManager<ApplicationUser> userManager,
             ILogger<AuthService> logger
 
         )
