@@ -15,11 +15,50 @@ using SelfGuidedTours.Core.Services.TokenValidators;
 using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data;
 using SelfGuidedTours.Infrastructure.Data.Models;
+using System.Text.Json.Serialization;
+using SelfGuidedTours.Core.Models.ErrorResponse;
+using Microsoft.AspNetCore.Mvc;
 
 namespace SelfGuidedTours.Api.Extensions
 {
     public static class ServiceCollectionExtensions
     {
+        public static IServiceCollection AddCustomizedControllers(this IServiceCollection services)
+        {
+            services.AddControllers()
+             .AddJsonOptions(options =>
+             {
+                 options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+             })
+             .ConfigureApiBehaviorOptions(options =>  //Customize the response for invalid model state, by overriding the default behavior
+             {
+                 options.InvalidModelStateResponseFactory = ContextBoundObject =>
+                 {
+                     var errors = ContextBoundObject.ModelState
+                         .Where(e => e.Value?.Errors.Count > 0)
+                         .ToDictionary(
+                             kvp => kvp.Key,
+                             kvp => kvp.Value?.Errors[0].ErrorMessage
+                           );
+                     var errorResponse = new ErrorDetails
+                     {
+                         ErrorId = Guid.NewGuid(),
+                         StatusCode = StatusCodes.Status400BadRequest,
+                         Message = "One or more validation errors occured",
+                         Errors = errors,
+                         Type = "https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.1"
+                     };
+
+
+                     return new BadRequestObjectResult(errorResponse)
+                     {
+                         ContentTypes = { "application/json" },
+                     };
+                 };
+             });
+
+            return services;
+        }
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
         {
             //Inject services here

@@ -1,20 +1,13 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using SelfGuidedTours.Api.Extensions;
 using SelfGuidedTours.Api.Middlewares;
-using System.Text.Json.Serialization;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-    });
 
-builder.Services.AddControllers();
+builder.Services.AddCustomizedControllers(); // This replaces the AddControllers method, comes from ServiceCollectionExtensions.cs
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -61,7 +54,7 @@ app.UseSwaggerUI();
 
 
 // Add custom middleware for exception handling to the pipeline
-app.UseMiddleware<ExceptionHandlerMiddleware>(); 
+app.UseMiddleware<ExceptionHandlerMiddleware>();
 
 app.UseCors("CorsPolicy"); // apply CORS policy from ServiceCollectionExtensions.cs
 app.UseHttpsRedirection();
