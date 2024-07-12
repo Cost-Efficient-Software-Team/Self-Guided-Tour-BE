@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using SelfGuidedTours.Core.Models.ErrorResponse;
+using System.Net;
 using System.Text.Json;
 
 namespace SelfGuidedTours.Api.Middlewares
@@ -69,31 +70,22 @@ namespace SelfGuidedTours.Api.Middlewares
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)statusCode;
 
-            return context.Response.WriteAsync(new ErrorDetails()
+            var json = JsonSerializer.Serialize(new ErrorDetails()
             {
                 ErrorId = Guid.NewGuid(),
                 StatusCode = context.Response.StatusCode,
                 Message = exception.Message,
-                Type = errorType
-            }.ToString());
-        }
-
-        /// <summary>
-        /// A class that holds the error details
-        /// </summary>
-        private class ErrorDetails
-        {
-            public Guid ErrorId { get; set; }
-            public int StatusCode { get; set; }
-            public string Message { get; set; } = string.Empty;
-            public string Type { get; set; } = string.Empty;
-
-
-            //Override the ToString method to return the object as a JSON string
-            public override string ToString()
+                Type = errorType,
+                Errors = { { "Error", exception.Message } }
+            }, new JsonSerializerOptions
             {
-                return JsonSerializer.Serialize(this);
-            }
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            return context.Response.WriteAsync(json);
         }
+
+       
+        
     }
 }
