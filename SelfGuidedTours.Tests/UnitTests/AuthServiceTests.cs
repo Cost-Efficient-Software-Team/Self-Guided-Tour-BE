@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SelfGuidedTours.Core.Contracts;
+using SelfGuidedTours.Core.Models.Auth;
 using SelfGuidedTours.Core.Services;
 using SelfGuidedTours.Core.Services.TokenGenerators;
 using SelfGuidedTours.Core.Services.TokenValidators;
@@ -37,7 +38,7 @@ namespace SelfGuidedTours.Tests.UnitTests
         #endregion
 
         [SetUp]
-        public async Task SetupAsync(UserManager<ApplicationUser> appUser)
+        public async Task SetupAsync()
         {
             var hasher = new PasswordHasher<ApplicationUser>();
 
@@ -81,7 +82,6 @@ namespace SelfGuidedTours.Tests.UnitTests
             repository = new Repository(dbContext);
             
             loggerFactory = new LoggerFactory();
-            userManager = appUser;
 
             tokenGenerator = new TokenGenerator();
             accessTokenGenerator = new AccessTokenGenerator(tokenGenerator);
@@ -92,8 +92,15 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             // AuthService initialized
             service = new AuthService(repository, accessTokenGenerator, 
-                refreshTokenGenerator, refreshTokenValidator, refreshTokenService, 
-                userManager, logger);
+                refreshTokenGenerator, refreshTokenValidator, refreshTokenService, userManager, logger);
+
+            // Environment Variables
+            Environment.SetEnvironmentVariable("ACCESSTOKEN_KEY", "4y7XS2AHicSOs2uUJCxwlHWqTJNExW3UDUjMeXi96uLEso1YV4RazqQubpFBdx0zZGtdxBelKURhh0WXxPR0mEJQHk_0U9HeYtqcMManhoP3X2Ge8jgxh6k4C_Gd4UPTc6lkx0Ca5eRE16ciFQ6wmYDnaXC8NbngGqartHccAxE");
+            Environment.SetEnvironmentVariable("ACCESSTOKEN_EXPIRATIONMINUTES", "50");
+            Environment.SetEnvironmentVariable("REFRESHTOKEN_KEY", "a7990245-e3f1-4dcd-95a4-c2cde60eb8df");
+            Environment.SetEnvironmentVariable("REFRESHTOKEN_EXPIRATIONMINUTES", "131400");
+            Environment.SetEnvironmentVariable("ISSUER", "https://localhost:7038");
+            Environment.SetEnvironmentVariable("AUDIENCE", "https://localhost:7038");
         }
        
         [TearDown]
@@ -102,7 +109,131 @@ namespace SelfGuidedTours.Tests.UnitTests
             await dbContext.Database.EnsureDeletedAsync();
             await dbContext.DisposeAsync();
             loggerFactory.Dispose();
-            userManager.Dispose();
+        }
+
+        [Test]
+        public async Task Test_GetByEmailAsync_ShouldWorkProperly()
+        {
+            var properResult = await service.GetByEmailAsync("user@selfguidedtours.bg");
+            var nullResult = await service.GetByEmailAsync("wrongEmail@selfguidedtours.bg");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(properResult, Is.Not.Null);
+                Assert.That(nullResult, Is.Null);
+            });
+            Assert.Multiple(() =>
+            {
+                Assert.That(properResult.Email, Is.EqualTo("user@selfguidedtours.bg"));
+                Assert.That(properResult.Id, Is.EqualTo("e3bdf03e-ec2c-4b2d-be4b-a10d35b431c0"));
+                Assert.That(properResult.Name, Is.EqualTo("User Userov"));
+            });
+        }
+
+        [Test]
+        public async Task Test_RegisterAsync_ShouldThrowAnExceptionIfUserWithProvidedEmailAlreadyExists()
+        {
+            RegisterInputModel model = new RegisterInputModel()
+            {
+                Email = "user@selfguidedtours.bg",
+                Name = "New User",
+                Password = "password123",
+                RepeatPassword = "password123"
+            };
+
+            try
+            {
+                _ = await service.RegisterAsync(model);
+            }
+            catch(ArgumentException ex)
+            {
+                Assert.That(ex.Message, Is.EqualTo("User already exists!"));
+            }
+        }
+        
+        [Test]
+        public async Task Test_RegisterAsync_ShouldThrowAnExceptionIfPasswordsDoNotMatch()
+        {
+            RegisterInputModel model = new RegisterInputModel()
+            {
+                Email = "newUser@selfguidedtours.bg",
+                Name = "New User",
+                Password = "password123",
+                RepeatPassword = "wrongPass"
+            };
+
+            try
+            {
+                _ = await service.RegisterAsync(model);
+            }
+            catch (ArgumentException aex)
+            {
+                Assert.That(aex.Message, Is.EqualTo("Passwords do not match!"));
+            }
+        }
+
+        [Test]
+        public async Task Test_RegisterAsync_ShouldWorkProperly()
+        {    
+            RegisterInputModel model = new RegisterInputModel()
+            {
+                Email = "newUser@selfguidedtours.bg",
+                Name = "New User",
+                Password = "password123",
+                RepeatPassword = "password123"
+            };
+
+            var result = await service.RegisterAsync(model);
+
+            Assert.That(result.ResponseMessage, Is.EqualTo("User registered successfully!"));
+        }
+
+        [Test]
+        public async Task Test_LoginAsync_ShouldThrowExceptionsProperly()
+        {
+            var invalidEmailModel = new LoginInputModel()
+            {
+                Email = "invalidEmail",
+                Password = "pass123"
+            };
+
+            try
+            {
+                _ = await service.LoginAsync(invalidEmailModel);
+            }
+            catch(ArgumentException aex)
+            {
+                Assert.That(aex.Message, Is.EqualTo("Email or password is incorrect!"));
+            }
+
+            var invalidPassModel = new LoginInputModel()
+            {
+                Email = "user@selfguidedtours.bg",
+                Password = "invalidPass"
+            };
+
+            try
+            {
+                _ = await service.LoginAsync(invalidPassModel);
+            }
+            catch (ArgumentException aex)
+            {
+                Assert.That(aex.Message, Is.EqualTo("Email or password is incorrect!"));
+            }
+        }
+
+        [Test]
+        public async Task Test_LoginAsync_ShouldWorkProperly()
+        {
+            var model = new LoginInputModel()
+            {
+                Email = "user@selfguidedtours.bg",
+                Password = "D01Parola"
+            };
+
+            var result = await service.LoginAsync(model);
+
+            Assert.That(result.ResponseMessage, Is.EqualTo("Successfully logged in!"));
         }
     }
 }

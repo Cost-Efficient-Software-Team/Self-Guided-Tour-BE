@@ -20,7 +20,7 @@ namespace SelfGuidedTours.Core.Services
         private readonly RefreshTokenGenerator refreshTokenGenerator;
         private readonly RefreshTokenValidator refreshTokenValidator;
         private readonly IRefreshTokenService refreshTokenService;
-        private readonly UserManager<ApplicationUser> userManager;
+        private readonly UserManager<ApplicationUser>? userManager;
         private readonly ILogger<AuthService> logger;
 
         public AuthService(IRepository repository,
@@ -28,7 +28,7 @@ namespace SelfGuidedTours.Core.Services
             RefreshTokenGenerator refreshTokenGenerator,
             RefreshTokenValidator refreshTokenValidator,
             IRefreshTokenService refreshTokenService,
-            UserManager<ApplicationUser> userManager,
+            UserManager<ApplicationUser>? userManager,
             ILogger<AuthService> logger
 
         )
