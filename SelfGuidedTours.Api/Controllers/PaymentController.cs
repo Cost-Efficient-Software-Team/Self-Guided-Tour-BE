@@ -8,17 +8,17 @@ namespace SelfGuidedTours.Api.Controllers
     [ApiController]
     public class PaymentController : ControllerBase
     {
-        private readonly IPaymentService paymentService;
+        private readonly IPaymentService _paymentService;
 
         public PaymentController(IPaymentService paymentService)
         {
-            this.paymentService = paymentService;
+            _paymentService = paymentService;
         }
 
         [HttpPost("{userId}")]
         public async Task<ActionResult<ApiResponse>> MakePayment(string userId, [FromBody] PaymentRequest paymentRequest)
         {
-            var response = await paymentService.MakePaymentAsync(userId, paymentRequest);
+            var response = await _paymentService.MakePaymentAsync(userId, paymentRequest);
             return StatusCode((int)response.StatusCode, response);
         }
     }

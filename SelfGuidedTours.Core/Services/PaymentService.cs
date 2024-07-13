@@ -11,59 +11,69 @@ namespace SelfGuidedTours.Core.Services
 {
     public class PaymentService : IPaymentService
     {
-        private readonly IRepository repository;
-        private readonly ApiResponse response;
-        private readonly IConfiguration configuration;
+        private readonly IRepository _repository;
+        private readonly ApiResponse _response;
+        private readonly IConfiguration _configuration;
 
         public PaymentService(IRepository repository, IConfiguration configuration)
         {
-            this.repository = repository;
-            this.configuration = configuration;
-            response = new ApiResponse();
+            _repository = repository;
+            _configuration = configuration;
+            _response = new ApiResponse();
 
-            // Зареждане на Stripe API ключа от конфигурацията
-            StripeConfiguration.ApiKey = configuration["StripeSettings:SecretKey"];
+            // Load Stripe API key from configuration
+            StripeConfiguration.ApiKey = _configuration["StripeSettings:SecretKey"];
         }
 
         public async Task<ApiResponse> MakePaymentAsync(string userId, PaymentRequest paymentRequest)
         {
             if (paymentRequest == null || string.IsNullOrEmpty(userId) || paymentRequest.TourId <= 0)
             {
-                response.StatusCode = HttpStatusCode.BadRequest;
-                response.IsSuccess = false;
-                response.ErrorMessages.Add("Invalid payment request.");
-                return response;
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add("Invalid payment request.");
+                return _response;
             }
 
-            // Проверка дали турът вече е закупен от потребителя
-            var existingPayment = await repository.All<Payment>()
+            // Check if the user exists
+            var userExists = await _repository.All<ApplicationUser>().AnyAsync(u => u.Id == userId);
+            if (!userExists)
+            {
+                _response.StatusCode = HttpStatusCode.NotFound;
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add("User not found.");
+                return _response;
+            }
+
+            // Check if the tour is already purchased by the user
+            var existingPayment = await _repository.All<Payment>()
                 .FirstOrDefaultAsync(p => p.UserId == userId && p.TourId == paymentRequest.TourId);
             if (existingPayment != null)
             {
-                response.StatusCode = HttpStatusCode.BadRequest;
-                response.IsSuccess = false;
-                response.ErrorMessages.Add("Tour already purchased.");
-                return response;
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add("Tour already purchased.");
+                return _response;
             }
 
-            // Получаване на информация за тура
-            var tour = await repository.All<Tour>()
+            // Check if Tour Exists
+            var tour = await _repository.All<Tour>()
                 .FirstOrDefaultAsync(t => t.TourId == paymentRequest.TourId);
             if (tour == null)
             {
-                response.StatusCode = HttpStatusCode.NotFound;
-                response.IsSuccess = false;
-                response.ErrorMessages.Add("Tour not found.");
-                return response;
+                _response.StatusCode = HttpStatusCode.NotFound;
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add("Tour not found.");
+                return _response;
             }
 
-            // Проверка дали цената на тура е налична
+            // Check if the tour price is set
             if (!tour.Price.HasValue)
             {
-                response.StatusCode = HttpStatusCode.BadRequest;
-                response.IsSuccess = false;
-                response.ErrorMessages.Add("Tour price is not set.");
-                return response;
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add("Tour price is not set.");
+                return _response;
             }
 
             #region Create Payment Intent
@@ -88,7 +98,7 @@ namespace SelfGuidedTours.Core.Services
                 Amount = tour.Price.Value
             };
 
-            // Записване на информацията за плащането в базата данни
+            // Save payment information in the database
             var payment = new Payment
             {
                 UserId = userId,
@@ -98,15 +108,15 @@ namespace SelfGuidedTours.Core.Services
                 PaymentDate = DateTime.Now
             };
 
-            await repository.AddAsync(payment);
-            await repository.SaveChangesAsync();
+            await _repository.AddAsync(payment);
+            await _repository.SaveChangesAsync();
 
             #endregion
 
-            response.Result = paymentResult;
-            response.StatusCode = HttpStatusCode.OK;
-            response.IsSuccess = true;
-            return response;
+            _response.Result = paymentResult;
+            _response.StatusCode = HttpStatusCode.OK;
+            _response.IsSuccess = true;
+            return _response;
         }
     }
 }
