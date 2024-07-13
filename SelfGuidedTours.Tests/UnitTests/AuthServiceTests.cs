@@ -9,6 +9,7 @@ using SelfGuidedTours.Core.Services.TokenValidators;
 using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data;
 using SelfGuidedTours.Infrastructure.Data.Models;
+using System.Net;
 
 namespace SelfGuidedTours.Tests.UnitTests
 {
@@ -31,10 +32,10 @@ namespace SelfGuidedTours.Tests.UnitTests
         private IEnumerable<ApplicationUser> users;
 
         #region User and Admin
-        
+
         private ApplicationUser User { get; set; }
         private ApplicationUser Admin { get; set; }
-      
+
         #endregion
 
         [SetUp]
@@ -54,7 +55,7 @@ namespace SelfGuidedTours.Tests.UnitTests
                 PasswordHash = hasher.HashPassword(null!, "D01Parola")
             };
 
-            Admin = new ApplicationUser()         
+            Admin = new ApplicationUser()
             {
                 Id = "27d78708-8671-4b05-bd5e-17aa91392224",
                 Email = "admin@selfguidedtours.bg",
@@ -80,7 +81,7 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             // Repository initialized
             repository = new Repository(dbContext);
-            
+
             loggerFactory = new LoggerFactory();
 
             tokenGenerator = new TokenGenerator();
@@ -91,7 +92,7 @@ namespace SelfGuidedTours.Tests.UnitTests
             logger = new Logger<AuthService>(loggerFactory);
 
             // AuthService initialized
-            service = new AuthService(repository, accessTokenGenerator, 
+            service = new AuthService(repository, accessTokenGenerator,
                 refreshTokenGenerator, refreshTokenValidator, refreshTokenService, userManager, logger);
 
             // Environment Variables
@@ -102,7 +103,7 @@ namespace SelfGuidedTours.Tests.UnitTests
             Environment.SetEnvironmentVariable("ISSUER", "https://localhost:7038");
             Environment.SetEnvironmentVariable("AUDIENCE", "https://localhost:7038");
         }
-       
+
         [TearDown]
         public async Task TeardownAsync()
         {
@@ -145,12 +146,12 @@ namespace SelfGuidedTours.Tests.UnitTests
             {
                 _ = await service.RegisterAsync(model);
             }
-            catch(ArgumentException ex)
+            catch (ArgumentException ex)
             {
                 Assert.That(ex.Message, Is.EqualTo("User already exists!"));
             }
         }
-        
+
         [Test]
         public async Task Test_RegisterAsync_ShouldThrowAnExceptionIfPasswordsDoNotMatch()
         {
@@ -174,7 +175,7 @@ namespace SelfGuidedTours.Tests.UnitTests
 
         [Test]
         public async Task Test_RegisterAsync_ShouldWorkProperly()
-        {    
+        {
             RegisterInputModel model = new RegisterInputModel()
             {
                 Email = "newUser@selfguidedtours.bg",
@@ -201,7 +202,7 @@ namespace SelfGuidedTours.Tests.UnitTests
             {
                 _ = await service.LoginAsync(invalidEmailModel);
             }
-            catch(ArgumentException aex)
+            catch (ArgumentException aex)
             {
                 Assert.That(aex.Message, Is.EqualTo("Email or password is incorrect!"));
             }
@@ -235,5 +236,126 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             Assert.That(result.ResponseMessage, Is.EqualTo("Successfully logged in!"));
         }
+
+
+        [Test]
+        public async Task Test_ChangePasswordAsync_ShouldWorkProperly()
+        {
+            ChangePasswordModel model = new ChangePasswordModel()
+            {
+                UserId = User.Id,
+                CurrentPassword = "D01Parola",
+                NewPassword = "NewPassword123"
+            };
+
+            var response = await service.ChangePasswordAsync(model);
+
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(response.Result, Is.EqualTo("Password changed successfully!"));
+        }
+
+        [Test]
+        public async Task Test_ChangePasswordAsync_ShouldThrowExceptionIfPasswordsAreSame()
+        {
+            ChangePasswordModel model = new ChangePasswordModel()
+            {
+                UserId = User.Id,
+                CurrentPassword = "D01Parola",
+                NewPassword = "D01Parola"
+            };
+
+            try
+            {
+                _ = await service.ChangePasswordAsync(model);
+            }
+            catch (ArgumentException aex)
+            {
+                Assert.That(aex.Message, Is.EqualTo("New password can't be the same as the current one!"));
+            }
+        }
+
+        [Test]
+        public async Task Test_ChangePasswordAsync_ShouldThrowExceptionIfCurrentPasswordIsWrong()
+        {
+            ChangePasswordModel model = new ChangePasswordModel()
+            {
+                UserId = User.Id,
+                CurrentPassword = "WrongPassword",
+                NewPassword = "NewPassword123"
+            };
+
+            try
+            {
+                _ = await service.ChangePasswordAsync(model);
+            }
+            catch (UnauthorizedAccessException uex)
+            {
+                Assert.That(uex.Message, Is.EqualTo("Invalid password"));
+            }
+        }
+
+        [Test]
+        public async Task Test_LogoutAsync_ShouldWorkProperly()
+        {
+            var model = new LoginInputModel()
+            {
+                Email = "user@selfguidedtours.bg",
+                Password = "D01Parola"
+            };
+
+            var loginResult = await service.LoginAsync(model);
+
+            var refreshToken = await refreshTokenService.GetByTokenAsync(loginResult.RefreshToken);
+            Assert.That(refreshToken, Is.Not.Null);
+
+            await service.LogoutAsync(User.Id);
+
+            var deletedRefreshToken = await refreshTokenService.GetByTokenAsync(loginResult.RefreshToken);
+            Assert.That(deletedRefreshToken, Is.Null);
+        }
+
+
+        [Test]
+        public async Task Test_RefreshAsync_ShouldWorkProperly()
+        {
+            var model = new LoginInputModel()
+            {
+                Email = "user@selfguidedtours.bg",
+                Password = "D01Parola"
+            };
+
+            var loginResult = await service.LoginAsync(model);
+
+            RefreshRequestModel refreshRequestModel = new RefreshRequestModel()
+            {
+                RefreshToken = loginResult.RefreshToken
+            };
+
+            var refreshResult = await service.RefreshAsync(refreshRequestModel);
+
+            Assert.That(refreshResult.ResponseMessage, Is.EqualTo("Successfully got new tokens!"));
+            Assert.That(refreshResult.AccessToken, Is.Not.Empty);
+            Assert.That(refreshResult.RefreshToken, Is.Not.Empty);
+        }
+
+        [Test]
+        public async Task Test_RefreshAsync_ShouldThrowExceptionIfRefreshTokenIsInvalid()
+        {
+            RefreshRequestModel model = new RefreshRequestModel()
+            {
+                RefreshToken = "InvalidRefreshToken"
+            };
+
+            try
+            {
+                _ = await service.RefreshAsync(model);
+            }
+            catch (ArgumentException aex)
+            {
+                Assert.That(aex.Message, Is.EqualTo("Invalid refresh token!"));
+            }
+        }
+
+
     }
 }
