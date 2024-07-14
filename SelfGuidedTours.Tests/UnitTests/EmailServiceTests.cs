@@ -70,7 +70,7 @@ namespace SelfGuidedTours.Tests.UnitTests
         }
 
         [Test]
-        public void SendPasswordResetEmailAsync_ShouldThrowApplicationException_WhenEnvironmentVariablesAreMissing()
+        public void SendPasswordResetEmailAsync_ShouldThrowArgumentNullException_WhenEnvironmentVariablesAreMissing()
         {
             // Arrange
             Environment.SetEnvironmentVariable("ASPNETCORE_SMTP_HOST", null);
@@ -79,10 +79,10 @@ namespace SelfGuidedTours.Tests.UnitTests
             var resetLink = "http://example.com/resetpassword";
 
             // Act & Assert
-            var ex = Assert.ThrowsAsync<ApplicationException>(async () =>
+            var ex = Assert.ThrowsAsync<ArgumentNullException>(async () =>
                 await emailService.SendPasswordResetEmailAsync(email, resetLink));
 
-            StringAssert.Contains("Email host is not configured", ex.Message);
+            StringAssert.Contains("Value cannot be null. (Parameter 'host')", ex.Message);
         }
     }
 }
