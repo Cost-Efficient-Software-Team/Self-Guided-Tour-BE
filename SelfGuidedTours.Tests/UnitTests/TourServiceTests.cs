@@ -63,7 +63,34 @@ namespace SelfGuidedTours.Tests.UnitTests
                     Destination = "Destination 1",
                     ThumbnailImageUrl = "http://example.com/thumb1",
                     EstimatedDuration = 60,
-                    CreatedAt = DateTime.Now
+                    CreatedAt = DateTime.Now,
+                    Status = Status.Pending,
+                    Landmarks = new List<Landmark>
+                    {
+                        new Landmark
+                        {
+                            LandmarkId = 1,
+                            LocationName = "NDK",
+                            Description = "National Palace of Culture",
+                            StopOrder = 1,
+                            Coordinate = new Coordinate
+                            {
+                                Latitude = 42.6863M,
+                                Longitude = 23.3186M,
+                                City = "Sofia",
+                                Country = "Bulgaria"
+                            },
+                            Resources = new List<LandmarkResource>
+                            {
+                                new LandmarkResource
+                                {
+                                    LandmarkResourceId = 1,
+                                    Url = "http://example.com/resource1",
+                                    Type = ResourceType.Image
+                                }
+                            }
+                        }
+                    }
                 },
                 new Tour
                 {
@@ -75,7 +102,9 @@ namespace SelfGuidedTours.Tests.UnitTests
                     Destination = "Destination 2",
                     ThumbnailImageUrl = "http://example.com/thumb2",
                     EstimatedDuration = 120,
-                    CreatedAt = DateTime.Now
+                    CreatedAt = DateTime.Now,
+                    Status = Status.Approved,
+                    Landmarks = new List<Landmark>()
                 }
             };
 
@@ -200,6 +229,81 @@ namespace SelfGuidedTours.Tests.UnitTests
             Assert.IsNull(deletedResource);
             Assert.IsNull(deletedCoordinate);
             Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
+        }
+
+        [Test]
+        public void MapTourToTourResponseDto_ReturnsCorrectResponseDto()
+        {
+            var tour = new Tour
+            {
+                TourId = 1,
+                Title = "Tour 1",
+                Summary = "Summary 1",
+                Price = 10.0m,
+                Destination = "Destination 1",
+                ThumbnailImageUrl = "http://example.com/thumb1",
+                EstimatedDuration = 60,
+                CreatedAt = DateTime.Now,
+                Status = Status.Pending,
+                Landmarks = new List<Landmark>
+                {
+                    new Landmark
+                    {
+                        LandmarkId = 1,
+                        LocationName = "NDK",
+                        Description = "National Palace of Culture",
+                        StopOrder = 1,
+                        Coordinate = new Coordinate
+                        {
+                            Latitude = 42.6863M,
+                            Longitude = 23.3186M,
+                            City = "Sofia",
+                            Country = "Bulgaria"
+                        },
+                        Resources = new List<LandmarkResource>
+                        {
+                            new LandmarkResource
+                            {
+                                LandmarkResourceId = 1,
+                                Url = "http://example.com/resource1",
+                                Type = ResourceType.Image
+                            }
+                        }
+                    }
+                }
+            };
+
+            var tourResponse = tourService.MapTourToTourResponseDto(tour);
+
+            Assert.IsNotNull(tourResponse);
+            Assert.AreEqual(tour.TourId, tourResponse.TourId);
+            Assert.AreEqual(tour.Title, tourResponse.Title);
+            Assert.AreEqual(tour.Summary, tourResponse.Summary);
+            Assert.AreEqual(tour.Price, tourResponse.Price);
+            Assert.AreEqual(tour.Destination, tourResponse.Destination);
+            Assert.AreEqual(tour.ThumbnailImageUrl, tourResponse.ThumbnailImageUrl);
+            Assert.AreEqual(tour.EstimatedDuration, tourResponse.EstimatedDuration);
+            Assert.AreEqual(tour.Status.ToString(), tourResponse.Status);
+            Assert.AreEqual(tour.Landmarks.Count, tourResponse.Landmarks.Count);
+
+            var landmarkResponse = tourResponse.Landmarks.First();
+            var landmark = tour.Landmarks.First();
+
+            Assert.AreEqual(landmark.LandmarkId, landmarkResponse.LandmarkId);
+            Assert.AreEqual(landmark.LocationName, landmarkResponse.LocationName);
+            Assert.AreEqual(landmark.Description, landmarkResponse.Description);
+            Assert.AreEqual(landmark.StopOrder, landmarkResponse.StopOrder);
+            Assert.AreEqual(landmark.Coordinate.City, landmarkResponse.City);
+            Assert.AreEqual(landmark.Coordinate.Latitude, landmarkResponse.Latitude);
+            Assert.AreEqual(landmark.Coordinate.Longitude, landmarkResponse.Longitude);
+            Assert.AreEqual(landmark.Resources.Count, landmarkResponse.Resources.Count);
+
+            var resourceResponse = landmarkResponse.Resources.First();
+            var resource = landmark.Resources.First();
+
+            Assert.AreEqual(resource.LandmarkResourceId, resourceResponse.ResourceId);
+            Assert.AreEqual(resource.Url, resourceResponse.ResourceUrl);
+            Assert.AreEqual(resource.Type.ToString(), resourceResponse.ResourceType);
         }
     }
 }
