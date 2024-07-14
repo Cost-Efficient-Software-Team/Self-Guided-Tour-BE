@@ -10,7 +10,9 @@ using SelfGuidedTours.Core.Services;
 using SelfGuidedTours.Core.Services.BlobStorage;
 using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data;
+using SelfGuidedTours.Infrastructure.Data.Enums;
 using SelfGuidedTours.Infrastructure.Data.Models;
+using System.Net;
 
 namespace SelfGuidedTours.Tests.UnitTests
 {
@@ -143,6 +145,61 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             Assert.IsNotNull(result);
             Assert.AreEqual("Tour 3", result.Title);
+        }
+
+        [Test]
+        public async Task DeleteTourAsync_DeletesTourAndRelatedEntities()
+        {
+            // Add a tour with landmarks and resources to the in-memory database
+            var coordinate = new Coordinate
+            {
+                Latitude = 42.6863M,
+                Longitude = 23.3186M,
+                City = "Sofia",
+                Country = "Bulgaria"
+            };
+
+            await repository.AddAsync(coordinate);
+            await repository.SaveChangesAsync();
+
+            var landmark = new Landmark
+            {
+                TourId = 1,
+                StopOrder = 1,
+                LocationName = "NDK",
+                Description = "National Palace of Culture",
+                Coordinate = coordinate,
+                CoordinateId = coordinate.CoordinateId
+            };
+
+            await repository.AddAsync(landmark);
+            await repository.SaveChangesAsync();
+
+            var landmarkResource = new LandmarkResource
+            {
+                LandmarkId = landmark.LandmarkId,
+                Url = "http://example.com/resource1",
+                Type = ResourceType.Image
+            };
+
+            await repository.AddAsync(landmarkResource);
+            await repository.SaveChangesAsync();
+
+            blobServiceMock.Setup(b => b.DeleteFileAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(Task.CompletedTask);
+
+            var response = await tourService.DeleteTourAsync(1);
+
+            var deletedTour = await dbContext.Tours.FindAsync(1);
+            var deletedLandmark = await dbContext.Landmarks.FindAsync(landmark.LandmarkId);
+            var deletedResource = await dbContext.LandmarkResources.FindAsync(landmarkResource.LandmarkResourceId);
+            var deletedCoordinate = await dbContext.Coordinates.FindAsync(coordinate.CoordinateId);
+
+            Assert.IsNull(deletedTour);
+            Assert.IsNull(deletedLandmark);
+            Assert.IsNull(deletedResource);
+            Assert.IsNull(deletedCoordinate);
+            Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
         }
     }
 }
