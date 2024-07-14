@@ -27,6 +27,12 @@ namespace SelfGuidedTours.Tests.UnitTests
             refreshTokenService = new RefreshTokenService(repository);
         }
 
+        [TearDown]
+        public void TearDown()
+        {
+            dbContext.Dispose();
+        }
+
         [Test]
         public async Task CreateAsync_ShouldAddRefreshToken()
         {
