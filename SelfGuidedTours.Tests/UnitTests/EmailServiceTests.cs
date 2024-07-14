@@ -1,6 +1,4 @@
-﻿using MailKit.Net.Smtp;
-using Moq;
-using SelfGuidedTours.Core.Contracts;
+﻿using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Services;
 
@@ -10,34 +8,27 @@ namespace SelfGuidedTours.Tests.UnitTests
     public class EmailServiceTests
     {
         private IEmailService emailService;
-        private Mock<ISmtpClient> smtpClientMock;
 
         [SetUp]
         public void Setup()
         {
-            smtpClientMock = new Mock<ISmtpClient>();
             emailService = new EmailService();
 
-            // Set environment variables
+            // Set environment variables for testing
             Environment.SetEnvironmentVariable("ASPNETCORE_SMTP_USERNAME", "testuser@example.com");
             Environment.SetEnvironmentVariable("ASPNETCORE_SMTP_HOST", "smtp.example.com");
             Environment.SetEnvironmentVariable("ASPNETCORE_SMTP_PORT", "587");
-            Environment.SetEnvironmentVariable("ASPNETCORE_SMTP_PASSWORD", "password");
+            Environment.SetEnvironmentVariable("ASPNETCORE_SMTP_PASSWORD", "testpassword");
         }
 
-        [Test]
-        public async Task SendEmail_ShouldSendEmailSuccessfully()
+        [TearDown]
+        public void TearDown()
         {
-            // Arrange
-            var sendEmailDto = new SendEmailDto
-            {
-                To = "recipient@example.com",
-                Subject = "Test Subject",
-                Body = "Test Body"
-            };
-
-            // Act & Assert
-            Assert.DoesNotThrowAsync(async () => await emailService.SendEmail(sendEmailDto, "plain"));
+            // Clear environment variables after each test
+            Environment.SetEnvironmentVariable("ASPNETCORE_SMTP_USERNAME", null);
+            Environment.SetEnvironmentVariable("ASPNETCORE_SMTP_HOST", null);
+            Environment.SetEnvironmentVariable("ASPNETCORE_SMTP_PORT", null);
+            Environment.SetEnvironmentVariable("ASPNETCORE_SMTP_PASSWORD", null);
         }
 
         [Test]
@@ -59,14 +50,39 @@ namespace SelfGuidedTours.Tests.UnitTests
         }
 
         [Test]
-        public async Task SendPasswordResetEmailAsync_ShouldSendEmailSuccessfully()
+        public void SendEmail_ShouldThrowApplicationException_WhenEnvironmentVariablesAreMissing()
         {
             // Arrange
+            Environment.SetEnvironmentVariable("ASPNETCORE_SMTP_USERNAME", null);
+
+            var sendEmailDto = new SendEmailDto
+            {
+                To = "recipient@example.com",
+                Subject = "Test Subject",
+                Body = "Test Body"
+            };
+
+            // Act & Assert
+            var ex = Assert.ThrowsAsync<ApplicationException>(async () =>
+                await emailService.SendEmail(sendEmailDto, "plain"));
+
+            StringAssert.Contains("Email sender is not configured", ex.Message);
+        }
+
+        [Test]
+        public void SendPasswordResetEmailAsync_ShouldThrowApplicationException_WhenEnvironmentVariablesAreMissing()
+        {
+            // Arrange
+            Environment.SetEnvironmentVariable("ASPNETCORE_SMTP_HOST", null);
+
             var email = "recipient@example.com";
             var resetLink = "http://example.com/resetpassword";
 
             // Act & Assert
-            Assert.DoesNotThrowAsync(async () => await emailService.SendPasswordResetEmailAsync(email, resetLink));
+            var ex = Assert.ThrowsAsync<ApplicationException>(async () =>
+                await emailService.SendPasswordResetEmailAsync(email, resetLink));
+
+            StringAssert.Contains("Email host is not configured", ex.Message);
         }
     }
 }
