@@ -225,7 +225,7 @@ namespace SelfGuidedTours.Core.Services
             if (result != PasswordVerificationResult.Success) throw new UnauthorizedAccessException("Invalid password");
             user.PasswordHash = hasher.HashPassword(user, model.NewPassword);
 
-            await repository.UpdateAsync(user);
+            //await repository.UpdateAsync(user);
             await repository.SaveChangesAsync();
             //TODO: Fix response
             var response = new ApiResponse
