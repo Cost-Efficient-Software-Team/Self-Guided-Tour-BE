@@ -79,6 +79,9 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             await dbContext.AddRangeAsync(tours);
             await dbContext.SaveChangesAsync();
+
+            // Set environment variable for container name
+            Environment.SetEnvironmentVariable("CONTAINER_NAME", "test-container");
         }
 
         [TearDown]
@@ -100,19 +103,39 @@ namespace SelfGuidedTours.Tests.UnitTests
         [Test]
         public async Task CreateAsync_AddsTourToDatabase()
         {
+            var formFileMock = new Mock<IFormFile>();
+            formFileMock.Setup(f => f.FileName).Returns("thumbnail.jpg");
+            formFileMock.Setup(f => f.Length).Returns(1024);
+            formFileMock.Setup(f => f.OpenReadStream()).Returns(new MemoryStream(new byte[1024]));
+
             var tourCreateDto = new TourCreateDTO
             {
                 Title = "Tour 3",
                 Summary = "Summary 3",
                 Price = 30.0m,
                 Destination = "Destination 3",
-                ThumbnailImage = new Mock<IFormFile>().Object,
+                ThumbnailImage = formFileMock.Object,
                 EstimatedDuration = 90,
-                Landmarks = new List<LandmarkCreateTourDTO>()
+                Landmarks = new List<LandmarkCreateTourDTO>
+                {
+                    new LandmarkCreateTourDTO
+                    {
+                        LocationName = "NDK",
+                        Description = "National Palace of Culture",
+                        Latitude = 42.6863M,
+                        Longitude = 23.3186M,
+                        City = "Sofia",
+                        StopOrder = 1,
+                        Resources = new List<IFormFile>()
+                    }
+                }
             };
 
             blobServiceMock.Setup(b => b.UploadFileAsync(It.IsAny<string>(), It.IsAny<IFormFile>(), It.IsAny<string>(), true))
                 .ReturnsAsync("http://example.com/thumb3");
+
+            landmarkServiceMock.Setup(l => l.CreateLandmarskForTourAsync(It.IsAny<ICollection<LandmarkCreateTourDTO>>(), It.IsAny<Tour>()))
+                .ReturnsAsync(new List<Landmark>());
 
             var newTour = await tourService.CreateAsync(tourCreateDto, "creator3");
 
