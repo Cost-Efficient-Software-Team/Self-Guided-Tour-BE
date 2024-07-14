@@ -25,7 +25,7 @@ namespace SelfGuidedTours.Tests.UnitTests
         private RefreshTokenValidator refreshTokenValidator;
         private IRefreshTokenService refreshTokenService;
         private ILogger<AuthService> logger;
-        private TokenGeneratorTests tokenGenerator;
+        private TokenGenerator tokenGenerator;
         private ILoggerFactory loggerFactory;
         private UserManager<ApplicationUser> userManager;
 
@@ -84,7 +84,7 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             loggerFactory = new LoggerFactory();
 
-            tokenGenerator = new TokenGeneratorTests();
+            tokenGenerator = new TokenGenerator();
             accessTokenGenerator = new AccessTokenGenerator(tokenGenerator);
             refreshTokenGenerator = new RefreshTokenGenerator(tokenGenerator);
             refreshTokenValidator = new RefreshTokenValidator();
