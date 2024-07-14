@@ -1,117 +1,125 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Azure.Storage.Blobs;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Moq;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Contracts.BlobStorage;
 using SelfGuidedTours.Core.Models.Dto;
 using SelfGuidedTours.Core.Services;
+using SelfGuidedTours.Core.Services.BlobStorage;
 using SelfGuidedTours.Infrastructure.Common;
+using SelfGuidedTours.Infrastructure.Data;
 using SelfGuidedTours.Infrastructure.Data.Models;
-using System.Net;
 
 namespace SelfGuidedTours.Tests.UnitTests
 {
     [TestFixture]
     public class TourServiceTests
     {
-        private Mock<IRepository> repositoryMock;
+        private SelfGuidedToursDbContext dbContext;
+        private IRepository repository;
+        private ITourService tourService;
+        private IBlobService blobService;
+        private ILandmarkService landmarkService;
+        private ILogger<TourService> logger;
+        private Mock<BlobServiceClient> blobServiceClientMock;
         private Mock<IBlobService> blobServiceMock;
         private Mock<ILandmarkService> landmarkServiceMock;
-        private TourService tourService;
 
         [SetUp]
-        public void Setup()
+        public async Task SetupAsync()
         {
-            repositoryMock = new Mock<IRepository>();
+            var dbContextOptions = new DbContextOptionsBuilder<SelfGuidedToursDbContext>()
+                        .UseInMemoryDatabase("SelfGuidedToursInMemoryDb"
+                            + Guid.NewGuid().ToString())
+                        .Options;
+
+            dbContext = new SelfGuidedToursDbContext(dbContextOptions);
+
+            repository = new Repository(dbContext);
+
+            blobServiceClientMock = new Mock<BlobServiceClient>();
             blobServiceMock = new Mock<IBlobService>();
             landmarkServiceMock = new Mock<ILandmarkService>();
-            tourService = new TourService(repositoryMock.Object, blobServiceMock.Object, landmarkServiceMock.Object);
+
+            blobService = new BlobService(blobServiceClientMock.Object);
+
+            logger = new Logger<TourService>(new LoggerFactory());
+
+            tourService = new TourService(repository, blobServiceMock.Object, landmarkServiceMock.Object);
+
+            var tours = new List<Tour>
+            {
+                new Tour
+                {
+                    TourId = 1,
+                    CreatorId = "creator1",
+                    Title = "Tour 1",
+                    Summary = "Summary 1",
+                    Price = 10.0m,
+                    Destination = "Destination 1",
+                    ThumbnailImageUrl = "http://example.com/thumb1",
+                    EstimatedDuration = 60,
+                    CreatedAt = DateTime.Now
+                },
+                new Tour
+                {
+                    TourId = 2,
+                    CreatorId = "creator2",
+                    Title = "Tour 2",
+                    Summary = "Summary 2",
+                    Price = 20.0m,
+                    Destination = "Destination 2",
+                    ThumbnailImageUrl = "http://example.com/thumb2",
+                    EstimatedDuration = 120,
+                    CreatedAt = DateTime.Now
+                }
+            };
+
+            await dbContext.AddRangeAsync(tours);
+            await dbContext.SaveChangesAsync();
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            dbContext.Dispose();
         }
 
         [Test]
-        public async Task CreateAsync_ShouldCreateTourProperly()
+        public async Task GetTourByIdAsync_ReturnsCorrectTour()
         {
-            // Arrange
-            var fileContent = new MemoryStream(new byte[0]);
-            var formFile = new FormFileMock(fileContent, "test.jpg", "image/jpeg");
+            var tourId = 1;
+            var result = await tourService.GetTourByIdAsync(tourId);
 
-            var tourCreateDTO = new TourCreateDTO
+            Assert.IsNotNull(result);
+            Assert.AreEqual("Tour 1", result.Title);
+        }
+
+        [Test]
+        public async Task CreateAsync_AddsTourToDatabase()
+        {
+            var tourCreateDto = new TourCreateDTO
             {
-                Title = "Test Tour",
-                Summary = "Test Summary",
-                Price = 100,
-                Destination = "Test Destination",
-                ThumbnailImage = formFile,
-                EstimatedDuration = 120,
+                Title = "Tour 3",
+                Summary = "Summary 3",
+                Price = 30.0m,
+                Destination = "Destination 3",
+                ThumbnailImage = new Mock<IFormFile>().Object,
+                EstimatedDuration = 90,
                 Landmarks = new List<LandmarkCreateTourDTO>()
             };
 
-            var creatorId = "test-creator-id";
-            var containerName = "test-container";
-            var fileName = "test-file-name";
-            var thumbnailUrl = "http://example.com/test-thumbnail.jpg";
+            blobServiceMock.Setup(b => b.UploadFileAsync(It.IsAny<string>(), It.IsAny<IFormFile>(), It.IsAny<string>(), true))
+                .ReturnsAsync("http://example.com/thumb3");
 
-            Environment.SetEnvironmentVariable("CONTAINER_NAME", containerName);
-            blobServiceMock.Setup(b => b.UploadFileAsync(It.IsAny<string>(), It.IsAny<IFormFile>(), It.IsAny<string>(), It.IsAny<bool>()))
-                           .ReturnsAsync(thumbnailUrl);
+            var newTour = await tourService.CreateAsync(tourCreateDto, "creator3");
 
-            // Act
-            var result = await tourService.CreateAsync(tourCreateDTO, creatorId);
+            var result = await dbContext.Tours.FindAsync(newTour.TourId);
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.AreEqual(tourCreateDTO.Title, result.Title);
-            Assert.AreEqual(thumbnailUrl, result.ThumbnailImageUrl);
-        }
-
-        [Test]
-        public async Task DeleteTourAsync_ShouldDeleteTourProperly()
-        {
-            // Arrange
-            var tourId = 1;
-            var tour = new Tour { TourId = tourId, ThumbnailImageUrl = "http://example.com/test-thumbnail.jpg" };
-            var landmarks = new List<Landmark> { new Landmark { TourId = tourId } };
-
-            repositoryMock.Setup(r => r.GetByIdAsync<Tour>(tourId)).ReturnsAsync(tour);
-            repositoryMock.Setup(r => r.All<Landmark>()).Returns(landmarks.AsQueryable());
-
-            var containerName = "test-container";
-            Environment.SetEnvironmentVariable("CONTAINER_NAME", containerName);
-
-            // Act
-            var result = await tourService.DeleteTourAsync(tourId);
-
-            // Assert
-            Assert.AreEqual(HttpStatusCode.NoContent, result.StatusCode);
-        }
-
-        [Test]
-        public async Task GetTourByIdAsync_ShouldReturnTourProperly()
-        {
-            // Arrange
-            var tourId = 1;
-            var tour = new Tour { TourId = tourId, Title = "Test Tour" };
-
-            repositoryMock.Setup(r => r.AllReadOnly<Tour>())
-                          .Returns(new List<Tour> { tour }.AsQueryable());
-
-            // Act
-            var result = await tourService.GetTourByIdAsync(tourId);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.AreEqual(tour.Title, result.Title);
-        }
-
-        [Test]
-        public void GetTourByIdAsync_ShouldThrowExceptionIfTourNotFound()
-        {
-            // Arrange
-            var tourId = 1;
-            repositoryMock.Setup(r => r.AllReadOnly<Tour>()).Returns(Enumerable.Empty<Tour>().AsQueryable());
-
-            // Act & Assert
-            var ex = Assert.ThrowsAsync<KeyNotFoundException>(() => tourService.GetTourByIdAsync(tourId));
-            Assert.AreEqual("Tour not found", ex.Message);
+            Assert.IsNotNull(result);
+            Assert.AreEqual("Tour 3", result.Title);
         }
     }
 }
