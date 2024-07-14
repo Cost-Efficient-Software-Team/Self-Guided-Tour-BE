@@ -88,6 +88,7 @@ namespace SelfGuidedTours.Tests.UnitTests
         public void TearDown()
         {
             httpClient.Dispose();
+            dbContext.Dispose();
         }
 
         [Test]
@@ -112,8 +113,7 @@ namespace SelfGuidedTours.Tests.UnitTests
                 .ReturnsAsync(responseMessage);
 
             // Inject the mock HttpClient into the GoogleAuthService
-            var googleAuthService = new GoogleAuthService(authService);
-            googleAuthService.SetHttpClient(httpClient);
+            GoogleAuthServiceExtensions.SetHttpClient(googleAuthService, httpClient);
 
             // Act
             var result = await googleAuthService.GoogleSignIn(googleSignInVM);
@@ -143,8 +143,7 @@ namespace SelfGuidedTours.Tests.UnitTests
                 .ReturnsAsync(responseMessage);
 
             // Inject the mock HttpClient into the GoogleAuthService
-            var googleAuthService = new GoogleAuthService(authService);
-            googleAuthService.SetHttpClient(httpClient);
+            GoogleAuthServiceExtensions.SetHttpClient(googleAuthService, httpClient);
 
             // Act & Assert
             Assert.ThrowsAsync<UnauthorizedAccessException>(async () => await googleAuthService.GoogleSignIn(googleSignInVM));
