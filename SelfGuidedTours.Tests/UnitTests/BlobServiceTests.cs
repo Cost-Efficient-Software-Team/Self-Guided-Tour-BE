@@ -1,8 +1,11 @@
 ﻿using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using SelfGuidedTours.Core.Services.BlobStorage;
+using SelfGuidedTours.Infrastructure.Common;
+using SelfGuidedTours.Infrastructure.Data;
 
 namespace SelfGuidedTours.Tests.UnitTests
 {
@@ -14,9 +17,20 @@ namespace SelfGuidedTours.Tests.UnitTests
         private Mock<BlobClient> _blobClientMock;
         private BlobService _blobService;
 
+        private SelfGuidedToursDbContext dbContext;
+        private IRepository repository;
+
         [SetUp]
-        public void Setup()
+        public async Task Setup()
         {
+            // Инициализация на InMemoryDatabase
+            var dbContextOptions = new DbContextOptionsBuilder<SelfGuidedToursDbContext>()
+                        .UseInMemoryDatabase("SelfGuidedToursInMemoryDb" + Guid.NewGuid().ToString())
+                        .Options;
+            dbContext = new SelfGuidedToursDbContext(dbContextOptions);
+            repository = new Repository(dbContext);
+
+            // Мокване на BlobServiceClient
             _blobServiceClientMock = new Mock<BlobServiceClient>();
             _blobContainerClientMock = new Mock<BlobContainerClient>();
             _blobClientMock = new Mock<BlobClient>();
@@ -28,6 +42,12 @@ namespace SelfGuidedTours.Tests.UnitTests
                 .Returns(_blobClientMock.Object);
 
             _blobService = new BlobService(_blobServiceClientMock.Object);
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            dbContext.Dispose();
         }
 
         [Test]
@@ -51,6 +71,5 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             Assert.AreEqual(blobUri.ToString(), result);
         }
-
     }
 }

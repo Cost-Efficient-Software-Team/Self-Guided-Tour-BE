@@ -17,7 +17,7 @@ namespace SelfGuidedTours.Core.Services.BlobStorage
         public async Task DeleteFileAsync(string blobName, string containerName)
         {
             var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
-            
+
             var blobClient = containerClient.GetBlobClient(blobName);
 
             await blobClient.DeleteIfExistsAsync();
@@ -26,7 +26,7 @@ namespace SelfGuidedTours.Core.Services.BlobStorage
         public string GetFileUrl(string blobName, string containerName)
         {
             var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
-            
+
             var blobClient = containerClient.GetBlobClient(blobName);
 
             return blobClient.Uri.ToString();
