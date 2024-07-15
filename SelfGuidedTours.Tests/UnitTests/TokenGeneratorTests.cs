@@ -21,7 +21,7 @@ namespace SelfGuidedTours.Tests.UnitTests
         public void GenerateToken_ValidInputs_ReturnsToken()
         {
             // Arrange
-            string secretKey = "supersecretkey";
+            string secretKey = "1de05efd-6cba-449c-a2c7-dabec734c3ec1de05efd-6cba-449c-a2c7-dabec734c3ec";
             string issuer = "https://localhost:7038";
             string audience = "https://localhost:7038";
             double expirationMinutes = 50;
@@ -51,7 +51,7 @@ namespace SelfGuidedTours.Tests.UnitTests
             SecurityToken validatedToken;
             var principal = tokenHandler.ValidateToken(token, validationParameters, out validatedToken);
             Assert.IsNotNull(validatedToken);
-            Assert.AreEqual(2, principal.Claims.Count());
+            Assert.That(principal.Claims.Count(), Is.EqualTo(6)); // this also takes into account the default claims, so they should be 6
         }
 
         [Test]
