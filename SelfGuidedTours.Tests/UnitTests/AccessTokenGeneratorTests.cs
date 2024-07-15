@@ -53,7 +53,7 @@ namespace SelfGuidedTours.Tests.UnitTests
         {
             // Arrange
             var expectedToken = "generated_token";
-            mockTokenGenerator.Setup(t => t.GenerateToken(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<double>(), It.IsAny<List<Claim>>()))
+            mockTokenGenerator.Setup(t => t.GenerateToken(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<double>(), It.IsAny<ICollection<Claim>?>()))
                               .Returns(expectedToken);
 
             // Act
