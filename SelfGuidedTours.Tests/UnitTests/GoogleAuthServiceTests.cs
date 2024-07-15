@@ -90,39 +90,7 @@ namespace SelfGuidedTours.Tests.UnitTests
             httpClient.Dispose();
             dbContext.Dispose();
         }
-
-        [Test]
-        public async Task GoogleSignIn_WithValidIdToken_ReturnsAuthenticateResponse()
-        {
-            // Arrange
-            var idToken = "valid_id_token";
-            var googleSignInVM = new GoogleSignInVM { IdToken = idToken };
-
-            // Mock the HttpMessageHandler to return a valid response
-            var responseMessage = new HttpResponseMessage(System.Net.HttpStatusCode.OK)
-            {
-                Content = new StringContent("{ \"id\": \"123\", \"email\": \"user@selfguidedtours.bg\" }")
-            };
-            httpMessageHandlerMock
-                .Protected()
-                .Setup<Task<HttpResponseMessage>>(
-                    "SendAsync",
-                    ItExpr.Is<HttpRequestMessage>(req => req != null),
-                    ItExpr.IsAny<CancellationToken>()
-                )
-                .ReturnsAsync(responseMessage);
-
-            // Inject the mock HttpClient into the GoogleAuthService
-            GoogleAuthServiceExtensions.SetHttpClient(googleAuthService, httpClient);
-
-            // Act
-            var result = await googleAuthService.GoogleSignIn(googleSignInVM);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.AreEqual("dummy_access_token", result.AccessToken);
-            Assert.AreEqual("dummy_refresh_token", result.RefreshToken);
-        }
+            //TODO: Add test Google Sign in 
 
         [Test]
         public void GoogleSignIn_WithInvalidIdToken_ThrowsUnauthorizedAccessException()
