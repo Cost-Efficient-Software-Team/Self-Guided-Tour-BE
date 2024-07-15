@@ -58,7 +58,7 @@ namespace SelfGuidedTours.Tests.UnitTests
         public void GenerateToken_NoClaims_ReturnsToken()
         {
             // Arrange
-            string secretKey = "supersecretkey";
+            string secretKey = "1de05efd-6cba-449c-a2c7-dabec734c3ec1de05efd-6cba-449c-a2c7-dabec734c3ec";
             string issuer = "https://localhost:7038";
             string audience = "https://localhost:7038";
             double expirationMinutes = 50;
