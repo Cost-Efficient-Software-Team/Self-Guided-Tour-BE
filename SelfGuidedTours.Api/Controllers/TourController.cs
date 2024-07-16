@@ -74,5 +74,12 @@ namespace SelfGuidedTours.Api.Controllers
           
             return Ok(_response);
         }
+        [HttpPatch("{id:int}", Name = "approve-tour")]
+        public async Task<IActionResult> ApproveTour([FromRoute] int id)
+        {
+            var result = await _tourService.ApproveTourAsync(id);
+
+            return StatusCode((int)result.StatusCode, result);
+        }
     }
 }
