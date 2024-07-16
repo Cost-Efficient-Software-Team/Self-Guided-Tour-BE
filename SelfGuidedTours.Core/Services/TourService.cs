@@ -173,9 +173,20 @@ namespace SelfGuidedTours.Core.Services
             return tourResponse;
         }
 
-        public Task<ApiResponse> RejectTourAsync(int id)
+        public async Task<ApiResponse> RejectTourAsync(int id)
         {
-            throw new NotImplementedException();
+            var tour = await repository.GetByIdAsync<Tour>(id)
+                ?? throw new KeyNotFoundException(TourNotFoundErrorMessage);
+
+            if (tour.Status == Status.Rejected) throw new InvalidOperationException(TourAlreadyRejectedErrorMessage);
+
+            tour.Status = Status.Rejected;
+            await repository.SaveChangesAsync();
+
+            response.StatusCode = HttpStatusCode.OK;
+            response.Result = this.MapTourToTourResponseDto(tour);
+
+            return response;
         }
     }
 }
