@@ -11,5 +11,7 @@ namespace SelfGuidedTours.Core.Contracts
         Task<ApiResponse> DeleteTourAsync(int id);
         Task<Tour?> GetTourByIdAsync(int id);
         TourResponseDto MapTourToTourResponseDto(Tour tour);
+        Task<ApiResponse> ApproveTourAsync(int id);
+        Task<ApiResponse> RejectTourAsync(int id);
     }
 }
