@@ -92,6 +92,7 @@ namespace SelfGuidedTours.Api.Controllers
         [ProducesResponseType(typeof(ApiResponse), 200)]
         [ProducesResponseType(typeof(ErrorDetails), 400)]
         [ProducesResponseType(typeof(ErrorDetails), 404)]
+        [ProducesResponseType(401)]
         public async Task<IActionResult> RejectTour([FromRoute] int id)
         {
             var result = await _tourService.RejectTourAsync(id);
