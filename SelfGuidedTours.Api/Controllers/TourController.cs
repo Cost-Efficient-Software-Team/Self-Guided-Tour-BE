@@ -8,6 +8,7 @@ using SelfGuidedTours.Infrastructure.Data.Models;
 using System.Net;
 using SelfGuidedTours.Api.CustomActionFilters;
 using SelfGuidedTours.Core.Models.ResponseDto;
+using SelfGuidedTours.Core.Models.ErrorResponse;
 
 
 namespace SelfGuidedTours.Api.Controllers
@@ -73,6 +74,30 @@ namespace SelfGuidedTours.Api.Controllers
             _response.StatusCode = HttpStatusCode.OK;
           
             return Ok(_response);
+        }
+       
+        [HttpPatch("approve-tour/{id:int}", Name = "approve-tour")]
+        [ProducesResponseType(typeof(ApiResponse), 200)]
+        [ProducesResponseType(typeof(ErrorDetails), 400)]
+        [ProducesResponseType(typeof(ErrorDetails), 404)]
+        [ProducesResponseType(401)]
+        public async Task<IActionResult> ApproveTour([FromRoute] int id)
+        {
+            var result = await _tourService.ApproveTourAsync(id);
+
+            return StatusCode((int)result.StatusCode, result);
+        }
+
+        [HttpPatch("reject-tour/{id:int}", Name = "reject-tour")]
+        [ProducesResponseType(typeof(ApiResponse), 200)]
+        [ProducesResponseType(typeof(ErrorDetails), 400)]
+        [ProducesResponseType(typeof(ErrorDetails), 404)]
+        [ProducesResponseType(401)]
+        public async Task<IActionResult> RejectTour([FromRoute] int id)
+        {
+            var result = await _tourService.RejectTourAsync(id);
+
+            return StatusCode((int)result.StatusCode, result);
         }
     }
 }

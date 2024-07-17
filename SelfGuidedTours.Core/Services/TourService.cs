@@ -27,6 +27,24 @@ namespace SelfGuidedTours.Core.Services
             this.landmarkService = landmarkService;
         }
 
+        public async Task<ApiResponse> ApproveTourAsync(int id)
+        {
+            var tour = await repository.GetByIdAsync<Tour>(id) 
+                ?? throw new KeyNotFoundException(TourNotFoundErrorMessage);
+
+            if(tour.Status == Status.Approved) throw new InvalidOperationException(TourAlreadyApprovedErrorMessage);
+
+
+            tour.Status = Status.Approved;
+            await repository.SaveChangesAsync();
+
+            response.StatusCode = HttpStatusCode.OK;
+            response.Result = this.MapTourToTourResponseDto(tour);
+
+            return response;
+        }
+
+
         public async Task<Tour> CreateAsync(TourCreateDTO model, string creatorId)
         {
             if (model == null) throw new ArgumentException();
@@ -153,6 +171,22 @@ namespace SelfGuidedTours.Core.Services
                 }).ToList()
             };
             return tourResponse;
+        }
+
+        public async Task<ApiResponse> RejectTourAsync(int id)
+        {
+            var tour = await repository.GetByIdAsync<Tour>(id)
+                ?? throw new KeyNotFoundException(TourNotFoundErrorMessage);
+
+            if (tour.Status == Status.Rejected) throw new InvalidOperationException(TourAlreadyRejectedErrorMessage);
+
+            tour.Status = Status.Rejected;
+            await repository.SaveChangesAsync();
+
+            response.StatusCode = HttpStatusCode.OK;
+            response.Result = this.MapTourToTourResponseDto(tour);
+
+            return response;
         }
     }
 }

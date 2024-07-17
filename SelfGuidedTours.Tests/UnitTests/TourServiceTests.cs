@@ -305,5 +305,82 @@ namespace SelfGuidedTours.Tests.UnitTests
             Assert.AreEqual(resource.Url, resourceResponse.ResourceUrl);
             Assert.AreEqual(resource.Type.ToString(), resourceResponse.ResourceType);
         }
+        [Test]
+        public async Task ApproveTourAsync_ApprovesTour()
+        {
+            // Arrange
+            var tourId = 1;
+            var result = await tourService.ApproveTourAsync(tourId);
+            // Act
+            var tour = await dbContext.Tours.FindAsync(tourId);
+            // Assert
+            Assert.That(result.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(tour?.Status, Is.EqualTo(Status.Approved));
+        }
+        [Test]
+        public async Task ApproveTourAsync_ReturnsAlreadyApproved()
+        {
+            // Arrange
+            var tourId = 1;
+            var tour = await dbContext.Tours.FindAsync(tourId);
+            tour!.Status = Status.Approved;
+            await dbContext.SaveChangesAsync();
+
+            // Act && Assert
+            var ex = Assert.ThrowsAsync<InvalidOperationException>(() => tourService.ApproveTourAsync(tourId));
+            Assert.That(ex.Message, Is.EqualTo("Tour is already approved"));
+        }
+        [Test]
+        public async Task ApproveTourAsync_ReturnsNotFound()
+        {
+            // Arrange
+            var tourId = 1; // Wrong Tour Id
+            var tour = await dbContext.Tours.FindAsync(tourId);
+            repository.Delete(tour!);  // Make sure that there is no tour assigned to the given id
+            await dbContext.SaveChangesAsync();
+
+            // Act && Assert
+            var ex = Assert.ThrowsAsync<KeyNotFoundException>(() => tourService.ApproveTourAsync(tourId));
+            Assert.That(ex.Message, Is.EqualTo("Tour not found"));
+        }
+        [Test]
+        public async Task RejectTourAsync_RejectsTour()
+        {
+            // Arrange
+            var tourId = 1;
+            var result = await tourService.RejectTourAsync(tourId);
+            // Act
+            var tour = await dbContext.Tours.FindAsync(tourId);
+            // Assert
+            Assert.That(result.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(tour?.Status, Is.EqualTo(Status.Rejected));
+
+        }
+        [Test]
+        public async Task RejectTourAsync_ReturnsAlreadyRejected()
+        {
+            // Arrange
+            var tourId = 1;
+            var tour = await dbContext.Tours.FindAsync(tourId);
+            tour!.Status = Status.Rejected;
+            await dbContext.SaveChangesAsync();
+
+            // Act && Assert
+            var ex = Assert.ThrowsAsync<InvalidOperationException>(() => tourService.RejectTourAsync(tourId));
+            Assert.That(ex.Message, Is.EqualTo("Tour is already rejected"));
+        }
+        [Test]
+        public async Task RejectTourAsync_ReturnsNotFound()
+        {
+            // Arrange
+            var tourId = 1; // Wrong Tour Id
+            var tour = await dbContext.Tours.FindAsync(tourId);
+            repository.Delete(tour!);  // Make sure that there is no tour assigned to the given id
+            await dbContext.SaveChangesAsync();
+
+            // Act && Assert
+            var ex = Assert.ThrowsAsync<KeyNotFoundException>(() => tourService.RejectTourAsync(tourId));
+            Assert.That(ex.Message, Is.EqualTo("Tour not found"));
+        }
     }
 }
