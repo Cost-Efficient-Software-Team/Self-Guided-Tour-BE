@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SelfGuidedTours.Core.Contracts;
+using SelfGuidedTours.Core.CustomExceptions;
 using SelfGuidedTours.Core.Models.Auth;
 using SelfGuidedTours.Core.Services;
 using SelfGuidedTours.Core.Services.TokenGenerators;
@@ -10,6 +11,7 @@ using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using System.Net;
+using static SelfGuidedTours.Common.MessageConstants.ErrorMessages;
 
 namespace SelfGuidedTours.Tests.UnitTests
 {
@@ -146,9 +148,9 @@ namespace SelfGuidedTours.Tests.UnitTests
             {
                 _ = await service.RegisterAsync(model);
             }
-            catch (ArgumentException ex)
+            catch (EmailAlreadyInUseException ex)
             {
-                Assert.That(ex.Message, Is.EqualTo("User already exists!"));
+                Assert.That(ex.Message, Is.EqualTo(UserWithEmailAlreadyExistsErrorMessage));
             }
         }
 
