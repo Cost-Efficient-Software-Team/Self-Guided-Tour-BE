@@ -25,5 +25,7 @@
         public const string TourAlreadyApprovedErrorMessage = "Tour is already approved";
 
         public const string TourAlreadyRejectedErrorMessage = "Tour is already rejected";
+
+        public const string UserWithEmailAlreadyExistsErrorMessage = "User with this email already exists!";
     }
 }
