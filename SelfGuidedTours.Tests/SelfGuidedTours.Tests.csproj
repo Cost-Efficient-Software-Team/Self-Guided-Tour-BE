@@ -23,6 +23,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\SelfGuidedTours.Api\SelfGuidedTours.Api.csproj" />
 		<ProjectReference Include="..\SelfGuidedTours.Core\SelfGuidedTours.Core.csproj" />
 		<ProjectReference Include="..\SelfGuidedTours.Infrastructure\SelfGuidedTours.Infrastructure.csproj" />
 	</ItemGroup>
