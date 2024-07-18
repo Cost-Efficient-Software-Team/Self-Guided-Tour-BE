@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SelfGuidedTours.Core.Contracts;
+using SelfGuidedTours.Core.CustomExceptions;
 using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Models.Auth;
 using SelfGuidedTours.Core.Models.ExternalLogin;
@@ -91,7 +92,7 @@ namespace SelfGuidedTours.Core.Services
         {
             if (await GetByEmailAsync(model.Email) != null)
             {
-                throw new ArgumentException("User already exists!");
+                throw new EmailAlreadyInUseException();
             }
 
             if (model.Password != model.RepeatPassword)
