@@ -61,9 +61,9 @@ namespace SelfGuidedTours.Core.Services
             var jwtSecurityToken = handler.ReadJwtToken(token);
 
             var tokenExp = jwtSecurityToken.Claims.First(claim => claim.Type.Equals("exp")).Value;
-            var ticks = long.Parse(tokenExp);
+            var ticsInMilliseconds = long.Parse(tokenExp) * 1000; // convert seconds to milliseconds, so it works with JS Date
 
-            return ticks;
+            return ticsInMilliseconds;
         }
 
         private async Task<AuthenticateResponse> AuthenticateAsync(ApplicationUser user, string responesMessage)
