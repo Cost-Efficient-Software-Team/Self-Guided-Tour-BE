@@ -60,7 +60,7 @@ namespace SelfGuidedTours.Tests.UnitTests
             var token = accessTokenGenerator.GenerateToken(testUser);
 
             // Assert
-            Assert.AreEqual(expectedToken, token);
+            Assert.That(token, Is.EqualTo(expectedToken));
         }
 
         [TearDown]

@@ -29,6 +29,7 @@ namespace SelfGuidedTours.Tests.UnitTests
         private ILogger<AuthService> logger;
         private TokenGenerator tokenGenerator;
         private ILoggerFactory loggerFactory;
+        private IProfileService profileService;
         private readonly UserManager<ApplicationUser>? userManager;
 
         private IEnumerable<ApplicationUser> users;
@@ -93,9 +94,11 @@ namespace SelfGuidedTours.Tests.UnitTests
             refreshTokenService = new RefreshTokenService(repository);
             logger = new Logger<AuthService>(loggerFactory);
 
+            profileService = new ProfileService(repository, userManager!);
+
             // AuthService initialized
             service = new AuthService(repository, accessTokenGenerator,
-                refreshTokenGenerator, refreshTokenValidator, refreshTokenService, userManager, logger);
+                refreshTokenGenerator, refreshTokenValidator, refreshTokenService, profileService, userManager, logger);
 
             // Environment Variables
             Environment.SetEnvironmentVariable("ACCESSTOKEN_KEY", "4y7XS2AHicSOs2uUJCxwlHWqTJNExW3UDUjMeXi96uLEso1YV4RazqQubpFBdx0zZGtdxBelKURhh0WXxPR0mEJQHk_0U9HeYtqcMManhoP3X2Ge8jgxh6k4C_Gd4UPTc6lkx0Ca5eRE16ciFQ6wmYDnaXC8NbngGqartHccAxE");

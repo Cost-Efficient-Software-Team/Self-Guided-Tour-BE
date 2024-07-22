@@ -46,8 +46,8 @@ namespace SelfGuidedTours.Tests.UnitTests
         {
             var token = refreshTokenGenerator.GenerateToken();
 
-            Assert.IsNotNull(token);
-            Assert.IsNotEmpty(token);
+            Assert.That(token, Is.Not.Null);
+            Assert.That(token, Is.Not.Empty);
         }
 
         [Test]
@@ -56,7 +56,7 @@ namespace SelfGuidedTours.Tests.UnitTests
             Environment.SetEnvironmentVariable("REFRESHTOKEN_KEY", null);
 
             var ex = Assert.Throws<ApplicationException>(() => refreshTokenGenerator.GenerateToken());
-            Assert.AreEqual("REFRESHTOKEN_KEY is not configured.", ex.Message);
+            Assert.That(ex.Message, Is.EqualTo("REFRESHTOKEN_KEY is not configured."));
         }
 
         [Test]
@@ -65,7 +65,7 @@ namespace SelfGuidedTours.Tests.UnitTests
             Environment.SetEnvironmentVariable("REFRESHTOKEN_EXPIRATIONMINUTES", null);
 
             var ex = Assert.Throws<ApplicationException>(() => refreshTokenGenerator.GenerateToken());
-            Assert.AreEqual("REFRESHTOKEN_EXPIRATIONMINUTES is not configured.", ex.Message);
+            Assert.That(ex.Message, Is.EqualTo("REFRESHTOKEN_EXPIRATIONMINUTES is not configured."));
         }
 
         [Test]
@@ -74,7 +74,7 @@ namespace SelfGuidedTours.Tests.UnitTests
             Environment.SetEnvironmentVariable("ISSUER", null);
 
             var ex = Assert.Throws<ApplicationException>(() => refreshTokenGenerator.GenerateToken());
-            Assert.AreEqual("ISSUER is not configured.", ex.Message);
+            Assert.That(ex.Message, Is.EqualTo("ISSUER is not configured."));
         }
 
         [Test]
@@ -83,7 +83,7 @@ namespace SelfGuidedTours.Tests.UnitTests
             Environment.SetEnvironmentVariable("AUDIENCE", null);
 
             var ex = Assert.Throws<ApplicationException>(() => refreshTokenGenerator.GenerateToken());
-            Assert.AreEqual("AUDIENCE is not configured.", ex.Message);
+            Assert.That(ex.Message, Is.EqualTo("AUDIENCE is not configured."));
         }
     }
 }

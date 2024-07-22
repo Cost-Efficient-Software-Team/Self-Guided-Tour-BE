@@ -6,11 +6,7 @@ using SelfGuidedTours.Core.Models.Dto;
 using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using System.Net;
-using System.Security.Claims;
-using SelfGuidedTours.Core.Contracts;
-using System.Linq;
 using SelfGuidedTours.Api.CustomActionFilters;
-using SelfGuidedTours.Core.Models.ResponseDto;
 using SelfGuidedTours.Core.Models.ErrorResponse;
 
 
@@ -48,7 +44,7 @@ namespace SelfGuidedTours.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllTours([FromQuery] string title = null, [FromQuery] string location = null, [FromQuery] decimal? minPrice = null, [FromQuery] decimal? maxPrice = null, [FromQuery] int? minEstimatedDuration = null, [FromQuery] int? maxEstimatedDuration = null)
+        public async Task<IActionResult> GetAllTours([FromQuery] string title = "", [FromQuery] string location = "", [FromQuery] decimal? minPrice = null, [FromQuery] decimal? maxPrice = null, [FromQuery] int? minEstimatedDuration = null, [FromQuery] int? maxEstimatedDuration = null)
         {
             var tours = await _tourService.GetFilteredTours(title, location, minPrice, maxPrice, minEstimatedDuration, maxEstimatedDuration);
             
