@@ -7,7 +7,7 @@ namespace SelfGuidedTours.Core.Services.TokenGenerators
 {
     public class TokenGenerator
     {
-        public string GenerateToken(string secretKey, string issuer, 
+        public virtual string GenerateToken(string secretKey, string issuer, 
             string audience, double expirationMinutes, IEnumerable<Claim>? claims = null)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));

@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿using SelfGuidedTours.Core.CustomExceptions;
+using SelfGuidedTours.Core.Models.ErrorResponse;
+using System.Net;
 using System.Text.Json;
 
 namespace SelfGuidedTours.Api.Middlewares
@@ -50,6 +52,13 @@ namespace SelfGuidedTours.Api.Middlewares
                 logger.LogError($"Request timed out: {ex} ");
                 await HandleExceptionAsync(httpContext, ex, HttpStatusCode.RequestTimeout, errorType);
             }
+            catch (EmailAlreadyInUseException ex)
+            {
+                string errorType = "https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.1";
+                string errorKey = "Email";
+                logger.LogError($"Email already in use: {ex} ");
+                await HandleExceptionAsync(httpContext, ex, HttpStatusCode.BadRequest, errorType,errorKey);
+            }
             catch (Exception ex)
             {
                 string errorType = "https://datatracker.ietf.org/doc/html/rfc9110#section-15.6.1";
@@ -64,36 +73,28 @@ namespace SelfGuidedTours.Api.Middlewares
         /// <param name="exception">The caught exception, that needs to be handled</param>
         /// <param name="statusCode">The HTTP status code that gets converted to int</param>
         /// <param name="errorType">The type of the error and a link to documentation about it, following REST principals</param>
-        private Task HandleExceptionAsync(HttpContext context, Exception exception, HttpStatusCode statusCode, string errorType)
+        /// <param name="errorKey">The key of the error</param>
+        private Task HandleExceptionAsync(HttpContext context, Exception exception, HttpStatusCode statusCode, string errorType, string errorKey = "Error")
         {
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)statusCode;
 
-            return context.Response.WriteAsync(new ErrorDetails()
+            var json = JsonSerializer.Serialize(new ErrorDetails()
             {
                 ErrorId = Guid.NewGuid(),
                 StatusCode = context.Response.StatusCode,
                 Message = exception.Message,
-                Type = errorType
-            }.ToString());
-        }
-
-        /// <summary>
-        /// A class that holds the error details
-        /// </summary>
-        private class ErrorDetails
-        {
-            public Guid ErrorId { get; set; }
-            public int StatusCode { get; set; }
-            public string Message { get; set; } = string.Empty;
-            public string Type { get; set; } = string.Empty;
-
-
-            //Override the ToString method to return the object as a JSON string
-            public override string ToString()
+                Type = errorType,
+                Errors = { { errorKey, exception.Message } }
+            }, new JsonSerializerOptions
             {
-                return JsonSerializer.Serialize(this);
-            }
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            return context.Response.WriteAsync(json);
         }
+
+       
+        
     }
 }

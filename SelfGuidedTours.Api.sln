@@ -14,6 +14,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SelfGuidedTours.Core", "Sel
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SelfGuidedTours.Common", "SelfGuidedTours.Common\SelfGuidedTours.Common.csproj", "{94C6F7A9-EEB6-4058-AAA4-E20B8B41BDE9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SelfGuidedTours.Tests", "SelfGuidedTours.Tests\SelfGuidedTours.Tests.csproj", "{0E64990E-DA47-41D0-9E3B-3C33645C9B76}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,6 +38,10 @@ Global
 		{94C6F7A9-EEB6-4058-AAA4-E20B8B41BDE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{94C6F7A9-EEB6-4058-AAA4-E20B8B41BDE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{94C6F7A9-EEB6-4058-AAA4-E20B8B41BDE9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E64990E-DA47-41D0-9E3B-3C33645C9B76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E64990E-DA47-41D0-9E3B-3C33645C9B76}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E64990E-DA47-41D0-9E3B-3C33645C9B76}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E64990E-DA47-41D0-9E3B-3C33645C9B76}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
