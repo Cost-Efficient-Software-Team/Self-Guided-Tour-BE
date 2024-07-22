@@ -1,11 +1,14 @@
-﻿using SelfGuidedTours.Core.Contracts.BlobStorage;
+using Microsoft.EntityFrameworkCore;
 using SelfGuidedTours.Core.Contracts;
-using SelfGuidedTours.Core.Models.Dto;
+using SelfGuidedTours.Core.Contracts.BlobStorage;
 using SelfGuidedTours.Core.Models;
+using SelfGuidedTours.Core.Models.Dto;
 using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data.Models;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
-using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 using SelfGuidedTours.Infrastructure.Data.Enums;
 using static SelfGuidedTours.Common.MessageConstants.ErrorMessages;
 using SelfGuidedTours.Core.Models.ResponseDto;
@@ -102,7 +105,7 @@ namespace SelfGuidedTours.Core.Services
 
             foreach (var landmark in landmarks)
             {
-                var resources = await repository.All<LandmarkResource>().Where(r => r.LandmarkId == landmark.LandmarkId).ToListAsync();
+                var resources = await repository.All<LandmarkResource>().Where(r => r.LandmarkId == landmark.LandmarkId).ToListAsync();        
                 foreach(var resource in resources)
                 {
                     await blobService.DeleteFileAsync(resource.Url, containerName);
@@ -173,6 +176,58 @@ namespace SelfGuidedTours.Core.Services
             return tourResponse;
         }
 
+        public async Task<List<Tour>> GetAllTours()
+        {
+            return await repository.All<Tour>()
+                .Include(t => t.Landmarks)
+                .Include(t => t.Payments)
+                .Include(t => t.Reviews)
+                .Include(t => t.UserTours)
+                .ToListAsync();
+        }
+
+        public async Task<List<Tour>> GetFilteredTours(string title, string location, decimal? minPrice, decimal? maxPrice, int? minEstimatedDuration, int? maxEstimatedDuration)
+        {
+            var query = repository.All<Tour>().AsQueryable();
+
+            if (!string.IsNullOrEmpty(title))
+            {
+                query = query.Where(t => t.Title.Contains(title));
+            }
+
+            if (!string.IsNullOrEmpty(location))
+            {
+                query = query.Where(t => t.Location.Contains(location));
+            }
+
+            if (minPrice.HasValue)
+            {
+                query = query.Where(t => t.Price >= minPrice);
+            }
+
+            if (maxPrice.HasValue)
+            {
+                query = query.Where(t => t.Price <= maxPrice);
+            }
+
+            if (minEstimatedDuration.HasValue)
+            {
+                query = query.Where(t => t.EstimatedDuration >= minEstimatedDuration);
+            }
+
+            if (maxEstimatedDuration.HasValue)
+            {
+                query = query.Where(t => t.EstimatedDuration <= maxEstimatedDuration);
+            }
+
+            return await query
+                .Include(t => t.Landmarks)
+                .Include(t => t.Payments)
+                .Include(t => t.Reviews)
+                .Include(t => t.UserTours)
+                .ToListAsync();
+        }
+  
         public async Task<ApiResponse> RejectTourAsync(int id)
         {
             var tour = await repository.GetByIdAsync<Tour>(id)
