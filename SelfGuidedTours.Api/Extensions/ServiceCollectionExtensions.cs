@@ -65,11 +65,11 @@ namespace SelfGuidedTours.Api.Extensions
             services.AddScoped<IRefreshTokenService, RefreshTokenService>();
             services.AddScoped<IGoogleAuthService, GoogleAuthService>();
             services.AddScoped<ITourService, TourService>();
+            services.AddScoped<IProfileService, ProfileService>();
             services.AddScoped<ILandmarkService, LandmarkService>();
             services.AddScoped<ILandmarkResourceService, LandmarkResourceService>();
             services.AddScoped<IPaymentService, PaymentService>();
             services.AddScoped<IBlobService, BlobService>();
-
 
             //Token generators
             services.AddScoped<AccessTokenGenerator>();

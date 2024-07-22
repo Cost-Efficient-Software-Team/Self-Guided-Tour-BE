@@ -39,5 +39,7 @@ namespace SelfGuidedTours.Infrastructure.Data
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<LandmarkResource> LandmarkResources { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<UserProfile> UserProfiles { get; set; }
+
     }
 }
