@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using SelfGuidedTours.Core.Contracts;
+using Microsoft.Extensions.Logging;
+using SelfGuidedTours.Core.CustomExceptions;
 using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Models.Auth;
 using SelfGuidedTours.Core.Models.ExternalLogin;
@@ -8,16 +9,11 @@ using SelfGuidedTours.Core.Services.TokenGenerators;
 using SelfGuidedTours.Core.Services.TokenValidators;
 using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data.Models;
-using System.IdentityModel.Tokens.Jwt;
 using System.Net;
-using Microsoft.AspNetCore.Identity;
 using SelfGuidedTours.Core.Contracts;
-using SelfGuidedTours.Core.Models.Auth;
-using SelfGuidedTours.Infrastructure.Data.Models;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 
 namespace SelfGuidedTours.Core.Services
@@ -30,6 +26,8 @@ namespace SelfGuidedTours.Core.Services
         private readonly RefreshTokenValidator refreshTokenValidator;
         private readonly IRefreshTokenService refreshTokenService;
         private readonly IProfileService profileService;  
+        private readonly UserManager<ApplicationUser>? userManager;
+        private readonly ILogger<AuthService> logger;
 
         public AuthService(
             IRepository repository,
@@ -37,7 +35,9 @@ namespace SelfGuidedTours.Core.Services
             RefreshTokenGenerator refreshTokenGenerator,
             RefreshTokenValidator refreshTokenValidator,
             IRefreshTokenService refreshTokenService,
-            IProfileService profileService  
+            IProfileService profileService,  
+            UserManager<ApplicationUser>? userManager,
+            ILogger<AuthService> logger
         )
         {
             this.repository = repository;
@@ -46,9 +46,11 @@ namespace SelfGuidedTours.Core.Services
             this.refreshTokenValidator = refreshTokenValidator;
             this.refreshTokenService = refreshTokenService;
             this.profileService = profileService;  
+            this.userManager = userManager;
+            this.logger = logger;
         }
 
-        private async Task<ApplicationUser?> GetByEmailAsync(string email)
+        public async Task<ApplicationUser?> GetByEmailAsync(string email)
         {
             return await repository.AllReadOnly<ApplicationUser>()
                 .FirstOrDefaultAsync(au => au.Email == email);
@@ -66,9 +68,9 @@ namespace SelfGuidedTours.Core.Services
             var jwtSecurityToken = handler.ReadJwtToken(token);
 
             var tokenExp = jwtSecurityToken.Claims.First(claim => claim.Type.Equals("exp")).Value;
-            var ticks = long.Parse(tokenExp);
+            var ticsInMilliseconds = long.Parse(tokenExp) * 1000; // convert seconds to milliseconds, so it works with JS Date
 
-            return ticks;
+            return ticsInMilliseconds;
         }
 
         private async Task<AuthenticateResponse> AuthenticateAsync(ApplicationUser user, string responseMessage)
@@ -97,7 +99,7 @@ namespace SelfGuidedTours.Core.Services
         {
             if (await GetByEmailAsync(model.Email) != null)
             {
-                throw new ArgumentException("User already exists!");
+                throw new EmailAlreadyInUseException();
             }
 
             if (model.Password != model.RepeatPassword)
@@ -231,29 +233,20 @@ namespace SelfGuidedTours.Core.Services
             }
 
             var user = await GetByIdAsync(model.UserId);
+            
+            if (user is null) throw new UnauthorizedAccessException("User not found");
 
-            if (user is null)
-            {
-                throw new UnauthorizedAccessException("User not found");
-            }
-
-            if (user.PasswordHash is null)
-            {
-                throw new UnauthorizedAccessException("User has no assigned password!");
-            }
+            if (user.PasswordHash is null) throw new UnauthorizedAccessException("User has no assigned password!");
 
             var hasher = new PasswordHasher<ApplicationUser>();
 
             var result = hasher.VerifyHashedPassword(user, user.PasswordHash, model.CurrentPassword);
 
-            if (result != PasswordVerificationResult.Success)
-            {
-                throw new UnauthorizedAccessException("Invalid password");
-            }
-
+            if (result != PasswordVerificationResult.Success) throw new UnauthorizedAccessException("Invalid password");
+            
             user.PasswordHash = hasher.HashPassword(user, model.NewPassword);
 
-            await repository.UpdateAsync(user);
+            //await repository.UpdateAsync(user);
             await repository.SaveChangesAsync();
 
             var response = new ApiResponse
@@ -262,6 +255,42 @@ namespace SelfGuidedTours.Core.Services
                 Result = "Password changed successfully!"
             };
             return response;
+        }
+
+        public async Task<string> GeneratePasswordResetTokenAsync(ApplicationUser user)
+        {
+            var token = await userManager!.GeneratePasswordResetTokenAsync(user);
+            return token;
+        }
+        
+        public async Task<IdentityResult> ResetPasswordAsync(string email, string token, string newPassword)
+        {
+            var user = await userManager!.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return IdentityResult.Failed(new IdentityError { Description = "Invalid email." });
+            }
+
+            logger.LogInformation($"User found: {user.Email}");
+
+            var isTokenValid = await userManager.VerifyUserTokenAsync(user, userManager.Options.Tokens.PasswordResetTokenProvider, "ResetPassword", token);
+            if (!isTokenValid)
+            {
+                logger.LogWarning($"Invalid token for user: {user.Email}");
+                return IdentityResult.Failed(new IdentityError { Description = "Invalid token." });
+            }
+
+            var result = await userManager.ResetPasswordAsync(user, token, newPassword);
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                logger.LogError($"Password reset failed for user: {user.Email}. Errors: {errors}");
+                return IdentityResult.Failed(new IdentityError { Description = $"Password reset failed: {errors}" });
+            }
+
+            logger.LogInformation($"Password reset succeeded for user: {user.Email}");
+            
+            return result;
         }
     }
 }

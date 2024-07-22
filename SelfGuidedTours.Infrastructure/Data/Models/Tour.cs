@@ -21,14 +21,15 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         public string Title { get; set; } = null!;
        
         [Required]
-        [StringLength(DescriptionMaxLength, MinimumLength = DescriptionMinLength, ErrorMessage = LengthErrorMessage)]
-        public string Description { get; set; } = null!;
+        [StringLength(SummaryMaxLength, MinimumLength = SummaryMinLength, ErrorMessage = LengthErrorMessage)]
+        public string Summary { get; set; } = null!;
 
         [Column(TypeName = "decimal(10, 2)")]
         public decimal? Price { get; set; }
 
         [Required]
-        public string Location { get; set; } = null!;
+        [StringLength(DestinationMaxLength, MinimumLength = DestinationMinLength, ErrorMessage = LengthErrorMessage)]
+        public string Destination { get; set; } = null!;
 
         [Required]
         public DateTime CreatedAt { get; set; } = DateTime.Now;

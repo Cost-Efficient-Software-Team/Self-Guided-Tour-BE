@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
-
+using static SelfGuidedTours.Common.ValidationConstants.ValidationConstants.Tour;
+using static SelfGuidedTours.Common.MessageConstants.ErrorMessages;
 namespace SelfGuidedTours.Core.Models.Dto
 {
     public class TourCreateDTO
@@ -9,23 +10,27 @@ namespace SelfGuidedTours.Core.Models.Dto
         {
             Landmarks = new HashSet<LandmarkCreateTourDTO>();
         }
-
+        //TODO: add validation
         [Required]
+        [StringLength(TitleMaxLength, MinimumLength = TitleMinLength, ErrorMessage = LengthErrorMessage)]
         public string Title { get; set; } = null!;
 
         [Required]
-        public string Description { get; set; } = null!;
+        [StringLength(SummaryMaxLength, MinimumLength = SummaryMinLength, ErrorMessage = LengthErrorMessage)]
+        public string Summary { get; set; } = null!;
 
-        [Range(1, int.MaxValue)]
+        [Range(PriceMinValue, int.MaxValue)]
         public decimal? Price { get; set; } = null!;
 
         [Required]
-        public string Location { get; set; } = null!;
+        [StringLength(DestinationMaxLength, MinimumLength = DestinationMinLength, ErrorMessage = LengthErrorMessage)]
+        public string Destination { get; set; } = null!;
 
         [Required]
-        public IFormFile ThumbnailImageUrl { get; set; } = null!;
+        public IFormFile ThumbnailImage { get; set; } = null!;
 
         [Required]
+        [Range(EstimatedDurationMinValueInMinutes, EstimatedDurationMaxValueInMinutes)]
         public int EstimatedDuration { get; set; }
 
         [Required]

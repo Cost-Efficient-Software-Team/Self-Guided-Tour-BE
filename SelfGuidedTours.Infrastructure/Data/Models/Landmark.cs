@@ -19,7 +19,7 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
 
         [Required]
         [StringLength(NameMaxLength, MinimumLength = NameMinLength, ErrorMessage = LengthErrorMessage)]
-        public string Name { get; set; } = null!;
+        public string LocationName { get; set; } = null!;
 
         [Required]
         [StringLength(DescriptionMaxLength, MinimumLength = DescriptionMinLength, ErrorMessage = LengthErrorMessage)]
@@ -34,5 +34,6 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         public DateTime? UpdatedAt { get; set; }
+        public ICollection<LandmarkResource> Resources { get; set; } = new HashSet<LandmarkResource>();
     }
 }
