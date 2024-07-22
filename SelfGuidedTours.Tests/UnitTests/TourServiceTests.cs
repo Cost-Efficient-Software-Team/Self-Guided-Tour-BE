@@ -1,13 +1,10 @@
-﻿using Azure.Storage.Blobs;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Moq;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Contracts.BlobStorage;
 using SelfGuidedTours.Core.Models.Dto;
 using SelfGuidedTours.Core.Services;
-using SelfGuidedTours.Core.Services.BlobStorage;
 using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data;
 using SelfGuidedTours.Infrastructure.Data.Enums;
@@ -22,10 +19,6 @@ namespace SelfGuidedTours.Tests.UnitTests
         private SelfGuidedToursDbContext dbContext;
         private IRepository repository;
         private ITourService tourService;
-        private IBlobService blobService;
-        private ILandmarkService landmarkService;
-        private ILogger<TourService> logger;
-        private Mock<BlobServiceClient> blobServiceClientMock;
         private Mock<IBlobService> blobServiceMock;
         private Mock<ILandmarkService> landmarkServiceMock;
 
@@ -41,13 +34,8 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             repository = new Repository(dbContext);
 
-            blobServiceClientMock = new Mock<BlobServiceClient>();
             blobServiceMock = new Mock<IBlobService>();
             landmarkServiceMock = new Mock<ILandmarkService>();
-
-            blobService = new BlobService(blobServiceClientMock.Object);
-
-            logger = new Logger<TourService>(new LoggerFactory());
 
             tourService = new TourService(repository, blobServiceMock.Object, landmarkServiceMock.Object);
 
@@ -128,7 +116,7 @@ namespace SelfGuidedTours.Tests.UnitTests
             var result = await tourService.GetTourByIdAsync(tourId);
 
             Assert.IsNotNull(result);
-            Assert.AreEqual("Tour 1", result.Title);
+            Assert.That(result.Title, Is.EqualTo("Tour 1"));
         }
 
         [Test]
@@ -173,7 +161,7 @@ namespace SelfGuidedTours.Tests.UnitTests
             var result = await dbContext.Tours.FindAsync(newTour.TourId);
 
             Assert.IsNotNull(result);
-            Assert.AreEqual("Tour 3", result.Title);
+            Assert.That(result.Title, Is.EqualTo("Tour 3"));
         }
 
         [Test]
@@ -228,7 +216,7 @@ namespace SelfGuidedTours.Tests.UnitTests
             Assert.IsNull(deletedLandmark);
             Assert.IsNull(deletedResource);
             Assert.IsNull(deletedCoordinate);
-            Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
         }
 
         [Test]
@@ -275,35 +263,38 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             var tourResponse = tourService.MapTourToTourResponseDto(tour);
 
-            Assert.IsNotNull(tourResponse);
-            Assert.AreEqual(tour.TourId, tourResponse.TourId);
-            Assert.AreEqual(tour.Title, tourResponse.Title);
-            Assert.AreEqual(tour.Summary, tourResponse.Summary);
-            Assert.AreEqual(tour.Price, tourResponse.Price);
-            Assert.AreEqual(tour.Destination, tourResponse.Destination);
-            Assert.AreEqual(tour.ThumbnailImageUrl, tourResponse.ThumbnailImageUrl);
-            Assert.AreEqual(tour.EstimatedDuration, tourResponse.EstimatedDuration);
-            Assert.AreEqual(tour.Status.ToString(), tourResponse.Status);
-            Assert.AreEqual(tour.Landmarks.Count, tourResponse.Landmarks.Count);
+            Assert.That(tourResponse, Is.Not.Null);
+            Assert.That(tourResponse.TourId, Is.EqualTo(tour.TourId));
+            Assert.That(tourResponse.Title, Is.EqualTo(tour.Title));
+            Assert.That(tourResponse.Summary, Is.EqualTo(tour.Summary));
+            Assert.That(tourResponse.Price, Is.EqualTo(tour.Price));
+            Assert.That(tourResponse.Destination, Is.EqualTo(tour.Destination));
+            Assert.That(tourResponse.ThumbnailImageUrl, Is.EqualTo(tour.ThumbnailImageUrl));
+            Assert.That(tourResponse.EstimatedDuration, Is.EqualTo(tour.EstimatedDuration));
+            Assert.That(tourResponse.Status, Is.EqualTo(tour.Status.ToString()));
+            Assert.That(tourResponse.Landmarks.Count, Is.EqualTo(tour.Landmarks.Count));
 
             var landmarkResponse = tourResponse.Landmarks.First();
             var landmark = tour.Landmarks.First();
 
-            Assert.AreEqual(landmark.LandmarkId, landmarkResponse.LandmarkId);
-            Assert.AreEqual(landmark.LocationName, landmarkResponse.LocationName);
-            Assert.AreEqual(landmark.Description, landmarkResponse.Description);
-            Assert.AreEqual(landmark.StopOrder, landmarkResponse.StopOrder);
-            Assert.AreEqual(landmark.Coordinate.City, landmarkResponse.City);
-            Assert.AreEqual(landmark.Coordinate.Latitude, landmarkResponse.Latitude);
-            Assert.AreEqual(landmark.Coordinate.Longitude, landmarkResponse.Longitude);
-            Assert.AreEqual(landmark.Resources.Count, landmarkResponse.Resources.Count);
+            Assert.Multiple(() =>
+            {
+                Assert.That(landmarkResponse.LandmarkId, Is.EqualTo(landmark.LandmarkId));
+                Assert.That(landmarkResponse.LocationName, Is.EqualTo(landmark.LocationName));
+                Assert.That(landmarkResponse.Description, Is.EqualTo(landmark.Description));
+                Assert.That(landmarkResponse.StopOrder, Is.EqualTo(landmark.StopOrder));
+                Assert.That(landmarkResponse.City, Is.EqualTo(landmark.Coordinate.City));
+                Assert.That(landmarkResponse.Latitude, Is.EqualTo(landmark.Coordinate.Latitude));
+                Assert.That(landmarkResponse.Longitude, Is.EqualTo(landmark.Coordinate.Longitude));
+                Assert.That(landmarkResponse.Resources.Count, Is.EqualTo(landmark.Resources.Count));
+            });
 
             var resourceResponse = landmarkResponse.Resources.First();
             var resource = landmark.Resources.First();
 
-            Assert.AreEqual(resource.LandmarkResourceId, resourceResponse.ResourceId);
-            Assert.AreEqual(resource.Url, resourceResponse.ResourceUrl);
-            Assert.AreEqual(resource.Type.ToString(), resourceResponse.ResourceType);
+            Assert.That(resourceResponse.ResourceId, Is.EqualTo(resource.LandmarkResourceId));
+            Assert.That(resourceResponse.ResourceUrl, Is.EqualTo(resource.Url));
+            Assert.That(resourceResponse.ResourceType, Is.EqualTo(resource.Type.ToString()));
         }
         [Test]
         public async Task ApproveTourAsync_ApprovesTour()

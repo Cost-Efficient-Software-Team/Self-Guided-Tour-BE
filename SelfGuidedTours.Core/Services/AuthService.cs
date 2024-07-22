@@ -239,12 +239,12 @@ namespace SelfGuidedTours.Core.Services
 
         public async Task<string> GeneratePasswordResetTokenAsync(ApplicationUser user)
         {
-            var token = await userManager.GeneratePasswordResetTokenAsync(user);
+            var token = await userManager!.GeneratePasswordResetTokenAsync(user);
             return token;
         }
         public async Task<IdentityResult> ResetPasswordAsync(string email, string token, string newPassword)
         {
-            var user = await userManager.FindByEmailAsync(email);
+            var user = await userManager!.FindByEmailAsync(email);
             if (user == null)
             {
                 return IdentityResult.Failed(new IdentityError { Description = "Invalid email." });

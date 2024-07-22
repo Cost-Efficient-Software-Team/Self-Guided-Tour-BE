@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using SelfGuidedTours.Infrastructure.Data;
 
 #nullable disable
+#pragma warning disable
 
 namespace SelfGuidedTours.Infrastructure.Migrations
 {

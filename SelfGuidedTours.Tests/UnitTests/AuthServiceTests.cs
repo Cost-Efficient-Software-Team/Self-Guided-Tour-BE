@@ -29,7 +29,7 @@ namespace SelfGuidedTours.Tests.UnitTests
         private ILogger<AuthService> logger;
         private TokenGenerator tokenGenerator;
         private ILoggerFactory loggerFactory;
-        private UserManager<ApplicationUser> userManager;
+        private readonly UserManager<ApplicationUser>? userManager;
 
         private IEnumerable<ApplicationUser> users;
 

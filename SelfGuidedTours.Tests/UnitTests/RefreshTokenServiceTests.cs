@@ -15,7 +15,7 @@ namespace SelfGuidedTours.Tests.UnitTests
         private IRefreshTokenService refreshTokenService;
 
         [SetUp]
-        public async Task SetupAsync()
+        public void Setup()
         {
             var dbContextOptions = new DbContextOptionsBuilder<SelfGuidedToursDbContext>()
                 .UseInMemoryDatabase("SelfGuidedToursInMemoryDb" + Guid.NewGuid().ToString())
@@ -48,8 +48,8 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             // Assert
             var tokens = await repository.All<RefreshToken>().ToListAsync();
-            Assert.AreEqual(1, tokens.Count);
-            Assert.AreEqual(refreshToken.Token, tokens.First().Token);
+            Assert.That(tokens.Count, Is.EqualTo(1));
+            Assert.That(tokens.First().Token, Is.EqualTo(refreshToken.Token));
         }
 
         [Test]
@@ -77,7 +77,7 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             // Assert
             var tokens = await repository.All<RefreshToken>().ToListAsync();
-            Assert.AreEqual(0, tokens.Count);
+            Assert.That(tokens.Count, Is.EqualTo(0));
         }
 
         [Test]
@@ -98,7 +98,7 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             // Assert
             var tokens = await repository.All<RefreshToken>().ToListAsync();
-            Assert.AreEqual(0, tokens.Count);
+            Assert.That(tokens.Count, Is.EqualTo(0));
         }
 
         [Test]
@@ -109,7 +109,7 @@ namespace SelfGuidedTours.Tests.UnitTests
             // Act & Assert
             var ex = Assert.ThrowsAsync<ArgumentException>(async () =>
                 await refreshTokenService.DeleteAsync(Guid.NewGuid()));
-            Assert.AreEqual("Token is invalid!", ex.Message);
+            Assert.That(ex.Message, Is.EqualTo("Token is invalid!"));
         }
 
         [Test]
@@ -129,8 +129,8 @@ namespace SelfGuidedTours.Tests.UnitTests
             var result = await refreshTokenService.GetByTokenAsync("test-token");
 
             // Assert
-            Assert.IsNotNull(result);
-            Assert.AreEqual(refreshToken.Token, result.Token);
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Token, Is.EqualTo(refreshToken.Token));
         }
 
         [Test]
@@ -140,7 +140,7 @@ namespace SelfGuidedTours.Tests.UnitTests
             var result = await refreshTokenService.GetByTokenAsync("invalid-token");
 
             // Assert
-            Assert.IsNull(result);
+            Assert.That(result, Is.Null);
         }
     }
 }

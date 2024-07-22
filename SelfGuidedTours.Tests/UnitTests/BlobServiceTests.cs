@@ -21,7 +21,7 @@ namespace SelfGuidedTours.Tests.UnitTests
         private IRepository repository;
 
         [SetUp]
-        public async Task Setup()
+        public void Setup()
         {
             // Инициализация на InMemoryDatabase
             var dbContextOptions = new DbContextOptionsBuilder<SelfGuidedToursDbContext>()
@@ -54,7 +54,7 @@ namespace SelfGuidedTours.Tests.UnitTests
         public async Task DeleteFileAsync_ShouldDeleteFileIfExists()
         {
             _blobClientMock.Setup(b => b.DeleteIfExistsAsync(It.IsAny<DeleteSnapshotsOption>(), It.IsAny<BlobRequestConditions>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Response.FromValue(true, null));
+                .ReturnsAsync(Response.FromValue(true, null!));
 
             await _blobService.DeleteFileAsync("testBlob", "testContainer");
 
@@ -69,7 +69,7 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             var result = _blobService.GetFileUrl("testBlob", "testContainer");
 
-            Assert.AreEqual(blobUri.ToString(), result);
+            Assert.That(result, Is.EqualTo(blobUri.ToString()));
         }
     }
 }

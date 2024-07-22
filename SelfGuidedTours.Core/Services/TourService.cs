@@ -197,7 +197,7 @@ namespace SelfGuidedTours.Core.Services
 
             if (!string.IsNullOrEmpty(location))
             {
-                query = query.Where(t => t.Location.Contains(location));
+                query = query.Where(t => t.Destination.Contains(location));
             }
 
             if (minPrice.HasValue)
