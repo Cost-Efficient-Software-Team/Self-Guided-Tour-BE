@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SelfGuidedTours.Infrastructure.Data.Models
 {
@@ -25,5 +25,8 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         [Required]
         public DateTime PaymentDate { get; set; } = DateTime.Now;
         public DateTime? UpdatedAt { get; set; }
+
+        [Required]
+        public string PaymentIntentId { get; set; } = null!;
     }
 }
