@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.ChangeTracking;
+using SelfGuidedTours.Infrastructure.Data.Models;
 
 namespace SelfGuidedTours.Infrastructure.Common
 {
@@ -12,5 +13,7 @@ namespace SelfGuidedTours.Infrastructure.Common
         Task<int> SaveChangesAsync();
         Task UpdateAsync<T>(T entity) where T : class;
         Task<T?> GetByIdAsync<T>(object id) where T : class;
+        Task<UserProfile?> GetProfileAsync(Guid userId);
+        Task<UserProfile?> UpdateProfileAsync(Guid userId, UserProfile profile);
     }
 }

@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using SelfGuidedTours.Core.Contracts;
+using SelfGuidedTours.Core.CustomExceptions;
 using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Models.Auth;
 using SelfGuidedTours.Core.Models.ExternalLogin;
@@ -9,8 +9,13 @@ using SelfGuidedTours.Core.Services.TokenGenerators;
 using SelfGuidedTours.Core.Services.TokenValidators;
 using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data.Models;
-using System.IdentityModel.Tokens.Jwt;
 using System.Net;
+using SelfGuidedTours.Core.Contracts;
+using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Threading.Tasks;
+
 namespace SelfGuidedTours.Core.Services
 {
     public class AuthService : IAuthService
@@ -20,18 +25,19 @@ namespace SelfGuidedTours.Core.Services
         private readonly RefreshTokenGenerator refreshTokenGenerator;
         private readonly RefreshTokenValidator refreshTokenValidator;
         private readonly IRefreshTokenService refreshTokenService;
-        private readonly UserManager<ApplicationUser> userManager;
+        private readonly IProfileService profileService;  
+        private readonly UserManager<ApplicationUser>? userManager;
         private readonly ILogger<AuthService> logger;
 
-        public AuthService(IRepository repository,
+        public AuthService(
+            IRepository repository,
             AccessTokenGenerator accessTokenGenerator,
             RefreshTokenGenerator refreshTokenGenerator,
             RefreshTokenValidator refreshTokenValidator,
             IRefreshTokenService refreshTokenService,
-            UserManager<ApplicationUser> userManager
-            ,
+            IProfileService profileService,  
+            UserManager<ApplicationUser>? userManager,
             ILogger<AuthService> logger
-
         )
         {
             this.repository = repository;
@@ -39,6 +45,7 @@ namespace SelfGuidedTours.Core.Services
             this.refreshTokenGenerator = refreshTokenGenerator;
             this.refreshTokenValidator = refreshTokenValidator;
             this.refreshTokenService = refreshTokenService;
+            this.profileService = profileService;  
             this.userManager = userManager;
             this.logger = logger;
         }
@@ -61,12 +68,12 @@ namespace SelfGuidedTours.Core.Services
             var jwtSecurityToken = handler.ReadJwtToken(token);
 
             var tokenExp = jwtSecurityToken.Claims.First(claim => claim.Type.Equals("exp")).Value;
-            var ticks = long.Parse(tokenExp);
+            var ticsInMilliseconds = long.Parse(tokenExp) * 1000; // convert seconds to milliseconds, so it works with JS Date
 
-            return ticks;
+            return ticsInMilliseconds;
         }
 
-        private async Task<AuthenticateResponse> AuthenticateAsync(ApplicationUser user, string responesMessage)
+        private async Task<AuthenticateResponse> AuthenticateAsync(ApplicationUser user, string responseMessage)
         {
             var accessToken = accessTokenGenerator.GenerateToken(user);
             var refreshToken = refreshTokenGenerator.GenerateToken();
@@ -83,7 +90,7 @@ namespace SelfGuidedTours.Core.Services
             {
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
-                ResponseMessage = responesMessage,
+                ResponseMessage = responseMessage,
                 AccessTokenExpiration = GetTokenExpirationTime(accessToken)
             };
         }
@@ -92,7 +99,7 @@ namespace SelfGuidedTours.Core.Services
         {
             if (await GetByEmailAsync(model.Email) != null)
             {
-                throw new ArgumentException("User already exists!");
+                throw new EmailAlreadyInUseException();
             }
 
             if (model.Password != model.RepeatPassword)
@@ -109,14 +116,23 @@ namespace SelfGuidedTours.Core.Services
                 UserName = model.Email, // needed for the reset pass
                 NormalizedUserName = model.Email.ToUpper(), // needed for the reset pass
                 Name = model.Name,
-                PasswordHash = hasher.HashPassword(null!, model.Password) 
+                PasswordHash = hasher.HashPassword(null!, model.Password)
             };
-            //Assign user role
+
             var userRole = AssignUserRole(user.Id);
 
             await repository.AddAsync(user);
             await repository.AddAsync(userRole);
             await repository.SaveChangesAsync();
+
+            var userProfile = new UserProfile
+            {
+                UserId = Guid.Parse(user.Id),
+                Name = model.Name,
+                Email = model.Email
+            };
+
+            await profileService.CreateProfileAsync(userProfile);
 
             return await AuthenticateAsync(user, "User registered successfully!");
         }
@@ -211,10 +227,13 @@ namespace SelfGuidedTours.Core.Services
 
         public async Task<ApiResponse> ChangePasswordAsync(ChangePasswordModel model)
         {
-            if (model.CurrentPassword == model.NewPassword) throw new ArgumentException("New password can't be the same as the current one!");
+            if (model.CurrentPassword == model.NewPassword)
+            {
+                throw new ArgumentException("New password can't be the same as the current one!");
+            }
 
             var user = await GetByIdAsync(model.UserId);
-
+            
             if (user is null) throw new UnauthorizedAccessException("User not found");
 
             if (user.PasswordHash is null) throw new UnauthorizedAccessException("User has no assigned password!");
@@ -224,11 +243,12 @@ namespace SelfGuidedTours.Core.Services
             var result = hasher.VerifyHashedPassword(user, user.PasswordHash, model.CurrentPassword);
 
             if (result != PasswordVerificationResult.Success) throw new UnauthorizedAccessException("Invalid password");
+            
             user.PasswordHash = hasher.HashPassword(user, model.NewPassword);
 
-            await repository.UpdateAsync(user);
+            //await repository.UpdateAsync(user);
             await repository.SaveChangesAsync();
-            //TODO: Fix response
+
             var response = new ApiResponse
             {
                 StatusCode = HttpStatusCode.OK,
@@ -239,12 +259,13 @@ namespace SelfGuidedTours.Core.Services
 
         public async Task<string> GeneratePasswordResetTokenAsync(ApplicationUser user)
         {
-            var token = await userManager.GeneratePasswordResetTokenAsync(user);
+            var token = await userManager!.GeneratePasswordResetTokenAsync(user);
             return token;
         }
+        
         public async Task<IdentityResult> ResetPasswordAsync(string email, string token, string newPassword)
         {
-            var user = await userManager.FindByEmailAsync(email);
+            var user = await userManager!.FindByEmailAsync(email);
             if (user == null)
             {
                 return IdentityResult.Failed(new IdentityError { Description = "Invalid email." });
@@ -268,6 +289,7 @@ namespace SelfGuidedTours.Core.Services
             }
 
             logger.LogInformation($"Password reset succeeded for user: {user.Email}");
+            
             return result;
         }
     }

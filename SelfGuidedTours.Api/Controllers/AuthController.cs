@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using SelfGuidedTours.Api.CustomActionFilters;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
-using SelfGuidedTours.Api.CustomActionFilters;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Models.Auth;
@@ -12,6 +12,10 @@ using SelfGuidedTours.Core.Services;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using System.Net.Http.Headers;
 using System.Security.Claims;
+using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
+
+
 namespace SelfGuidedTours.Api.Controllers
 {
     [Route("api/[controller]")]
@@ -110,15 +114,10 @@ namespace SelfGuidedTours.Api.Controllers
         [ProducesResponseType(typeof(ApiResponse), 200)]
         [ProducesResponseType(typeof(ApiResponse), 400)]
         [ProducesResponseType(typeof(ApiResponse), 401)]
+        [ValidateModel]
         [Authorize]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDto model)
         {
-            if (!ModelState.IsValid)
-            {
-                logger.LogWarning("Invalid model state for change password request!");
-                return BadRequest("Invalid model state");
-            }
-
             string userId = User.Claims.First().Value;
 
             var changePasswordModel = new ChangePasswordModel
@@ -129,7 +128,7 @@ namespace SelfGuidedTours.Api.Controllers
             };
 
             var response = await authService.ChangePasswordAsync(changePasswordModel);
-
+            
             return Ok(response);
         }
 
@@ -148,7 +147,7 @@ namespace SelfGuidedTours.Api.Controllers
             var token = await authService.GeneratePasswordResetTokenAsync(user);
             var resetLink = Url.Action("ResetPassword", "Auth", new { token }, Request.Scheme);
 
-            await emailService.SendPasswordResetEmailAsync(model.Email, resetLink);
+            await emailService.SendPasswordResetEmailAsync(model.Email, resetLink!);
 
             return Ok("Password reset link has been sent to your email.");
         }

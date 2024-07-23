@@ -51,7 +51,7 @@ namespace SelfGuidedTours.Core.Services
 
             using var smtp = new SmtpClient();
            // smtp.ServerCertificateValidationCallback = (s, c, h, e) => true; // Disable certificate checking
-            smtp.Connect(Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_HOST"), int.Parse(Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_PORT")), SecureSocketOptions.SslOnConnect);
+            smtp.Connect(Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_HOST"), int.Parse(Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_PORT")!), SecureSocketOptions.SslOnConnect);
             smtp.Authenticate(Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_USERNAME"), Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_PASSWORD"));
             await smtp.SendAsync(mailMessage);
             smtp.Disconnect(true);

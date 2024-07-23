@@ -1,23 +1,21 @@
-﻿using System.Configuration;
-using System.Text;
-using Azure.Storage.Blobs;
-using Microsoft.Extensions.Azure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Azure;
 using Microsoft.IdentityModel.Tokens;
-using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Contracts.BlobStorage;
+using SelfGuidedTours.Core.Contracts;
+using SelfGuidedTours.Core.Models.ErrorResponse;
 using SelfGuidedTours.Core.Services;
 using SelfGuidedTours.Core.Services.BlobStorage;
 using SelfGuidedTours.Core.Services.TokenGenerators;
 using SelfGuidedTours.Core.Services.TokenValidators;
 using SelfGuidedTours.Infrastructure.Common;
-using SelfGuidedTours.Infrastructure.Data;
 using SelfGuidedTours.Infrastructure.Data.Models;
+using SelfGuidedTours.Infrastructure.Data;
+using System.Text;
 using System.Text.Json.Serialization;
-using SelfGuidedTours.Core.Models.ErrorResponse;
-using Microsoft.AspNetCore.Mvc;
 
 namespace SelfGuidedTours.Api.Extensions
 {
@@ -67,10 +65,11 @@ namespace SelfGuidedTours.Api.Extensions
             services.AddScoped<IRefreshTokenService, RefreshTokenService>();
             services.AddScoped<IGoogleAuthService, GoogleAuthService>();
             services.AddScoped<ITourService, TourService>();
+            services.AddScoped<IProfileService, ProfileService>();
             services.AddScoped<ILandmarkService, LandmarkService>();
             services.AddScoped<ILandmarkResourceService, LandmarkResourceService>();
+            services.AddScoped<IPaymentService, PaymentService>();
             services.AddScoped<IBlobService, BlobService>();
-
 
             //Token generators
             services.AddScoped<AccessTokenGenerator>();
@@ -79,16 +78,16 @@ namespace SelfGuidedTours.Api.Extensions
             services.AddScoped<RefreshTokenValidator>();
 
             services.AddCors(Options =>
-           {
-               Options.AddPolicy("CorsPolicy", builder =>
-               {
-                   builder
-                   .WithOrigins("http://localhost:3000", "https://self-guided-tour-fe.vercel.app/") // This will work for the local enviroment and with the current deployment URL
-                   .AllowAnyMethod()
-                   .AllowCredentials()
-                   .AllowAnyHeader();
-               });
-           });
+            {
+                Options.AddPolicy("CorsPolicy", builder =>
+                {
+                    builder
+                    .WithOrigins("http://localhost:3000", "https://self-guided-tour-fe.vercel.app/") // This will work for the local enviroment and with the current deployment URL
+                    .AllowAnyMethod()
+                    .AllowCredentials()
+                    .AllowAnyHeader();
+                });
+            });
 
             return services;
         }

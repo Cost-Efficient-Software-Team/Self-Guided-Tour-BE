@@ -1,11 +1,10 @@
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi.Models;
 using SelfGuidedTours.Api.Extensions;
 using SelfGuidedTours.Api.Middlewares;
 
-
 var builder = WebApplication.CreateBuilder(args);
-
 
 builder.Services.AddCustomizedControllers(); // This replaces the AddControllers method, comes from ServiceCollectionExtensions.cs
 
