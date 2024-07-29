@@ -22,7 +22,7 @@ namespace SelfGuidedTours.Core.Services
             this.logger = logger;
             response = new ApiResponse();
         }
-        public async Task<ApiResponse> GetAllToursAsync(Status status = Status.Pending)
+        public async Task<IEnumerable<AllToursToAdminDTO>> GetAllToursAsync(Status status = Status.Pending)
         {
             var tours = await repository.AllReadOnly<Tour>()
                 .Where(t => t.Status == status)
@@ -36,21 +36,12 @@ namespace SelfGuidedTours.Core.Services
             if(!tours.Any())
             {
                 logger.LogWarning(WarningMessageForNotFoundedToursForAdmin);
-
-                response.ErrorMessages = new List<string>()
-                {
-                    WarningMessageForNotFoundedToursForAdmin
-                };
-                response.IsSuccess = false;
-                response.StatusCode = HttpStatusCode.NotFound;
-                return response;
+                throw new KeyNotFoundException(WarningMessageForNotFoundedToursForAdmin);
             }
 
             logger.LogInformation(InformationMessageForAllSucessfullyReturnedToursForAdmin, status);
 
-            response.Result = tours;
-            response.StatusCode = HttpStatusCode.OK;
-            return response;
+            return tours;
         }
     }
 }

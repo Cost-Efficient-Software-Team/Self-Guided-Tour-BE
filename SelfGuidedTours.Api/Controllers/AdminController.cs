@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SelfGuidedTours.Core.Contracts;
-using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Infrastructure.Data.Enums;
 
 namespace SelfGuidedTours.Api.Controllers
@@ -20,9 +19,9 @@ namespace SelfGuidedTours.Api.Controllers
         [HttpGet("all-tours")]
         public async Task<IActionResult> AllTours(Status status)
         {
-            var result = await adminService.GetAllToursAsync(status);
+            var tours = await adminService.GetAllToursAsync(status);
 
-            return Ok(result);
+            return Ok(tours);
         }
     }
 }
