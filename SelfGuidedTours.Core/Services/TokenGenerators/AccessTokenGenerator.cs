@@ -12,13 +12,14 @@ namespace SelfGuidedTours.Core.Services.TokenGenerators
             this.tokenGenerator = tokenGenerator;
         }
 
-        public string GenerateToken(ApplicationUser user)
+        public string GenerateToken(ApplicationUser user,string role)
         {
             List<Claim> claims = new List<Claim>()
             {
                 new Claim("id", user.Id.ToString()),
                 new Claim(ClaimTypes.Email, user.Email!),
-                new Claim(ClaimTypes.Name, user.Name)
+                new Claim(ClaimTypes.Name, user.Name),
+                new Claim(ClaimTypes.Role, role)
             };
 
             var key = Environment.GetEnvironmentVariable("ACCESSTOKEN_KEY") ??
