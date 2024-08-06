@@ -1,20 +1,11 @@
-using SelfGuidedTours.Api.CustomActionFilters;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.CodeAnalysis;
+using SelfGuidedTours.Api.CustomActionFilters;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Models.Auth;
 using SelfGuidedTours.Core.Models.Auth.ResetPassword;
 using SelfGuidedTours.Core.Models.ExternalLogin;
-using SelfGuidedTours.Core.Services;
-using SelfGuidedTours.Infrastructure.Data.Models;
-using System.Net.Http.Headers;
-using System.Security.Claims;
-using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
-
 
 namespace SelfGuidedTours.Api.Controllers
 {
@@ -26,14 +17,13 @@ namespace SelfGuidedTours.Api.Controllers
         private readonly ILogger<AuthController> logger;
         private readonly IGoogleAuthService googleAuthService;
         private readonly IEmailService emailService;
-      
 
         public AuthController(IAuthService authService, ILogger<AuthController> logger, IGoogleAuthService googleAuthService, IEmailService emailService)
         {
             this.authService = authService;
             this.logger = logger;
             this.googleAuthService = googleAuthService;
-            this.emailService = emailService; 
+            this.emailService = emailService;
         }
 
         [HttpPost("register")]
@@ -44,7 +34,15 @@ namespace SelfGuidedTours.Api.Controllers
         public async Task<IActionResult> Register([FromBody] RegisterInputModel model)
         {
             var result = await authService.RegisterAsync(model);
-            return Ok(result);
+
+            if (result != null)
+            {
+                var confirmationLink = Url.Action("ConfirmEmail", "Auth", new { token = result.EmailConfirmationToken }, Request.Scheme);
+                await emailService.SendEmailConfirmationAsync(result.Email, confirmationLink!);
+                return Ok("Registration successful! Please check your email to confirm your registration.");
+            }
+
+            return BadRequest("Registration failed.");
         }
 
         [HttpPost("login")]
@@ -128,7 +126,7 @@ namespace SelfGuidedTours.Api.Controllers
             };
 
             var response = await authService.ChangePasswordAsync(changePasswordModel);
-            
+
             return Ok(response);
         }
 
@@ -176,6 +174,19 @@ namespace SelfGuidedTours.Api.Controllers
         public IActionResult ResetPassword([FromQuery] string token)
         {
             return Ok($"Token received: {token}");
+        }
+
+        [HttpGet("confirm-email")]
+        [ProducesResponseType(typeof(string), 200)]
+        [ProducesResponseType(typeof(string), 400)]
+        public async Task<IActionResult> ConfirmEmail([FromQuery] string token)
+        {
+            var result = await authService.ConfirmEmailAsync(token);
+            if (result.Succeeded)
+            {
+                return Ok("Email confirmed successfully!");
+            }
+            return BadRequest("Email confirmation failed.");
         }
     }
 }

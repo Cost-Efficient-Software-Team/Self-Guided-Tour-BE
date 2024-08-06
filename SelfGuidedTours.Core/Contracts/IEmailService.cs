@@ -6,5 +6,6 @@ namespace SelfGuidedTours.Core.Contracts
     {
         Task SendEmail(SendEmailDto sendEmailRequest, string emailBodyFormat);
         Task SendPasswordResetEmailAsync(string email, string resetLink);
+        Task SendEmailConfirmationAsync(string email, string confirmationLink); // Added method
     }
 }
