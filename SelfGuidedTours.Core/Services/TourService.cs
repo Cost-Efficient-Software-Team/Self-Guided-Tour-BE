@@ -3,15 +3,12 @@ using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Contracts.BlobStorage;
 using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Models.Dto;
-using SelfGuidedTours.Infrastructure.Common;
-using SelfGuidedTours.Infrastructure.Data.Models;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using SelfGuidedTours.Infrastructure.Data.Enums;
-using static SelfGuidedTours.Common.MessageConstants.ErrorMessages;
 using SelfGuidedTours.Core.Models.ResponseDto;
+using SelfGuidedTours.Infrastructure.Common;
+using SelfGuidedTours.Infrastructure.Data.Enums;
+using SelfGuidedTours.Infrastructure.Data.Models;
+using System.Net;
+using static SelfGuidedTours.Common.MessageConstants.ErrorMessages;
 
 namespace SelfGuidedTours.Core.Services
 {
@@ -32,10 +29,10 @@ namespace SelfGuidedTours.Core.Services
 
         public async Task<ApiResponse> ApproveTourAsync(int id)
         {
-            var tour = await repository.GetByIdAsync<Tour>(id) 
+            var tour = await repository.GetByIdAsync<Tour>(id)
                 ?? throw new KeyNotFoundException(TourNotFoundErrorMessage);
 
-            if(tour.Status == Status.Approved) throw new InvalidOperationException(TourAlreadyApprovedErrorMessage);
+            if (tour.Status == Status.Approved) throw new InvalidOperationException(TourAlreadyApprovedErrorMessage);
 
 
             tour.Status = Status.Approved;
@@ -46,7 +43,6 @@ namespace SelfGuidedTours.Core.Services
 
             return response;
         }
-
 
         public async Task<Tour> CreateAsync(TourCreateDTO model, string creatorId)
         {
@@ -72,7 +68,6 @@ namespace SelfGuidedTours.Core.Services
                 EstimatedDuration = model.EstimatedDuration
             };
 
-
             await repository.AddAsync(tourToAdd);
 
             await landmarkService.CreateLandmarskForTourAsync(model.Landmarks, tourToAdd);
@@ -83,7 +78,7 @@ namespace SelfGuidedTours.Core.Services
 
             return tourToAdd;
         }
-        
+
         public async Task<ApiResponse> DeleteTourAsync(int id)
         {
             var response = new ApiResponse();
@@ -105,16 +100,16 @@ namespace SelfGuidedTours.Core.Services
 
             foreach (var landmark in landmarks)
             {
-                var resources = await repository.All<LandmarkResource>().Where(r => r.LandmarkId == landmark.LandmarkId).ToListAsync();        
-                foreach(var resource in resources)
+                var resources = await repository.All<LandmarkResource>().Where(r => r.LandmarkId == landmark.LandmarkId).ToListAsync();
+                foreach (var resource in resources)
                 {
                     await blobService.DeleteFileAsync(resource.Url, containerName);
                     repository.Delete(resource);
                 }
-                
+
                 var coordinates = await repository.All<Coordinate>().Where(r => r.CoordinateId == landmark.CoordinateId).ToListAsync();
                 foreach (var coordinate in coordinates)
-                {    
+                {
                     repository.Delete(coordinate);
                 }
             }
@@ -136,7 +131,7 @@ namespace SelfGuidedTours.Core.Services
                 .ThenInclude(l => l.Coordinate)
                 .FirstOrDefaultAsync(t => t.TourId == id);
 
-            if(tour == null)
+            if (tour == null)
             {
                 throw new KeyNotFoundException(TourNotFoundErrorMessage);
             }
@@ -227,7 +222,7 @@ namespace SelfGuidedTours.Core.Services
                 .Include(t => t.UserTours)
                 .ToListAsync();
         }
-  
+
         public async Task<ApiResponse> RejectTourAsync(int id)
         {
             var tour = await repository.GetByIdAsync<Tour>(id)
@@ -240,6 +235,42 @@ namespace SelfGuidedTours.Core.Services
 
             response.StatusCode = HttpStatusCode.OK;
             response.Result = this.MapTourToTourResponseDto(tour);
+
+            return response;
+        }
+
+        public async Task<ApiResponse> UpdateTourAsync(int id, TourUpdateDTO model)
+        {
+            var tour = await repository.GetByIdAsync<Tour>(id)
+                ?? throw new KeyNotFoundException(TourNotFoundErrorMessage);
+
+            // ????????????? ?? ???????? ?? ????
+            tour.Title = model.Title;
+            tour.Summary = model.Summary;
+            tour.Price = model.Price;
+            tour.Destination = model.Destination;
+            tour.EstimatedDuration = model.EstimatedDuration;
+
+            // ????????????? ?? ?????????????
+            if (model.ThumbnailImage != null)
+            {
+                var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME")
+                                    ?? throw new ApplicationException(ContainerNameErrorMessage);
+
+                // ????????? ?? ??????? ???????????
+                await blobService.DeleteFileAsync(tour.ThumbnailImageUrl, containerName);
+
+                // ??????? ?? ?????? ???????????
+                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(model.ThumbnailImage.FileName)}";
+                var thumbnailUrl = await blobService.UploadFileAsync(containerName, model.ThumbnailImage, fileName, true);
+
+                tour.ThumbnailImageUrl = thumbnailUrl;
+            }
+
+            await repository.SaveChangesAsync();
+
+            response.StatusCode = HttpStatusCode.OK;
+            response.Result = MapTourToTourResponseDto(tour);
 
             return response;
         }
