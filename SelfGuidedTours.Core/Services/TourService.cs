@@ -65,7 +65,8 @@ namespace SelfGuidedTours.Core.Services
                 Price = model.Price,
                 Destination = model.Destination,
                 ThumbnailImageUrl = thumbnailUrl,
-                EstimatedDuration = model.EstimatedDuration
+                EstimatedDuration = model.EstimatedDuration,
+                TypeTour = model.TypeTour
             };
 
             await repository.AddAsync(tourToAdd);
