@@ -7,7 +7,7 @@ using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data.Enums;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using static SelfGuidedTours.Common.MessageConstants.LoggerMessages;
-
+using static SelfGuidedTours.Common.Constants.FormatConstants;
 namespace SelfGuidedTours.Core.Services
 {
     public class AdminService : IAdminService
@@ -29,11 +29,12 @@ namespace SelfGuidedTours.Core.Services
                 {
                     Id = tm.TourId,
                     Title = tm.Title,
-                    Status = status.ToString(),
-                    CreatorName = tm.Creator.Name
+                    Status = status == Status.UnderReview ? "Under Review" : status.ToString(),
+                    CreatorName = tm.Creator.Name,
+                    CreatedAt = tm.CreatedAt.ToString(DateFormat),
                 }).ToListAsync();
 
-            if (!tours.Any())
+            if (tours.Count == 0)
             {
                 logger.LogWarning(WarningMessageForNotFoundedToursForAdmin);
                 throw new KeyNotFoundException(WarningMessageForNotFoundedToursForAdmin);
