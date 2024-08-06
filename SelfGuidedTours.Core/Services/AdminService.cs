@@ -21,7 +21,7 @@ namespace SelfGuidedTours.Core.Services
             this.logger = logger;
             response = new ApiResponse();
         }
-        public async Task<IEnumerable<AllToursToAdminDTO>> GetAllToursAsync(Status status = Status.Pending)
+        public async Task<IEnumerable<AllToursToAdminDTO>> GetAllToursAsync(Status status = Status.UnderReview)
         {
             var tours = await repository.AllReadOnly<Tour>()
                 .Where(t => t.Status == status)
