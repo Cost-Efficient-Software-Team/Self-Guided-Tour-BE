@@ -6,7 +6,7 @@ namespace SelfGuidedTours.Core.Contracts
 {
     public interface IAdminService
     {
-        Task<IEnumerable<AllToursToAdminDTO>> GetAllToursAsync(Status status);
+        Task<IEnumerable<AllToursToAdminDTO>> GetAllToursAsync(Status status = Status.UnderReview);
         Task<ApiResponse> ApproveTourAsync(int id);
 
         Task<ApiResponse> RejectTourAsync(int id);
