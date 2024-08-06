@@ -53,7 +53,7 @@ app.UseSwaggerUI();
 
 app.UseMiddleware<ExceptionHandlerMiddleware>();
 
-app.UseCors("CorsPolicy");
+app.UseCors("CorsPolicy"); // CorsPolicy
 app.UseHttpsRedirection();
 
 app.UseAuthentication();

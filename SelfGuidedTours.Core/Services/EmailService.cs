@@ -31,7 +31,7 @@ namespace SelfGuidedTours.Core.Services
             };
 
             using var smtp = new SmtpClient();
-            smtp.ServerCertificateValidationCallback = (s, c, h, e) => true; // Игнориране на сертификатните грешки (само за тестване)
+            smtp.ServerCertificateValidationCallback = (s, c, h, e) => true; //Ignore certificate errors (for testing only)
             smtp.Connect(emailHost, int.Parse(emailPort), SecureSocketOptions.SslOnConnect);
             smtp.Authenticate(emailSender, emailPassword);
             await smtp.SendAsync(email);
@@ -50,7 +50,7 @@ namespace SelfGuidedTours.Core.Services
             };
 
             using var smtp = new SmtpClient();
-            smtp.ServerCertificateValidationCallback = (s, c, h, e) => true; // Игнориране на сертификатните грешки (само за тестване)
+            smtp.ServerCertificateValidationCallback = (s, c, h, e) => true; //Ignore certificate errors (for testing only)
             smtp.Connect(Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_HOST"), int.Parse(Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_PORT")!), SecureSocketOptions.SslOnConnect);
             smtp.Authenticate(Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_USERNAME"), Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_PASSWORD"));
             await smtp.SendAsync(mailMessage);
@@ -69,7 +69,7 @@ namespace SelfGuidedTours.Core.Services
             };
 
             using var smtp = new SmtpClient();
-            smtp.ServerCertificateValidationCallback = (s, c, h, e) => true; // Игнориране на сертификатните грешки (само за тестване)
+            smtp.ServerCertificateValidationCallback = (s, c, h, e) => true; //Ignore certificate errors (for testing only)
             smtp.Connect(Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_HOST"), int.Parse(Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_PORT")!), SecureSocketOptions.SslOnConnect);
             smtp.Authenticate(Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_USERNAME"), Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_PASSWORD"));
             await smtp.SendAsync(mailMessage);

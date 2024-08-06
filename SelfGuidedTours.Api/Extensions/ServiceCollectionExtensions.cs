@@ -28,7 +28,7 @@ namespace SelfGuidedTours.Api.Extensions
              {
                  options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
              })
-             .ConfigureApiBehaviorOptions(options =>  //Customize the response for invalid model state, by overriding the default behavior
+             .ConfigureApiBehaviorOptions(options =>
              {
                  options.InvalidModelStateResponseFactory = ContextBoundObject =>
                  {
@@ -93,7 +93,7 @@ namespace SelfGuidedTours.Api.Extensions
         }
         public static IServiceCollection AddApplicationDbContext(this IServiceCollection services, IConfiguration config)
         {
-            var connectionString = config.GetConnectionString("DefaultConnection"); //Connection string from user secrets
+            var connectionString = config.GetConnectionString("DefaultConnection");
             services.AddDbContext<SelfGuidedToursDbContext>(options =>
             {
                 options.UseSqlServer(connectionString);
