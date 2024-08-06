@@ -244,23 +244,19 @@ namespace SelfGuidedTours.Core.Services
             var tour = await repository.GetByIdAsync<Tour>(id)
                 ?? throw new KeyNotFoundException(TourNotFoundErrorMessage);
 
-            // ????????????? ?? ???????? ?? ????
             tour.Title = model.Title;
             tour.Summary = model.Summary;
             tour.Price = model.Price;
             tour.Destination = model.Destination;
             tour.EstimatedDuration = model.EstimatedDuration;
 
-            // ????????????? ?? ?????????????
             if (model.ThumbnailImage != null)
             {
                 var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME")
                                     ?? throw new ApplicationException(ContainerNameErrorMessage);
 
-                // ????????? ?? ??????? ???????????
                 await blobService.DeleteFileAsync(tour.ThumbnailImageUrl, containerName);
 
-                // ??????? ?? ?????? ???????????
                 var fileName = $"{Guid.NewGuid()}{Path.GetExtension(model.ThumbnailImage.FileName)}";
                 var thumbnailUrl = await blobService.UploadFileAsync(containerName, model.ThumbnailImage, fileName, true);
 
