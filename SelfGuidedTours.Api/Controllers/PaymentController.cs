@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Models;
+using System.Security.Claims;
 
 namespace SelfGuidedTours.Api.Controllers
 {
@@ -15,9 +16,12 @@ namespace SelfGuidedTours.Api.Controllers
             _paymentService = paymentService;
         }
 
-        [HttpPost("{userId}")]
-        public async Task<ActionResult<ApiResponse>> MakePayment(string userId, [FromBody] PaymentRequest paymentRequest)
+        [HttpPost("{tourId}")]
+        public async Task<ActionResult<ApiResponse>> MakePayment([FromRoute] PaymentRequest paymentRequest)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                             ?? throw new UnauthorizedAccessException();
+
             var response = await _paymentService.MakePaymentAsync(userId, paymentRequest);
             return StatusCode((int)response.StatusCode, response);
         }

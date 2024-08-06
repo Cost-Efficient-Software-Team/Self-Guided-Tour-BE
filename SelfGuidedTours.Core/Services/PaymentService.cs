@@ -13,20 +13,17 @@ namespace SelfGuidedTours.Core.Services
     {
         private readonly IRepository _repository;
         private readonly ApiResponse _response;
-        private readonly IConfiguration _configuration;
 
-        public PaymentService(IRepository repository, IConfiguration configuration)
+        public PaymentService(IRepository repository)
         {
             _repository = repository;
-            _configuration = configuration;
             _response = new ApiResponse();
-
-            // Load Stripe API key from configuration
-            StripeConfiguration.ApiKey = _configuration["StripeSettings:SecretKey"];
         }
+
 
         public async Task<ApiResponse> MakePaymentAsync(string userId, PaymentRequest paymentRequest)
         {
+            
             if (paymentRequest == null || string.IsNullOrEmpty(userId) || paymentRequest.TourId <= 0)
             {
                 _response.StatusCode = HttpStatusCode.BadRequest;

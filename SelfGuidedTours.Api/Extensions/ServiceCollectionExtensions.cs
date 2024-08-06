@@ -16,6 +16,7 @@ using SelfGuidedTours.Infrastructure.Data;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using System.Text;
 using System.Text.Json.Serialization;
+using Stripe;
 
 namespace SelfGuidedTours.Api.Extensions
 {
@@ -89,6 +90,9 @@ namespace SelfGuidedTours.Api.Extensions
                     .AllowAnyHeader();
                 });
             });
+
+            StripeConfiguration.ApiKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY") 
+                    ?? throw new ApplicationException("Stripe ENV variables are not configured.");
 
             return services;
         }
