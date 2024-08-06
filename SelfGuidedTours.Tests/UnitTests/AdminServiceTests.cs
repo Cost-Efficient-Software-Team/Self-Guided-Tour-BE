@@ -27,7 +27,7 @@ namespace SelfGuidedTours.Tests.UnitTests
             {
                 TourId = 1,
                 CreatedAt = DateTime.UtcNow,
-                Status = Status.Pending,
+                Status = Status.UnderReview,
                 Summary = "Test summary",
                 CreatorId = "13ae25c7-7d22-48b3-844c-4738c055d648",
                 Destination = "Test destination",
@@ -65,12 +65,12 @@ namespace SelfGuidedTours.Tests.UnitTests
         [Test]
         public async Task Test_GetAllToursAsync_ShouldReturnCorrectResult()
         {
-            Status status = Status.Pending;
+            Status status = Status.UnderReview;
             var result = await service.GetAllToursAsync(status);
 
             Assert.That(result.First().Id, Is.EqualTo(1));
             Assert.That(result.First().Title, Is.EqualTo("Test title"));
-            Assert.That(result.First().Status, Is.EqualTo("Pending"));
+            Assert.That(result.First().Status, Is.EqualTo("UnderReview"));
         }
        
         [Test]
