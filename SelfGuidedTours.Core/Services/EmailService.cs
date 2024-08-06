@@ -1,5 +1,4 @@
-﻿
-using MailKit.Net.Smtp;
+﻿using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
 using MimeKit.Text;
@@ -32,6 +31,7 @@ namespace SelfGuidedTours.Core.Services
             };
 
             using var smtp = new SmtpClient();
+            smtp.ServerCertificateValidationCallback = (s, c, h, e) => true; //Ignore certificate errors (for testing only)
             smtp.Connect(emailHost, int.Parse(emailPort), SecureSocketOptions.SslOnConnect);
             smtp.Authenticate(emailSender, emailPassword);
             await smtp.SendAsync(email);
@@ -50,12 +50,30 @@ namespace SelfGuidedTours.Core.Services
             };
 
             using var smtp = new SmtpClient();
-           // smtp.ServerCertificateValidationCallback = (s, c, h, e) => true; // Disable certificate checking
+            smtp.ServerCertificateValidationCallback = (s, c, h, e) => true; //Ignore certificate errors (for testing only)
             smtp.Connect(Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_HOST"), int.Parse(Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_PORT")!), SecureSocketOptions.SslOnConnect);
             smtp.Authenticate(Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_USERNAME"), Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_PASSWORD"));
             await smtp.SendAsync(mailMessage);
             smtp.Disconnect(true);
         }
 
+        public async Task SendEmailConfirmationAsync(string email, string confirmationLink)
+        {
+            var mailMessage = new MimeMessage();
+            mailMessage.From.Add(MailboxAddress.Parse(Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_USERNAME")));
+            mailMessage.To.Add(MailboxAddress.Parse(email));
+            mailMessage.Subject = "Confirm Your Email";
+            mailMessage.Body = new TextPart(TextFormat.Html)
+            {
+                Text = $"Please confirm your email by clicking on the link: <a href='{confirmationLink}'>Confirm Email</a>"
+            };
+
+            using var smtp = new SmtpClient();
+            smtp.ServerCertificateValidationCallback = (s, c, h, e) => true; //Ignore certificate errors (for testing only)
+            smtp.Connect(Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_HOST"), int.Parse(Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_PORT")!), SecureSocketOptions.SslOnConnect);
+            smtp.Authenticate(Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_USERNAME"), Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_PASSWORD"));
+            await smtp.SendAsync(mailMessage);
+            smtp.Disconnect(true);
+        }
     }
 }
