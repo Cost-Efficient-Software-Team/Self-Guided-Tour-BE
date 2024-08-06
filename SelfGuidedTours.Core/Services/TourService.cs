@@ -250,6 +250,7 @@ namespace SelfGuidedTours.Core.Services
             tour.Price = model.Price;
             tour.Destination = model.Destination;
             tour.EstimatedDuration = model.EstimatedDuration;
+            tour.TypeTour = model.TypeTour;
 
             if (model.ThumbnailImage != null)
             {
