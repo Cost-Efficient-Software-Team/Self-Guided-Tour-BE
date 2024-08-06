@@ -312,15 +312,24 @@ namespace SelfGuidedTours.Core.Services
 
         public async Task<IdentityResult> ConfirmEmailAsync(string userId, string token)
         {
+            // ???????? ?? ???????? ?????????
+            logger.LogInformation($"ConfirmEmailAsync called with userId: {userId}, token: {token}");
+
             var user = await userManager.FindByIdAsync(userId);
             if (user == null)
             {
+                logger.LogError("Invalid user ID.");
                 return IdentityResult.Failed(new IdentityError { Description = "Invalid user ID." });
             }
 
             var result = await userManager.ConfirmEmailAsync(user, token);
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                logger.LogError($"Email confirmation failed for user: {user.Email}. Errors: {errors}");
+            }
+
             return result;
         }
-
     }
 }

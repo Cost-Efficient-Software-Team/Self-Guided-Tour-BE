@@ -184,17 +184,25 @@ namespace SelfGuidedTours.Api.Controllers
         {
             if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token))
             {
+                logger.LogError("UserId or Token is missing.");
                 return BadRequest("UserId and Token are required.");
             }
+
+            logger.LogInformation($"ConfirmEmail called with userId: {userId}, token: {token}");
 
             var result = await authService.ConfirmEmailAsync(userId, token);
             if (result.Succeeded)
             {
+                logger.LogInformation("Email confirmed successfully.");
                 return Ok("Email confirmed successfully!");
             }
 
-            return BadRequest("Email confirmation failed.");
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            logger.LogError($"Email confirmation failed. Errors: {errors}");
+            return BadRequest(new { message = "Email confirmation failed.", errors });
         }
+
+
 
     }
 }
