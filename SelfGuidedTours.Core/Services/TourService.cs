@@ -3,15 +3,12 @@ using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Contracts.BlobStorage;
 using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Models.Dto;
-using SelfGuidedTours.Infrastructure.Common;
-using SelfGuidedTours.Infrastructure.Data.Models;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using SelfGuidedTours.Infrastructure.Data.Enums;
-using static SelfGuidedTours.Common.MessageConstants.ErrorMessages;
 using SelfGuidedTours.Core.Models.ResponseDto;
+using SelfGuidedTours.Infrastructure.Common;
+using SelfGuidedTours.Infrastructure.Data.Enums;
+using SelfGuidedTours.Infrastructure.Data.Models;
+using System.Net;
+using static SelfGuidedTours.Common.MessageConstants.ErrorMessages;
 
 namespace SelfGuidedTours.Core.Services
 {
@@ -32,10 +29,10 @@ namespace SelfGuidedTours.Core.Services
 
         public async Task<ApiResponse> ApproveTourAsync(int id)
         {
-            var tour = await repository.GetByIdAsync<Tour>(id) 
+            var tour = await repository.GetByIdAsync<Tour>(id)
                 ?? throw new KeyNotFoundException(TourNotFoundErrorMessage);
 
-            if(tour.Status == Status.Approved) throw new InvalidOperationException(TourAlreadyApprovedErrorMessage);
+            if (tour.Status == Status.Approved) throw new InvalidOperationException(TourAlreadyApprovedErrorMessage);
 
 
             tour.Status = Status.Approved;
@@ -83,7 +80,7 @@ namespace SelfGuidedTours.Core.Services
 
             return tourToAdd;
         }
-        
+
         public async Task<ApiResponse> DeleteTourAsync(int id)
         {
             var response = new ApiResponse();
@@ -105,16 +102,16 @@ namespace SelfGuidedTours.Core.Services
 
             foreach (var landmark in landmarks)
             {
-                var resources = await repository.All<LandmarkResource>().Where(r => r.LandmarkId == landmark.LandmarkId).ToListAsync();        
-                foreach(var resource in resources)
+                var resources = await repository.All<LandmarkResource>().Where(r => r.LandmarkId == landmark.LandmarkId).ToListAsync();
+                foreach (var resource in resources)
                 {
                     await blobService.DeleteFileAsync(resource.Url, containerName);
                     repository.Delete(resource);
                 }
-                
+
                 var coordinates = await repository.All<Coordinate>().Where(r => r.CoordinateId == landmark.CoordinateId).ToListAsync();
                 foreach (var coordinate in coordinates)
-                {    
+                {
                     repository.Delete(coordinate);
                 }
             }
@@ -136,7 +133,7 @@ namespace SelfGuidedTours.Core.Services
                 .ThenInclude(l => l.Coordinate)
                 .FirstOrDefaultAsync(t => t.TourId == id);
 
-            if(tour == null)
+            if (tour == null)
             {
                 throw new KeyNotFoundException(TourNotFoundErrorMessage);
             }
@@ -186,7 +183,7 @@ namespace SelfGuidedTours.Core.Services
                 .ToListAsync();
         }
 
-        public async Task<List<Tour>> GetFilteredTours(string title, string location, decimal? minPrice, decimal? maxPrice, int? minEstimatedDuration, int? maxEstimatedDuration)
+        public async Task<List<Tour>> GetFilteredTours(string title, string destination, decimal? minPrice, decimal? maxPrice, int? minEstimatedDuration, int? maxEstimatedDuration)
         {
             var query = repository.All<Tour>().AsQueryable();
 
@@ -195,9 +192,9 @@ namespace SelfGuidedTours.Core.Services
                 query = query.Where(t => t.Title.Contains(title));
             }
 
-            if (!string.IsNullOrEmpty(location))
+            if (!string.IsNullOrEmpty(destination))
             {
-                query = query.Where(t => t.Destination.Contains(location));
+                query = query.Where(t => t.Destination.Contains(destination));
             }
 
             if (minPrice.HasValue)
@@ -227,7 +224,7 @@ namespace SelfGuidedTours.Core.Services
                 .Include(t => t.UserTours)
                 .ToListAsync();
         }
-  
+
         public async Task<ApiResponse> RejectTourAsync(int id)
         {
             var tour = await repository.GetByIdAsync<Tour>(id)
