@@ -1,5 +1,6 @@
 ﻿using MailKit.Net.Smtp;
 using MailKit.Security;
+using Microsoft.Extensions.Configuration;
 using MimeKit;
 using MimeKit.Text;
 using SelfGuidedTours.Core.Contracts;
@@ -9,6 +10,13 @@ namespace SelfGuidedTours.Core.Services
 {
     public class EmailService : IEmailService
     {
+        private readonly IConfiguration _configuration;
+
+        public EmailService(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
         public async Task SendEmail(SendEmailDto sendEmailRequest, string emailBodyFormat = "plain")
         {
             if (!Enum.TryParse(emailBodyFormat, true, out TextFormat _))
@@ -59,13 +67,18 @@ namespace SelfGuidedTours.Core.Services
 
         public async Task SendEmailConfirmationAsync(string email, string confirmationLink)
         {
+            var templatePath = _configuration["EmailTemplates:ConfirmationEmailTemplate"];
+            var emailBody = await File.ReadAllTextAsync(templatePath);
+            emailBody = emailBody.Replace("{{UserName}}", email);
+            emailBody = emailBody.Replace("{{ConfirmationLink}}", confirmationLink);
+
             var mailMessage = new MimeMessage();
             mailMessage.From.Add(MailboxAddress.Parse(Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_USERNAME")));
             mailMessage.To.Add(MailboxAddress.Parse(email));
             mailMessage.Subject = "Confirm Your Email";
             mailMessage.Body = new TextPart(TextFormat.Html)
             {
-                Text = $"Please confirm your email by clicking on the link: <a href='{confirmationLink}'>Confirm Email</a>"
+                Text = emailBody
             };
 
             using var smtp = new SmtpClient();
