@@ -70,6 +70,7 @@ namespace SelfGuidedTours.Api.Extensions
             services.AddScoped<ILandmarkResourceService, LandmarkResourceService>();
             services.AddScoped<IPaymentService, PaymentService>();
             services.AddScoped<IBlobService, BlobService>();
+            services.AddScoped<IAdminService, AdminService>();
 
             //Token generators
             services.AddScoped<AccessTokenGenerator>();

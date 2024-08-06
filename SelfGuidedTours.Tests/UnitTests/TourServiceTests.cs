@@ -52,7 +52,7 @@ namespace SelfGuidedTours.Tests.UnitTests
                     ThumbnailImageUrl = "http://example.com/thumb1",
                     EstimatedDuration = 60,
                     CreatedAt = DateTime.Now,
-                    Status = Status.Pending,
+                    Status = Status.UnderReview,
                     Landmarks = new List<Landmark>
                     {
                         new Landmark
@@ -232,7 +232,7 @@ namespace SelfGuidedTours.Tests.UnitTests
                 ThumbnailImageUrl = "http://example.com/thumb1",
                 EstimatedDuration = 60,
                 CreatedAt = DateTime.Now,
-                Status = Status.Pending,
+                Status = Status.UnderReview,
                 Landmarks = new List<Landmark>
                 {
                     new Landmark

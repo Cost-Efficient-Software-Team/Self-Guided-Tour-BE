@@ -12,8 +12,8 @@ using SelfGuidedTours.Infrastructure.Data;
 namespace SelfGuidedTours.Infrastructure.Migrations
 {
     [DbContext(typeof(SelfGuidedToursDbContext))]
-    [Migration("20240620131511_Add status field to Tour")]
-    partial class AddstatusfieldtoTour
+    [Migration("20240806125418_updateCreateTour")]
+    partial class updateCreateTour
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -263,6 +263,14 @@ namespace SelfGuidedTours.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CoordinateId"));
 
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Country")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -299,12 +307,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<string>("History")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("Name")
+                    b.Property<string>("LocationName")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
@@ -372,6 +375,10 @@ namespace SelfGuidedTours.Infrastructure.Migrations
 
                     b.Property<DateTime>("PaymentDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("PaymentIntentId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("TourId")
                         .HasColumnType("int");
@@ -468,18 +475,14 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("Description")
+                    b.Property<string>("Destination")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("EstimatedDuration")
                         .HasColumnType("int")
-                        .HasComment("Estiamted duration in minutes");
-
-                    b.Property<string>("Location")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasComment("Estimated duration in minutes");
 
                     b.Property<decimal?>("Price")
                         .HasColumnType("decimal(10, 2)");
@@ -487,6 +490,11 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int")
                         .HasComment("On create, status is UnderReview until approved or rejected by admin.");
+
+                    b.Property<string>("Summary")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("ThumbnailImageUrl")
                         .IsRequired()
@@ -497,6 +505,9 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("TypeTour")
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -537,6 +548,26 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                     b.HasIndex("WalletId");
 
                     b.ToTable("Transactions");
+                });
+
+            modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.UserProfile", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("UserProfiles");
                 });
 
             modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.UserTours", b =>
@@ -622,17 +653,17 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         {
                             Id = "27d78708-8671-4b05-bd5e-17aa91392224",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "a9f45f15-38da-45ab-847f-d8fb39efcf46",
+                            ConcurrencyStamp = "67659cba-5ced-4e6e-9988-a6e8f6dde2ff",
                             Email = "admin@selfguidedtours.bg",
                             EmailConfirmed = false,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@SELFGUIDEDTOURS.BG",
                             NormalizedUserName = "ADMIN ADMINOV",
-                            PasswordHash = "AQAAAAIAAYagAAAAEM/+Q0fZrT1fdvcJgCkgk0nRGb8R2WZEPy/ap/SPmBWdnVcEYUda3u5P92keUnwE2Q==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEN4UCvY56pQJwsbbFpyI4+jQrM3EPapk2TW6i56BT9El4lDYp1D2Qva0qNpRpcwaVw==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "07ea68f3-45cb-4661-b834-010c5e75d8a1",
+                            SecurityStamp = "7466c95e-d9b8-4941-bec0-c9371dba794f",
                             TwoFactorEnabled = false,
-                            CreatedAt = new DateTime(2024, 6, 20, 16, 15, 9, 768, DateTimeKind.Local).AddTicks(662),
+                            CreatedAt = new DateTime(2024, 8, 6, 15, 54, 17, 3, DateTimeKind.Local).AddTicks(3558),
                             Name = "Admin Adminov"
                         });
                 });
@@ -710,7 +741,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
             modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.LandmarkResource", b =>
                 {
                     b.HasOne("SelfGuidedTours.Infrastructure.Data.Models.Landmark", "Landmark")
-                        .WithMany()
+                        .WithMany("Resources")
                         .HasForeignKey("LandmarkId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -817,6 +848,11 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.Landmark", b =>
+                {
+                    b.Navigation("Resources");
                 });
 
             modelBuilder.Entity("SelfGuidedTours.Infrastructure.Data.Models.Tour", b =>
