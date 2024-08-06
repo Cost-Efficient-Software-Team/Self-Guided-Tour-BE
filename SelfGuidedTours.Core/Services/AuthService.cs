@@ -75,7 +75,8 @@ namespace SelfGuidedTours.Core.Services
 
         private async Task<AuthenticateResponse> AuthenticateAsync(ApplicationUser user, string responseMessage)
         {
-            var accessToken = accessTokenGenerator.GenerateToken(user);
+            var role = await GetUserRoleAsync(user);
+            var accessToken = accessTokenGenerator.GenerateToken(user,role);
             var refreshToken = refreshTokenGenerator.GenerateToken();
 
             RefreshToken refreshTokenDTO = new RefreshToken()
@@ -291,6 +292,21 @@ namespace SelfGuidedTours.Core.Services
             logger.LogInformation($"Password reset succeeded for user: {user.Email}");
             
             return result;
+        }
+        private async Task<string>GetUserRoleAsync(ApplicationUser user)
+        {
+            //Get UserRole
+            var userRole = await repository.AllReadOnly<IdentityUserRole<string>>()
+                .FirstOrDefaultAsync(ur => ur.UserId == user.Id)
+                ?? throw new UnauthorizedAccessException("User has no assigned role!");
+            //Get Role
+            var role = await repository.AllReadOnly<IdentityRole>()
+                .FirstOrDefaultAsync(r => r.Id == userRole.RoleId);
+
+            if (role is null || role.Name is null) 
+                throw new UnauthorizedAccessException("User has no assigned role!");
+
+            return role.Name;
         }
     }
 }
