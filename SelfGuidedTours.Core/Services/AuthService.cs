@@ -310,17 +310,17 @@ namespace SelfGuidedTours.Core.Services
             return role.Name;
         }
 
-        public async Task<IdentityResult> ConfirmEmailAsync(string token)
+        public async Task<IdentityResult> ConfirmEmailAsync(string userId, string token)
         {
-            var userId = userManager?.Options?.Tokens?.EmailConfirmationTokenProvider ?? throw new InvalidOperationException("Token provider not configured.");
             var user = await userManager.FindByIdAsync(userId);
             if (user == null)
             {
-                return IdentityResult.Failed(new IdentityError { Description = "Invalid token." });
+                return IdentityResult.Failed(new IdentityError { Description = "Invalid user ID." });
             }
 
             var result = await userManager.ConfirmEmailAsync(user, token);
             return result;
         }
+
     }
 }

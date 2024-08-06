@@ -37,13 +37,14 @@ namespace SelfGuidedTours.Api.Controllers
 
             if (result != null)
             {
-                var confirmationLink = Url.Action("ConfirmEmail", "Auth", new { token = result.EmailConfirmationToken }, Request.Scheme);
+                var confirmationLink = Url.Action("ConfirmEmail", "Auth", new { userId = result.UserId, token = result.EmailConfirmationToken }, Request.Scheme);
                 await emailService.SendEmailConfirmationAsync(result.Email, confirmationLink!);
-                return Ok("Registration successful! Please check your email to confirm your registration.");
+                return Ok(new { message = "Registration successful! Please check your email to confirm your registration.", userId = result.UserId, token = result.EmailConfirmationToken });
             }
 
             return BadRequest("Registration failed.");
         }
+
 
         [HttpPost("login")]
         [ProducesResponseType(typeof(AuthenticateResponse), 200)]
@@ -179,14 +180,21 @@ namespace SelfGuidedTours.Api.Controllers
         [HttpGet("confirm-email")]
         [ProducesResponseType(typeof(string), 200)]
         [ProducesResponseType(typeof(string), 400)]
-        public async Task<IActionResult> ConfirmEmail([FromQuery] string token)
+        public async Task<IActionResult> ConfirmEmail([FromQuery] string userId, [FromQuery] string token)
         {
-            var result = await authService.ConfirmEmailAsync(token);
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token))
+            {
+                return BadRequest("UserId and Token are required.");
+            }
+
+            var result = await authService.ConfirmEmailAsync(userId, token);
             if (result.Succeeded)
             {
                 return Ok("Email confirmed successfully!");
             }
+
             return BadRequest("Email confirmation failed.");
         }
+
     }
 }

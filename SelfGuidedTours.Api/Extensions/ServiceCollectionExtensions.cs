@@ -4,16 +4,16 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Azure;
 using Microsoft.IdentityModel.Tokens;
-using SelfGuidedTours.Core.Contracts.BlobStorage;
 using SelfGuidedTours.Core.Contracts;
+using SelfGuidedTours.Core.Contracts.BlobStorage;
 using SelfGuidedTours.Core.Models.ErrorResponse;
 using SelfGuidedTours.Core.Services;
 using SelfGuidedTours.Core.Services.BlobStorage;
 using SelfGuidedTours.Core.Services.TokenGenerators;
 using SelfGuidedTours.Core.Services.TokenValidators;
 using SelfGuidedTours.Infrastructure.Common;
-using SelfGuidedTours.Infrastructure.Data.Models;
 using SelfGuidedTours.Infrastructure.Data;
+using SelfGuidedTours.Infrastructure.Data.Models;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -118,7 +118,6 @@ namespace SelfGuidedTours.Api.Extensions
                 .AddEntityFrameworkStores<SelfGuidedToursDbContext>()
                 .AddDefaultTokenProviders();
 
-
             //Password requirements
             services.Configure<IdentityOptions>(options =>
             {
@@ -128,19 +127,20 @@ namespace SelfGuidedTours.Api.Extensions
                 options.Password.RequireUppercase = true;
                 options.Password.RequiredLength = 8;
                 options.Password.RequiredUniqueChars = 1;
+                options.SignIn.RequireConfirmedEmail = true;
             });
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
                     var key = Environment.GetEnvironmentVariable("ACCESSTOKEN_KEY") ??
-                         throw new ApplicationException("ACCESSTOKEN_KEY is not configured.");
+                             throw new ApplicationException("ACCESSTOKEN_KEY is not configured.");
 
                     var issuer = Environment.GetEnvironmentVariable("ISSUER") ??
-                         throw new ApplicationException("ISSUER is not configured.");
+                             throw new ApplicationException("ISSUER is not configured.");
 
                     var audience = Environment.GetEnvironmentVariable("AUDIENCE") ??
-                         throw new ApplicationException("AUDIENCE is not configured.");
+                             throw new ApplicationException("AUDIENCE is not configured.");
 
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
@@ -156,8 +156,8 @@ namespace SelfGuidedTours.Api.Extensions
                     };
                 });
 
-
             return services;
         }
+
     }
 }
