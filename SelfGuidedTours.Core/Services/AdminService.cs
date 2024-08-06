@@ -6,7 +6,6 @@ using SelfGuidedTours.Core.Models.Dto;
 using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data.Enums;
 using SelfGuidedTours.Infrastructure.Data.Models;
-using System.Net;
 using static SelfGuidedTours.Common.MessageConstants.LoggerMessages;
 
 namespace SelfGuidedTours.Core.Services
@@ -31,9 +30,10 @@ namespace SelfGuidedTours.Core.Services
                     Id = tm.TourId,
                     Title = tm.Title,
                     Status = status.ToString(),
+                    CreatorName = tm.Creator.Name
                 }).ToListAsync();
 
-            if(!tours.Any())
+            if (!tours.Any())
             {
                 logger.LogWarning(WarningMessageForNotFoundedToursForAdmin);
                 throw new KeyNotFoundException(WarningMessageForNotFoundedToursForAdmin);
