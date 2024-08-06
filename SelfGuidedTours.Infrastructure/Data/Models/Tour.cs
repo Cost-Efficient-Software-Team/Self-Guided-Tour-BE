@@ -46,6 +46,9 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         [Comment("On create, status is UnderReview until approved or rejected by admin.")]
         public Status Status { get; set; } = Status.UnderReview;
 
+        [Required]
+        public TypeTour TypeTour { get; set; }
+
         public DateTime? UpdatedAt { get; set; }
 
         public virtual ICollection<Landmark> Landmarks { get; set; } = new HashSet<Landmark>();
