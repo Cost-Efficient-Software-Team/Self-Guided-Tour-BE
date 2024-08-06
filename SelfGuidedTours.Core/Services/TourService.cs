@@ -230,9 +230,9 @@ namespace SelfGuidedTours.Core.Services
             var tour = await repository.GetByIdAsync<Tour>(id)
                 ?? throw new KeyNotFoundException(TourNotFoundErrorMessage);
 
-            if (tour.Status == Status.Rejected) throw new InvalidOperationException(TourAlreadyRejectedErrorMessage);
+            if (tour.Status == Status.Declined) throw new InvalidOperationException(TourAlreadyRejectedErrorMessage);
 
-            tour.Status = Status.Rejected;
+            tour.Status = Status.Declined;
             await repository.SaveChangesAsync();
 
             response.StatusCode = HttpStatusCode.OK;
