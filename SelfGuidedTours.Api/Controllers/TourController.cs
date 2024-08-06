@@ -1,15 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using SelfGuidedTours.Api.CustomActionFilters;
 using SelfGuidedTours.Core.Contracts;
-using SelfGuidedTours.Core.Models.Dto;
 using SelfGuidedTours.Core.Models;
+using SelfGuidedTours.Core.Models.Dto;
+using SelfGuidedTours.Core.Models.ErrorResponse;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using System.Net;
-using SelfGuidedTours.Api.CustomActionFilters;
-using SelfGuidedTours.Core.Models.ErrorResponse;
-
-
 namespace SelfGuidedTours.Api.Controllers
 {
     [Route("api/[controller]")]
@@ -34,26 +32,37 @@ namespace SelfGuidedTours.Api.Controllers
         [ValidateModel]
         public async Task<IActionResult> CreateTour([FromForm] TourCreateDTO tourCreateDTO)
         {
-            var creatorId = User.Claims.First().Value; 
+            var creatorId = User.Claims.First().Value;
 
             var tour = await _tourService.CreateAsync(tourCreateDTO, creatorId);
 
             var tourResponse = _tourService.MapTourToTourResponseDto(tour);
 
-            return CreatedAtAction(nameof(GetTour), new { id = (tourResponse.TourId) },tourResponse); 
+            return CreatedAtAction(nameof(GetTour), new { id = (tourResponse.TourId) }, tourResponse);
+        }
+
+        [HttpPut("update-tour/{id:int}")]
+        [ProducesResponseType(typeof(ApiResponse), 200)]
+        [ProducesResponseType(typeof(ApiResponse), 400)]
+        [ValidateModel]
+        public async Task<IActionResult> UpdateTour(int id, [FromForm] TourUpdateDTO tourUpdateDTO)
+        {
+            var result = await _tourService.UpdateTourAsync(id, tourUpdateDTO);
+
+            return StatusCode((int)result.StatusCode, result);
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAllTours([FromQuery] string title = "", [FromQuery] string location = "", [FromQuery] decimal? minPrice = null, [FromQuery] decimal? maxPrice = null, [FromQuery] int? minEstimatedDuration = null, [FromQuery] int? maxEstimatedDuration = null)
         {
             var tours = await _tourService.GetFilteredTours(title, location, minPrice, maxPrice, minEstimatedDuration, maxEstimatedDuration);
-            
+
             _response.Result = tours;
             _response.StatusCode = HttpStatusCode.OK;
-            
+
             return Ok(_response);
         }
-        
+
         [HttpDelete("{id:int}", Name = "delete-tour")]
         public async Task<IActionResult> DeleteTour([FromRoute] int id)
         {
@@ -70,7 +79,7 @@ namespace SelfGuidedTours.Api.Controllers
                     return NotFound(result);
                 }
             }
-            
+
             return NoContent();
         }
 
@@ -81,10 +90,10 @@ namespace SelfGuidedTours.Api.Controllers
 
             _response.Result = _tourService.MapTourToTourResponseDto(tour!);
             _response.StatusCode = HttpStatusCode.OK;
-          
+
             return Ok(_response);
         }
-       
+
         [HttpPatch("approve-tour/{id:int}", Name = "approve-tour")]
         [ProducesResponseType(typeof(ApiResponse), 200)]
         [ProducesResponseType(typeof(ErrorDetails), 400)]
