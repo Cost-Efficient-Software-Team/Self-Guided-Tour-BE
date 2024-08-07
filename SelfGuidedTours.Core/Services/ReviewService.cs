@@ -23,6 +23,12 @@ namespace SelfGuidedTours.Core.Services
         {
             if (model == null) throw new ArgumentException("Model cannot be null");
 
+            var user = await repository.GetByIdAsync<ApplicationUser>(userId);
+            if (user == null) throw new ArgumentException("Invalid userId");
+
+            var tour = await repository.GetByIdAsync<Tour>(tourId);
+            if (tour == null) throw new ArgumentException("Invalid tourId");
+
             var reviewToAdd = new Review
             {
                 UserId = userId,
@@ -32,12 +38,33 @@ namespace SelfGuidedTours.Core.Services
                 ReviewDate = DateTime.Now
             };
 
-            await repository.AddAsync(reviewToAdd);
-            await repository.SaveChangesAsync();
-
-            response.StatusCode = HttpStatusCode.Created;
-
-            return reviewToAdd;
+            try
+            {
+                await repository.AddAsync(reviewToAdd);
+                await repository.SaveChangesAsync();
+                response.StatusCode = HttpStatusCode.Created;
+                return reviewToAdd;
+            }
+            catch (DbUpdateException dbEx)
+            {
+                // Log the database update exception
+                Console.WriteLine($"Database update error: {dbEx.InnerException?.Message ?? dbEx.Message}");
+                response.StatusCode = HttpStatusCode.InternalServerError;
+                response.IsSuccess = false;
+                response.Message = "A database error occurred while saving the review. Please try again later.";
+                response.ErrorMessages.Add(dbEx.InnerException?.Message ?? dbEx.Message);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // Log the general exception
+                Console.WriteLine($"Error saving review: {ex.Message}");
+                response.StatusCode = HttpStatusCode.InternalServerError;
+                response.IsSuccess = false;
+                response.Message = "An error occurred while saving the review. Please try again later.";
+                response.ErrorMessages.Add(ex.Message);
+                throw;
+            }
         }
 
         public async Task<ApiResponse> DeleteReviewAsync(int id)
@@ -47,6 +74,7 @@ namespace SelfGuidedTours.Core.Services
             {
                 response.StatusCode = HttpStatusCode.NotFound;
                 response.IsSuccess = false;
+                response.Message = "Review not found.";
                 return response;
             }
 
@@ -83,6 +111,7 @@ namespace SelfGuidedTours.Core.Services
             {
                 response.StatusCode = HttpStatusCode.NotFound;
                 response.IsSuccess = false;
+                response.Message = "Review not found.";
                 return response;
             }
 
