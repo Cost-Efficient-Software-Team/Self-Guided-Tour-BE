@@ -35,12 +35,22 @@ namespace SelfGuidedTours.Api.Controllers
         {
             var userId = User.Claims.First().Value;
 
-            var review = await _reviewService.CreateAsync(reviewCreateDTO, userId, tourId);
-
-            _response.Result = review;
-            _response.StatusCode = HttpStatusCode.Created;
-
-            return CreatedAtAction(nameof(GetReview), new { id = review.ReviewId }, _response);
+            try
+            {
+                var review = await _reviewService.CreateAsync(reviewCreateDTO, userId, tourId);
+                _response.Result = review;
+                _response.StatusCode = HttpStatusCode.Created;
+                return CreatedAtAction(nameof(GetReview), new { id = review.ReviewId }, _response);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception (this should be done using a proper logging framework)
+                Console.WriteLine($"Error creating review: {ex.Message}");
+                _response.IsSuccess = false;
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.ErrorMessages.Add(ex.Message);
+                return StatusCode((int)_response.StatusCode, _response);
+            }
         }
 
         [HttpGet("{id:int}", Name = "get-review")]

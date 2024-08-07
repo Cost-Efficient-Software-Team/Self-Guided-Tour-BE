@@ -51,7 +51,7 @@ namespace SelfGuidedTours.Core.Services
                 Console.WriteLine($"Database update error: {dbEx.InnerException?.Message ?? dbEx.Message}");
                 response.StatusCode = HttpStatusCode.InternalServerError;
                 response.IsSuccess = false;
-                response.Message = "A database error occurred while saving the review. Please try again later.";
+                response.ErrorMessages.Add("A database error occurred while saving the review. Please try again later.");
                 response.ErrorMessages.Add(dbEx.InnerException?.Message ?? dbEx.Message);
                 throw;
             }
@@ -61,7 +61,7 @@ namespace SelfGuidedTours.Core.Services
                 Console.WriteLine($"Error saving review: {ex.Message}");
                 response.StatusCode = HttpStatusCode.InternalServerError;
                 response.IsSuccess = false;
-                response.Message = "An error occurred while saving the review. Please try again later.";
+                response.ErrorMessages.Add("An error occurred while saving the review. Please try again later.");
                 response.ErrorMessages.Add(ex.Message);
                 throw;
             }
@@ -74,7 +74,7 @@ namespace SelfGuidedTours.Core.Services
             {
                 response.StatusCode = HttpStatusCode.NotFound;
                 response.IsSuccess = false;
-                response.Message = "Review not found.";
+                response.ErrorMessages.Add("Review not found.");
                 return response;
             }
 
@@ -111,7 +111,7 @@ namespace SelfGuidedTours.Core.Services
             {
                 response.StatusCode = HttpStatusCode.NotFound;
                 response.IsSuccess = false;
-                response.Message = "Review not found.";
+                response.ErrorMessages.Add("Review not found.");
                 return response;
             }
 
