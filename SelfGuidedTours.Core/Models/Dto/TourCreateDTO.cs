@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
+using SelfGuidedTours.Infrastructure.Data.Enums;
 using System.ComponentModel.DataAnnotations;
-using static SelfGuidedTours.Common.ValidationConstants.ValidationConstants.Tour;
 using static SelfGuidedTours.Common.MessageConstants.ErrorMessages;
+using static SelfGuidedTours.Common.ValidationConstants.ValidationConstants.Tour;
 namespace SelfGuidedTours.Core.Models.Dto
 {
     public class TourCreateDTO
@@ -32,6 +33,9 @@ namespace SelfGuidedTours.Core.Models.Dto
         [Required]
         [Range(EstimatedDurationMinValueInMinutes, EstimatedDurationMaxValueInMinutes)]
         public int EstimatedDuration { get; set; }
+
+        [Required]
+        public TypeTour TypeTour { get; set; }
 
         [Required]
         public ICollection<LandmarkCreateTourDTO> Landmarks { get; set; }
