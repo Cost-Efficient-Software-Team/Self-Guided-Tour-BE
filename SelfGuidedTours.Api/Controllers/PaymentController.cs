@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Models;
 using System.Security.Claims;
@@ -7,6 +8,7 @@ namespace SelfGuidedTours.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class PaymentController : ControllerBase
     {
         private readonly IPaymentService _paymentService;
@@ -16,13 +18,15 @@ namespace SelfGuidedTours.Api.Controllers
             _paymentService = paymentService;
         }
 
-        [HttpPost("{tourId}")]
-        public async Task<ActionResult<ApiResponse>> MakePayment([FromRoute] PaymentRequest paymentRequest)
+        [HttpPost("{tourId:int}")]
+        public async Task<ActionResult<ApiResponse>> MakePayment([FromRoute] int tourId)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                             ?? throw new UnauthorizedAccessException();
+            var userId = User.Claims.First().Value
+                ?? throw new ArgumentNullException("User not found!");
 
-            var response = await _paymentService.MakePaymentAsync(userId, paymentRequest);
+
+            var response = await _paymentService.MakePaymentAsync(userId, tourId);
+
             return StatusCode((int)response.StatusCode, response);
         }
     }
