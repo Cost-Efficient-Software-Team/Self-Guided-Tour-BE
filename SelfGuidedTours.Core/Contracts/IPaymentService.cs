@@ -4,6 +4,6 @@ namespace SelfGuidedTours.Core.Contracts
 {
     public interface IPaymentService
     {
-        Task<ApiResponse> MakePaymentAsync(string userId, PaymentRequest paymentRequest);
+        Task<ApiResponse> MakePaymentAsync(string userId, int tourId);
     }
 }

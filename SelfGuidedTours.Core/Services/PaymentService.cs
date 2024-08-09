@@ -21,48 +21,27 @@ namespace SelfGuidedTours.Core.Services
         }
 
 
-        public async Task<ApiResponse> MakePaymentAsync(string userId, PaymentRequest paymentRequest)
+        public async Task<ApiResponse> MakePaymentAsync(string userId, int tourId)
         {
             
-            if (paymentRequest == null || string.IsNullOrEmpty(userId) || paymentRequest.TourId <= 0)
-            {
-                _response.StatusCode = HttpStatusCode.BadRequest;
-                _response.IsSuccess = false;
-                _response.ErrorMessages.Add("Invalid payment request.");
-                return _response;
-            }
+            if (string.IsNullOrEmpty(userId) || tourId <= 0)
+                            throw new ArgumentNullException("Invalid payment request!");
 
             // Check if the user exists
             var userExists = await _repository.All<ApplicationUser>().AnyAsync(u => u.Id == userId);
             if (!userExists)
-            {
-                _response.StatusCode = HttpStatusCode.NotFound;
-                _response.IsSuccess = false;
-                _response.ErrorMessages.Add("User not found.");
-                return _response;
-            }
+                throw new ArgumentException("User not found!");
 
             // Check if the tour is already purchased by the user
-            var existingPayment = await _repository.All<Payment>()
-                .FirstOrDefaultAsync(p => p.UserId == userId && p.TourId == paymentRequest.TourId);
-            if (existingPayment != null)
-            {
-                _response.StatusCode = HttpStatusCode.BadRequest;
-                _response.IsSuccess = false;
-                _response.ErrorMessages.Add("Tour already purchased.");
-                return _response;
-            }
+            //var existingPayment = await _repository.All<Payment>()
+            //    .FirstOrDefaultAsync(p => p.UserId == userId && p.TourId == tourId);
+            //if (existingPayment != null)
+            //    throw new InvalidOperationException("Tour already purchased!");
 
             // Check if Tour Exists
             var tour = await _repository.All<Tour>()
-                .FirstOrDefaultAsync(t => t.TourId == paymentRequest.TourId);
-            if (tour == null)
-            {
-                _response.StatusCode = HttpStatusCode.NotFound;
-                _response.IsSuccess = false;
-                _response.ErrorMessages.Add("Tour not found.");
-                return _response;
-            }
+                .FirstOrDefaultAsync(t => t.TourId == tourId)
+                        ?? throw new InvalidOperationException("Tour not found!");
 
             // Check if the tour price is set
             if (!tour.Price.HasValue)
@@ -79,10 +58,10 @@ namespace SelfGuidedTours.Core.Services
             {
                 Amount = (int)(tour.Price.Value * 100), // Amount in cents
                 Currency = "usd",
-                PaymentMethodTypes = new List<string>
-                {
+                PaymentMethodTypes =
+                [
                     "card",
-                },
+                ],
             };
 
             PaymentIntentService service = new();
@@ -99,7 +78,7 @@ namespace SelfGuidedTours.Core.Services
             var payment = new Payment
             {
                 UserId = userId,
-                TourId = paymentRequest.TourId,
+                TourId = tourId,
                 PaymentIntentId = stripeResponse.Id,
                 Amount = tour.Price.Value,
                 PaymentDate = DateTime.Now
