@@ -53,11 +53,12 @@ namespace SelfGuidedTours.Tests.UnitTests
         {
             // Arrange
             var expectedToken = "generated_token";
+            var role = "User";
             mockTokenGenerator.Setup(t => t.GenerateToken(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<double>(), It.IsAny<ICollection<Claim>?>()))
-                              .Returns(expectedToken);
+                .Returns(expectedToken);
 
             // Act
-            var token = accessTokenGenerator.GenerateToken(testUser);
+            var token = accessTokenGenerator.GenerateToken(testUser, role);
 
             // Assert
             Assert.That(token, Is.EqualTo(expectedToken));

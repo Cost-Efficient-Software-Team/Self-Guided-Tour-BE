@@ -31,6 +31,7 @@ namespace SelfGuidedTours.Tests.UnitTests
         private ILoggerFactory loggerFactory;
         private IProfileService profileService;
         private readonly UserManager<ApplicationUser>? userManager;
+        private IdentityRole[] roles;
 
         private IEnumerable<ApplicationUser> users;
 
@@ -69,9 +70,23 @@ namespace SelfGuidedTours.Tests.UnitTests
             };
 
             #endregion
-
+            roles =
+            [
+                new IdentityRole("User"),
+                new IdentityRole("Admin")
+            ];
+            var useRole = new IdentityUserRole<string>()
+            {
+                RoleId = roles[0].Id,
+                UserId = User.Id
+            };
+            var adminRole = new IdentityUserRole<string>()
+            {
+                RoleId = roles[1].Id,
+                UserId = Admin.Id
+            };
             users = new List<ApplicationUser>() { User, Admin };
-
+            
             var dbContextOptions = new DbContextOptionsBuilder<SelfGuidedToursDbContext>()
                         .UseInMemoryDatabase("SelfGuidedToursInMemoryDb"
                             + Guid.NewGuid().ToString())
@@ -80,6 +95,8 @@ namespace SelfGuidedTours.Tests.UnitTests
             dbContext = new SelfGuidedToursDbContext(dbContextOptions);
 
             await dbContext.AddRangeAsync(users);
+            await dbContext.AddRangeAsync(roles);
+            await dbContext.AddRangeAsync(useRole, adminRole);
             await dbContext.SaveChangesAsync();
 
             // Repository initialized
@@ -188,6 +205,7 @@ namespace SelfGuidedTours.Tests.UnitTests
                 Password = "password123",
                 RepeatPassword = "password123"
             };
+   
 
             var result = await service.RegisterAsync(model);
 

@@ -7,9 +7,4 @@
   </PropertyGroup>
 
 
-  <ItemGroup>
-    <Folder Include="MessageConstants\" />
-  </ItemGroup>
-
-
 </Project>
