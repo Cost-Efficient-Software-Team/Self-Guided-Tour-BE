@@ -196,7 +196,7 @@ namespace SelfGuidedTours.Api.Controllers
                 return BadRequest("UserId and Token are required.");
             }
 
-            logger.LogInformation($"ConfirmEmail called with userId: {userId}, token: {token}");
+            logger.LogInformation($"ConfirmEmail called with userId: {userId}, token: {token}");//remove this later to avoid injection attacks
 
             var result = await authService.ConfirmEmailAsync(userId, token);
             if (result.Succeeded)
