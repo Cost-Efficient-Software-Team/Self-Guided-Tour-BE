@@ -5,7 +5,6 @@ using SelfGuidedTours.Api.CustomActionFilters;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Models.Dto;
-using SelfGuidedTours.Core.Models.ErrorResponse;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using System.Net;
 
@@ -44,15 +43,16 @@ namespace SelfGuidedTours.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllTours([FromQuery] string title = "", [FromQuery] string destination = "", [FromQuery] decimal? minPrice = null, [FromQuery] decimal? maxPrice = null, [FromQuery] int? minEstimatedDuration = null, [FromQuery] int? maxEstimatedDuration = null)
+        public async Task<IActionResult> GetAllTours([FromQuery] string searchTerm = "")
         {
-            var tours = await _tourService.GetFilteredTours(title, destination, minPrice, maxPrice, minEstimatedDuration, maxEstimatedDuration);
+            var tours = await _tourService.GetFilteredTours(searchTerm);
 
             _response.Result = tours;
             _response.StatusCode = HttpStatusCode.OK;
 
             return Ok(_response);
         }
+
 
         [HttpDelete("{id:int}", Name = "delete-tour")]
         public async Task<IActionResult> DeleteTour([FromRoute] int id)
@@ -85,6 +85,6 @@ namespace SelfGuidedTours.Api.Controllers
             return Ok(_response);
         }
 
-        
+
     }
 }
