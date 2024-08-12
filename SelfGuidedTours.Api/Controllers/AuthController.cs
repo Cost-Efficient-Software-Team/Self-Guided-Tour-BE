@@ -146,10 +146,18 @@ namespace SelfGuidedTours.Api.Controllers
             var token = await authService.GeneratePasswordResetTokenAsync(user);
             var resetLink = Url.Action("ResetPassword", "Auth", new { token }, Request.Scheme);
 
-            await emailService.SendPasswordResetEmailAsync(model.Email, resetLink!);
+            var emailDto = new SendEmailDto
+            {
+                To = model.Email,
+                Subject = "Reset Your Password",
+                Body = $"You can reset your password by clicking the link below:\n\n<a href='{resetLink}'>Reset Password</a>"
+            };
+
+            await emailService.SendEmail(emailDto, "html");
 
             return Ok("Password reset link has been sent to your email.");
         }
+
 
         [HttpPost("reset-password")]
         [ProducesResponseType(typeof(string), 200)]
