@@ -183,7 +183,7 @@ namespace SelfGuidedTours.Core.Services
                 .ToListAsync();
         }
 
-        public async Task<List<Tour>> GetFilteredTours(string title, string destination, decimal? minPrice, decimal? maxPrice, int? minEstimatedDuration, int? maxEstimatedDuration)
+        public async Task<List<Tour>> GetFilteredTours(string title, string destination, decimal? minPrice, decimal? maxPrice, int? minEstimatedDuration, int? maxEstimatedDuration, string sortBy)
         {
             var query = repository.All<Tour>().AsQueryable();
 
@@ -217,6 +217,12 @@ namespace SelfGuidedTours.Core.Services
                 query = query.Where(t => t.EstimatedDuration <= maxEstimatedDuration);
             }
 
+            //sorting
+            if (sortBy == "newest")
+            {
+                query = query.OrderByDescending(t => t.CreatedAt);
+            }
+
             return await query
                 .Include(t => t.Landmarks)
                 .Include(t => t.Payments)
@@ -224,6 +230,7 @@ namespace SelfGuidedTours.Core.Services
                 .Include(t => t.UserTours)
                 .ToListAsync();
         }
+
 
         public async Task<ApiResponse> RejectTourAsync(int id)
         {

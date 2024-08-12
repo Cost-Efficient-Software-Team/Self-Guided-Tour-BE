@@ -8,7 +8,7 @@ namespace SelfGuidedTours.Core.Contracts
     public interface ITourService
     {
         Task<List<Tour>> GetFilteredTours(string title, string destination, decimal? minPrice, decimal? maxPrice,
-            int? minEstimatedDuration, int? maxEstimatedDuration);
+            int? minEstimatedDuration, int? maxEstimatedDuration, string sortBy);
 
         Task<Tour> CreateAsync(TourCreateDTO model, string creatorId);
 
