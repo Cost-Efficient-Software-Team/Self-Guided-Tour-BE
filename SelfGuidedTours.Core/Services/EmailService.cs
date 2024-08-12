@@ -15,12 +15,17 @@ public class EmailService : IEmailService
         _configuration = configuration;
     }
 
-    public async Task SendEmail(SendEmailDto sendEmailRequest, string emailBodyFormat = "plain")
+    public async Task SendEmail(SendEmailDto sendEmailRequest, string emailBodyFormat = "html")
     {
         var templatePath = _configuration["EmailTemplates:GenericEmailTemplate"];
+        if (!File.Exists(templatePath))
+        {
+            throw new FileNotFoundException($"Email template not found at path: {templatePath}");
+        }
+
         var emailBody = await File.ReadAllTextAsync(templatePath);
+        emailBody = emailBody.Replace("{{EmailBody}}", sendEmailRequest.Body);
         emailBody = emailBody.Replace("{{Subject}}", sendEmailRequest.Subject);
-        emailBody = emailBody.Replace("{{Body}}", sendEmailRequest.Body);
 
         var emailSender = Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_USERNAME") ?? throw new ApplicationException("Email sender is not configured.");
         var emailHost = Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_HOST") ?? throw new ApplicationException("Email host is not configured.");
@@ -31,13 +36,13 @@ public class EmailService : IEmailService
         email.From.Add(MailboxAddress.Parse(emailSender));
         email.To.Add(MailboxAddress.Parse(sendEmailRequest.To));
         email.Subject = sendEmailRequest.Subject;
-        email.Body = new TextPart(TextFormat.Html)
+        email.Body = new TextPart(emailBodyFormat)
         {
             Text = emailBody
         };
 
         using var smtp = new SmtpClient();
-        smtp.ServerCertificateValidationCallback = (s, c, h, e) => true; //Ignore certificate errors (for testing only)
+        smtp.ServerCertificateValidationCallback = (s, c, h, e) => true; // Ignore certificate errors (for testing only)
         smtp.Connect(emailHost, int.Parse(emailPort), SecureSocketOptions.SslOnConnect);
         smtp.Authenticate(emailSender, emailPassword);
         await smtp.SendAsync(email);
@@ -47,6 +52,11 @@ public class EmailService : IEmailService
     public async Task SendPasswordResetEmailAsync(string email, string resetLink)
     {
         var templatePath = _configuration["EmailTemplates:PasswordResetEmailTemplate"];
+        if (!File.Exists(templatePath))
+        {
+            throw new FileNotFoundException($"Email template not found at path: {templatePath}");
+        }
+
         var emailBody = await File.ReadAllTextAsync(templatePath);
         emailBody = emailBody.Replace("{{UserName}}", email);
         emailBody = emailBody.Replace("{{ResetLink}}", resetLink);
@@ -61,7 +71,7 @@ public class EmailService : IEmailService
         };
 
         using var smtp = new SmtpClient();
-        smtp.ServerCertificateValidationCallback = (s, c, h, e) => true; //Ignore certificate errors (for testing only)
+        smtp.ServerCertificateValidationCallback = (s, c, h, e) => true; // Ignore certificate errors (for testing only)
         smtp.Connect(Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_HOST"), int.Parse(Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_PORT")!), SecureSocketOptions.SslOnConnect);
         smtp.Authenticate(Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_USERNAME"), Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_PASSWORD"));
         await smtp.SendAsync(mailMessage);
@@ -71,6 +81,11 @@ public class EmailService : IEmailService
     public async Task SendEmailConfirmationAsync(string email, string confirmationLink)
     {
         var templatePath = _configuration["EmailTemplates:ConfirmationEmailTemplate"];
+        if (!File.Exists(templatePath))
+        {
+            throw new FileNotFoundException($"Email template not found at path: {templatePath}");
+        }
+
         var emailBody = await File.ReadAllTextAsync(templatePath);
         emailBody = emailBody.Replace("{{UserName}}", email);
         emailBody = emailBody.Replace("{{ConfirmationLink}}", confirmationLink);
@@ -85,7 +100,7 @@ public class EmailService : IEmailService
         };
 
         using var smtp = new SmtpClient();
-        smtp.ServerCertificateValidationCallback = (s, c, h, e) => true; //Ignore certificate errors (for testing only)
+        smtp.ServerCertificateValidationCallback = (s, c, h, e) => true; // Ignore certificate errors (for testing only)
         smtp.Connect(Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_HOST"), int.Parse(Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_PORT")!), SecureSocketOptions.SslOnConnect);
         smtp.Authenticate(Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_USERNAME"), Environment.GetEnvironmentVariable("ASPNETCORE_SMTP_PASSWORD"));
         await smtp.SendAsync(mailMessage);
