@@ -22,10 +22,8 @@ namespace SelfGuidedTours.Core.Services
         public async Task<Review> CreateAsync(ReviewCreateDTO model, string userId, int tourId)
         {
             if (model == null) throw new ArgumentException("Model cannot be null");
-
             var user = await repository.GetByIdAsync<ApplicationUser>(userId);
             if (user == null) throw new ArgumentException("Invalid userId");
-
             var tour = await repository.GetByIdAsync<Tour>(tourId);
             if (tour == null) throw new ArgumentException("Invalid tourId");
 
@@ -42,12 +40,19 @@ namespace SelfGuidedTours.Core.Services
             {
                 await repository.AddAsync(reviewToAdd);
                 await repository.SaveChangesAsync();
+
+                var averageRating = await repository.All<Review>()
+                    .Where(r => r.TourId == tourId)
+                    .AverageAsync(r => (decimal)r.Rating);
+
+                tour.AverageRating = Math.Round(averageRating, 2);
+                await repository.SaveChangesAsync();
+
                 response.StatusCode = HttpStatusCode.Created;
                 return reviewToAdd;
             }
             catch (DbUpdateException dbEx)
             {
-                // Log the database update exception
                 Console.WriteLine($"Database update error: {dbEx.InnerException?.Message ?? dbEx.Message}");
                 response.StatusCode = HttpStatusCode.InternalServerError;
                 response.IsSuccess = false;
@@ -57,7 +62,6 @@ namespace SelfGuidedTours.Core.Services
             }
             catch (Exception ex)
             {
-                // Log the general exception
                 Console.WriteLine($"Error saving review: {ex.Message}");
                 response.StatusCode = HttpStatusCode.InternalServerError;
                 response.IsSuccess = false;
@@ -66,6 +70,7 @@ namespace SelfGuidedTours.Core.Services
                 throw;
             }
         }
+
 
         public async Task<ApiResponse> DeleteReviewAsync(int id)
         {

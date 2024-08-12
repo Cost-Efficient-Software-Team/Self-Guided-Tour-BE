@@ -222,6 +222,10 @@ namespace SelfGuidedTours.Core.Services
             {
                 query = query.OrderByDescending(t => t.CreatedAt);
             }
+            else if (sortBy == "averageRating")
+            {
+                query = query.OrderByDescending(t => t.AverageRating);
+            }
 
             return await query
                 .Include(t => t.Landmarks)
@@ -230,7 +234,6 @@ namespace SelfGuidedTours.Core.Services
                 .Include(t => t.UserTours)
                 .ToListAsync();
         }
-
 
         public async Task<ApiResponse> RejectTourAsync(int id)
         {
