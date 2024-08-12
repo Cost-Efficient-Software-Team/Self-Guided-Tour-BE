@@ -226,6 +226,10 @@ namespace SelfGuidedTours.Core.Services
             {
                 query = query.OrderByDescending(t => t.AverageRating);
             }
+            else if (sortBy == "mostBought")
+            {
+                query = query.OrderByDescending(t => t.Payments.Count);
+            }
 
             return await query
                 .Include(t => t.Landmarks)
