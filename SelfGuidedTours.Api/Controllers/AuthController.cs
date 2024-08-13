@@ -146,10 +146,18 @@ namespace SelfGuidedTours.Api.Controllers
             var token = await authService.GeneratePasswordResetTokenAsync(user);
             var resetLink = Url.Action("ResetPassword", "Auth", new { token }, Request.Scheme);
 
-            await emailService.SendPasswordResetEmailAsync(model.Email, resetLink!);
+            var emailDto = new SendEmailDto
+            {
+                To = model.Email,
+                Subject = "Reset Your Password",
+                Body = $"You can reset your password by clicking the link below:\n\n<a href='{resetLink}'>Reset Password</a>"
+            };
+
+            await emailService.SendEmail(emailDto, "html");
 
             return Ok("Password reset link has been sent to your email.");
         }
+
 
         [HttpPost("reset-password")]
         [ProducesResponseType(typeof(string), 200)]
@@ -184,17 +192,25 @@ namespace SelfGuidedTours.Api.Controllers
         {
             if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token))
             {
+                logger.LogError("UserId or Token is missing.");
                 return BadRequest("UserId and Token are required.");
             }
+
+            logger.LogInformation($"ConfirmEmail called with userId: {userId}, token: {token}");//remove this later to avoid injection attacks
 
             var result = await authService.ConfirmEmailAsync(userId, token);
             if (result.Succeeded)
             {
+                logger.LogInformation("Email confirmed successfully.");
                 return Ok("Email confirmed successfully!");
             }
 
-            return BadRequest("Email confirmation failed.");
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            logger.LogError($"Email confirmation failed. Errors: {errors}");
+            return BadRequest(new { message = "Email confirmation failed.", errors });
         }
+
+
 
     }
 }
