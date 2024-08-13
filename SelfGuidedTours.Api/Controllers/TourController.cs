@@ -55,15 +55,16 @@ namespace SelfGuidedTours.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllTours([FromQuery] string title = "", [FromQuery] string destination = "", [FromQuery] decimal? minPrice = null, [FromQuery] decimal? maxPrice = null, [FromQuery] int? minEstimatedDuration = null, [FromQuery] int? maxEstimatedDuration = null)
+        public async Task<IActionResult> GetAllTours([FromQuery] string title = "", [FromQuery] string destination = "", [FromQuery] decimal? minPrice = null, [FromQuery] decimal? maxPrice = null, [FromQuery] int? minEstimatedDuration = null, [FromQuery] int? maxEstimatedDuration = null, [FromQuery] string sortBy = "default")
         {
-            var tours = await _tourService.GetFilteredTours(title, destination, minPrice, maxPrice, minEstimatedDuration, maxEstimatedDuration);
+            var tours = await _tourService.GetFilteredTours(title, destination, minPrice, maxPrice, minEstimatedDuration, maxEstimatedDuration, sortBy);
             
             _response.Result = tours;
             _response.StatusCode = HttpStatusCode.OK;
 
             return Ok(_response);
         }
+
 
         [HttpDelete("{id:int}", Name = "delete-tour")]
         public async Task<IActionResult> DeleteTour([FromRoute] int id)
