@@ -38,9 +38,6 @@ namespace SelfGuidedTours.Core.Models.Dto
         public int EstimatedDuration { get; set; }
 
         [Required]
-        public TypeTour TypeTour { get; set; }
-
-        [Required]
         public ICollection<LandmarkCreateTourDTO> Landmarks { get; set; }
     }
 }

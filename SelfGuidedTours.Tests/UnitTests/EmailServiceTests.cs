@@ -1,6 +1,6 @@
-﻿using SelfGuidedTours.Core.Contracts;
+﻿using Castle.Core.Configuration;
+using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Models;
-using SelfGuidedTours.Core.Services;
 
 namespace SelfGuidedTours.Tests.UnitTests
 {
@@ -12,7 +12,7 @@ namespace SelfGuidedTours.Tests.UnitTests
         [SetUp]
         public void Setup()
         {
-            emailService = new EmailService();
+            emailService = new EmailService();//TODO...Fix later. Constructor expects IConfiguration...
 
             // Set environment variables for testing
             Environment.SetEnvironmentVariable("ASPNETCORE_SMTP_USERNAME", "testuser@example.com");

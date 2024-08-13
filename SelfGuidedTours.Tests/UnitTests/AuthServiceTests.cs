@@ -30,7 +30,7 @@ namespace SelfGuidedTours.Tests.UnitTests
         private TokenGenerator tokenGenerator;
         private ILoggerFactory loggerFactory;
         private IProfileService profileService;
-        private readonly UserManager<ApplicationUser>? userManager;
+        private readonly UserManager<ApplicationUser>? userManager = null;
         private IdentityRole[] roles;
 
         private IEnumerable<ApplicationUser> users;

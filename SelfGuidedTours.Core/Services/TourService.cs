@@ -5,6 +5,7 @@ using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Models.Dto;
 using SelfGuidedTours.Core.Models.ResponseDto;
 using SelfGuidedTours.Infrastructure.Common;
+using SelfGuidedTours.Infrastructure.Data.Enums;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using System.Net;
 using static SelfGuidedTours.Common.MessageConstants.ErrorMessages;
@@ -181,7 +182,7 @@ namespace SelfGuidedTours.Core.Services
                 .ToListAsync();
         }
 
-        public async Task<List<Tour>> GetFilteredTours(string searchTerm)
+        public async Task<List<Tour>> GetFilteredTours(string searchTerm, string sortBy)
         {
             var query = repository.All<Tour>().AsQueryable();
 
@@ -231,9 +232,9 @@ namespace SelfGuidedTours.Core.Services
             var tour = await repository.GetByIdAsync<Tour>(id)
                 ?? throw new KeyNotFoundException(TourNotFoundErrorMessage);
 
-            if (tour.Status == Status.Rejected) throw new InvalidOperationException(TourAlreadyRejectedErrorMessage);
+            if (tour.Status == Status.Declined) throw new InvalidOperationException(TourAlreadyRejectedErrorMessage);
 
-            tour.Status = Status.Rejected;
+            tour.Status = Status.Declined;
             await repository.SaveChangesAsync();
 
             response.StatusCode = HttpStatusCode.OK;

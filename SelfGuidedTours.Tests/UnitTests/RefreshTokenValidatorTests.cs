@@ -29,7 +29,7 @@ namespace SelfGuidedTours.Tests.UnitTests
             var issuer = Environment.GetEnvironmentVariable("ISSUER");
             var audience = Environment.GetEnvironmentVariable("AUDIENCE");
 
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key!));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
             var tokenDescriptor = new SecurityTokenDescriptor

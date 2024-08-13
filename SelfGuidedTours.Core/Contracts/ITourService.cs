@@ -7,7 +7,7 @@ namespace SelfGuidedTours.Core.Contracts
 {
     public interface ITourService
     {
-        Task<List<Tour>> GetFilteredTours(string searchTerm);
+        Task<List<Tour>> GetFilteredTours(string searchTerm, string sortBy);
 
         Task<Tour> CreateAsync(TourCreateDTO model, string creatorId);
 
