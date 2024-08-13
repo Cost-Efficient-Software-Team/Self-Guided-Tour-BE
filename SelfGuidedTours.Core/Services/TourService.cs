@@ -27,6 +27,23 @@ namespace SelfGuidedTours.Core.Services
             this.landmarkService = landmarkService;
         }
 
+        public async Task<ApiResponse> ApproveTourAsync(int id)
+        {
+            var tour = await repository.GetByIdAsync<Tour>(id)
+                ?? throw new KeyNotFoundException(TourNotFoundErrorMessage);
+
+            if (tour.Status == Status.Approved) throw new InvalidOperationException(TourAlreadyApprovedErrorMessage);
+
+
+            tour.Status = Status.Approved;
+            await repository.SaveChangesAsync();
+
+            response.StatusCode = HttpStatusCode.OK;
+            response.Result = this.MapTourToTourResponseDto(tour);
+
+            return response;
+        }
+        
         public async Task<Tour> CreateAsync(TourCreateDTO model, string creatorId)
         {
             if (model == null) throw new ArgumentException();
@@ -48,9 +65,9 @@ namespace SelfGuidedTours.Core.Services
                 Price = model.Price,
                 Destination = model.Destination,
                 ThumbnailImageUrl = thumbnailUrl,
-                EstimatedDuration = model.EstimatedDuration
+                EstimatedDuration = model.EstimatedDuration,
+                TypeTour = model.TypeTour
             };
-
 
             await repository.AddAsync(tourToAdd);
 
@@ -207,6 +224,53 @@ namespace SelfGuidedTours.Core.Services
                 .ToListAsync();
         }
 
-      
+        public async Task<ApiResponse> RejectTourAsync(int id)
+        {
+            var tour = await repository.GetByIdAsync<Tour>(id)
+                ?? throw new KeyNotFoundException(TourNotFoundErrorMessage);
+
+            if (tour.Status == Status.Rejected) throw new InvalidOperationException(TourAlreadyRejectedErrorMessage);
+
+            tour.Status = Status.Rejected;
+            await repository.SaveChangesAsync();
+
+            response.StatusCode = HttpStatusCode.OK;
+            response.Result = this.MapTourToTourResponseDto(tour);
+
+            return response;
+        }
+
+        public async Task<ApiResponse> UpdateTourAsync(int id, TourUpdateDTO model)
+        {
+            var tour = await repository.GetByIdAsync<Tour>(id)
+                ?? throw new KeyNotFoundException(TourNotFoundErrorMessage);
+
+            tour.Title = model.Title;
+            tour.Summary = model.Summary;
+            tour.Price = model.Price;
+            tour.Destination = model.Destination;
+            tour.EstimatedDuration = model.EstimatedDuration;
+            tour.TypeTour = model.TypeTour;
+
+            if (model.ThumbnailImage != null)
+            {
+                var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME")
+                                    ?? throw new ApplicationException(ContainerNameErrorMessage);
+
+                await blobService.DeleteFileAsync(tour.ThumbnailImageUrl, containerName);
+
+                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(model.ThumbnailImage.FileName)}";
+                var thumbnailUrl = await blobService.UploadFileAsync(containerName, model.ThumbnailImage, fileName, true);
+
+                tour.ThumbnailImageUrl = thumbnailUrl;
+            }
+
+            await repository.SaveChangesAsync();
+
+            response.StatusCode = HttpStatusCode.OK;
+            response.Result = MapTourToTourResponseDto(tour);
+
+            return response;
+        }
     }
 }
