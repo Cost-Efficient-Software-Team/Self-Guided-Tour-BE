@@ -50,7 +50,7 @@ namespace SelfGuidedTours.Api.Controllers
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.ErrorMessages.Add(ex.Message);
                 return StatusCode((int)_response.StatusCode, _response);
-            }
+            }//TODO...Fix try and catch later!!!
         }
 
         [HttpGet("{id:int}", Name = "get-review")]
