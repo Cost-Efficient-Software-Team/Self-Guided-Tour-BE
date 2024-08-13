@@ -34,7 +34,9 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         [Required]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-        //TODO: Add Image and Video Urls validation
+        [Column(TypeName = "decimal(3, 2)")]
+        public decimal AverageRating { get; set; }
+
         [Required]
         [MaxLength(ThumbnailImageUrlMaxLength, ErrorMessage = UrlLengthErrorMessage)]
         public string ThumbnailImageUrl { get; set; } = null!;
@@ -45,6 +47,9 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
 
         [Comment("On create, status is UnderReview until approved or rejected by admin.")]
         public Status Status { get; set; } = Status.UnderReview;
+
+        [Required]
+        public TypeTour TypeTour { get; set; }
 
         public DateTime? UpdatedAt { get; set; }
 

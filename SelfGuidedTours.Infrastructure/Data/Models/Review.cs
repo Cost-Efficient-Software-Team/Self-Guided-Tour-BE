@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using static SelfGuidedTours.Common.MessageConstants.ErrorMessages;
 using static SelfGuidedTours.Common.ValidationConstants.ValidationConstants.Review;
 namespace SelfGuidedTours.Infrastructure.Data.Models
@@ -22,12 +22,13 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         [Required]
         [Range(1, 5)]
         public int Rating { get; set; }
-        [StringLength(CommentMaxLength,
-                       ErrorMessage = CommentLengthErrorMessage)]
+
+        [StringLength(CommentMaxLength, ErrorMessage = CommentLengthErrorMessage)]
         public string? Comment { get; set; }
 
         [Required]
         public DateTime ReviewDate { get; set; } = DateTime.Now;
+
         public DateTime? UpdatedAt { get; set; }
     }
 }
