@@ -58,7 +58,7 @@ app.UseSwaggerUI();
 // Add custom middleware for exception handling to the pipeline
 app.UseMiddleware<ExceptionHandlerMiddleware>();
 
-app.UseCors("CorsPolicy"); // apply CORS policy from ServiceCollectionExtensions.cs
+app.UseCors("CorsPolicy"); // CorsPolicy
 app.UseHttpsRedirection();
 
 app.UseAuthentication();

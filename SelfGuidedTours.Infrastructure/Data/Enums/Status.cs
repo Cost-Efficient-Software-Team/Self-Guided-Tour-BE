@@ -4,6 +4,6 @@
     {
         UnderReview,
         Approved,
-        Rejected
+        Declined
     }
 }

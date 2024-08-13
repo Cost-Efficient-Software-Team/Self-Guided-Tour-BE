@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.CustomExceptions;
 using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Models.Auth;
@@ -9,12 +10,8 @@ using SelfGuidedTours.Core.Services.TokenGenerators;
 using SelfGuidedTours.Core.Services.TokenValidators;
 using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data.Models;
-using System.Net;
-using SelfGuidedTours.Core.Contracts;
-using System;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Net;
 
 namespace SelfGuidedTours.Core.Services
 {
@@ -25,8 +22,8 @@ namespace SelfGuidedTours.Core.Services
         private readonly RefreshTokenGenerator refreshTokenGenerator;
         private readonly RefreshTokenValidator refreshTokenValidator;
         private readonly IRefreshTokenService refreshTokenService;
-        private readonly IProfileService profileService;  
-        private readonly UserManager<ApplicationUser>? userManager;
+        private readonly IProfileService profileService;
+        private readonly UserManager<ApplicationUser> userManager;
         private readonly ILogger<AuthService> logger;
 
         public AuthService(
@@ -35,8 +32,8 @@ namespace SelfGuidedTours.Core.Services
             RefreshTokenGenerator refreshTokenGenerator,
             RefreshTokenValidator refreshTokenValidator,
             IRefreshTokenService refreshTokenService,
-            IProfileService profileService,  
-            UserManager<ApplicationUser>? userManager,
+            IProfileService profileService,
+            UserManager<ApplicationUser> userManager,
             ILogger<AuthService> logger
         )
         {
@@ -45,7 +42,7 @@ namespace SelfGuidedTours.Core.Services
             this.refreshTokenGenerator = refreshTokenGenerator;
             this.refreshTokenValidator = refreshTokenValidator;
             this.refreshTokenService = refreshTokenService;
-            this.profileService = profileService;  
+            this.profileService = profileService;
             this.userManager = userManager;
             this.logger = logger;
         }
@@ -76,7 +73,7 @@ namespace SelfGuidedTours.Core.Services
         private async Task<AuthenticateResponse> AuthenticateAsync(ApplicationUser user, string responseMessage)
         {
             var role = await GetUserRoleAsync(user);
-            var accessToken = accessTokenGenerator.GenerateToken(user,role);
+            var accessToken = accessTokenGenerator.GenerateToken(user, role);
             var refreshToken = refreshTokenGenerator.GenerateToken();
 
             RefreshToken refreshTokenDTO = new RefreshToken()
@@ -92,7 +89,8 @@ namespace SelfGuidedTours.Core.Services
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
                 ResponseMessage = responseMessage,
-                AccessTokenExpiration = GetTokenExpirationTime(accessToken)
+                AccessTokenExpiration = GetTokenExpirationTime(accessToken),
+                Email = user.Email,
             };
         }
 
@@ -135,7 +133,11 @@ namespace SelfGuidedTours.Core.Services
 
             await profileService.CreateProfileAsync(userProfile);
 
-            return await AuthenticateAsync(user, "User registered successfully!");
+            var emailConfirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(user);
+
+            var response = await AuthenticateAsync(user, "User registered successfully!");
+            response.EmailConfirmationToken = emailConfirmationToken;
+            return response;
         }
 
         public async Task<AuthenticateResponse> LoginAsync(LoginInputModel model)
@@ -234,7 +236,7 @@ namespace SelfGuidedTours.Core.Services
             }
 
             var user = await GetByIdAsync(model.UserId);
-            
+
             if (user is null) throw new UnauthorizedAccessException("User not found");
 
             if (user.PasswordHash is null) throw new UnauthorizedAccessException("User has no assigned password!");
@@ -244,10 +246,9 @@ namespace SelfGuidedTours.Core.Services
             var result = hasher.VerifyHashedPassword(user, user.PasswordHash, model.CurrentPassword);
 
             if (result != PasswordVerificationResult.Success) throw new UnauthorizedAccessException("Invalid password");
-            
+
             user.PasswordHash = hasher.HashPassword(user, model.NewPassword);
 
-            //await repository.UpdateAsync(user);
             await repository.SaveChangesAsync();
 
             var response = new ApiResponse
@@ -260,13 +261,13 @@ namespace SelfGuidedTours.Core.Services
 
         public async Task<string> GeneratePasswordResetTokenAsync(ApplicationUser user)
         {
-            var token = await userManager!.GeneratePasswordResetTokenAsync(user);
+            var token = await userManager.GeneratePasswordResetTokenAsync(user);
             return token;
         }
-        
+
         public async Task<IdentityResult> ResetPasswordAsync(string email, string token, string newPassword)
         {
-            var user = await userManager!.FindByEmailAsync(email);
+            var user = await userManager.FindByEmailAsync(email);
             if (user == null)
             {
                 return IdentityResult.Failed(new IdentityError { Description = "Invalid email." });
@@ -290,23 +291,45 @@ namespace SelfGuidedTours.Core.Services
             }
 
             logger.LogInformation($"Password reset succeeded for user: {user.Email}");
-            
+
             return result;
         }
-        private async Task<string>GetUserRoleAsync(ApplicationUser user)
+
+        private async Task<string> GetUserRoleAsync(ApplicationUser user)
         {
-            //Get UserRole
             var userRole = await repository.AllReadOnly<IdentityUserRole<string>>()
                 .FirstOrDefaultAsync(ur => ur.UserId == user.Id)
                 ?? throw new UnauthorizedAccessException("User has no assigned role!");
-            //Get Role
+
             var role = await repository.AllReadOnly<IdentityRole>()
                 .FirstOrDefaultAsync(r => r.Id == userRole.RoleId);
 
-            if (role is null || role.Name is null) 
+            if (role is null || role.Name is null)
                 throw new UnauthorizedAccessException("User has no assigned role!");
 
             return role.Name;
+        }
+
+        public async Task<IdentityResult> ConfirmEmailAsync(string userId, string token)
+        {
+            // ???????? ?? ???????? ?????????
+            logger.LogInformation($"ConfirmEmailAsync called with userId: {userId}, token: {token}");
+
+            var user = await userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                logger.LogError("Invalid user ID.");
+                return IdentityResult.Failed(new IdentityError { Description = "Invalid user ID." });
+            }
+
+            var result = await userManager.ConfirmEmailAsync(user, token);
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                logger.LogError($"Email confirmation failed for user: {user.Email}. Errors: {errors}");
+            }
+
+            return result;
         }
     }
 }
