@@ -8,6 +8,7 @@ using SelfGuidedTours.Core.Models.Dto;
 using SelfGuidedTours.Core.Models.ErrorResponse;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using System.Net;
+
 namespace SelfGuidedTours.Api.Controllers
 {
     [Route("api/[controller]")]
@@ -39,6 +40,7 @@ namespace SelfGuidedTours.Api.Controllers
             var tourResponse = _tourService.MapTourToTourResponseDto(tour);
 
             return CreatedAtAction(nameof(GetTour), new { id = (tourResponse.TourId) }, tourResponse);
+
         }
 
         [HttpPut("update-tour/{id:int}")]
@@ -53,10 +55,10 @@ namespace SelfGuidedTours.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllTours([FromQuery] string title = "", [FromQuery] string location = "", [FromQuery] decimal? minPrice = null, [FromQuery] decimal? maxPrice = null, [FromQuery] int? minEstimatedDuration = null, [FromQuery] int? maxEstimatedDuration = null)
+        public async Task<IActionResult> GetAllTours([FromQuery] string title = "", [FromQuery] string destination = "", [FromQuery] decimal? minPrice = null, [FromQuery] decimal? maxPrice = null, [FromQuery] int? minEstimatedDuration = null, [FromQuery] int? maxEstimatedDuration = null)
         {
-            var tours = await _tourService.GetFilteredTours(title, location, minPrice, maxPrice, minEstimatedDuration, maxEstimatedDuration);
-
+            var tours = await _tourService.GetFilteredTours(title, destination, minPrice, maxPrice, minEstimatedDuration, maxEstimatedDuration);
+            
             _response.Result = tours;
             _response.StatusCode = HttpStatusCode.OK;
 
@@ -103,19 +105,7 @@ namespace SelfGuidedTours.Api.Controllers
         {
             var result = await _tourService.ApproveTourAsync(id);
 
-            return StatusCode((int)result.StatusCode, result);
-        }
-
-        [HttpPatch("reject-tour/{id:int}", Name = "reject-tour")]
-        [ProducesResponseType(typeof(ApiResponse), 200)]
-        [ProducesResponseType(typeof(ErrorDetails), 400)]
-        [ProducesResponseType(typeof(ErrorDetails), 404)]
-        [ProducesResponseType(401)]
-        public async Task<IActionResult> RejectTour([FromRoute] int id)
-        {
-            var result = await _tourService.RejectTourAsync(id);
-
-            return StatusCode((int)result.StatusCode, result);
-        }
+            return Ok(_response);
+        }   
     }
 }

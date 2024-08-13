@@ -486,7 +486,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
 
                     b.Property<int>("Status")
                         .HasColumnType("int")
-                        .HasComment("On create, status is pending until approved or rejected by admin.");
+                        .HasComment("On create, status is UnderReview until approved or rejected by admin.");
 
                     b.Property<string>("ThumbnailImageUrl")
                         .IsRequired()

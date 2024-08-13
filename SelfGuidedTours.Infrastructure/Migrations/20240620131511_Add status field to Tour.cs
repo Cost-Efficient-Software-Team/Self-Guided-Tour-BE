@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -17,7 +16,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                 type: "int",
                 nullable: false,
                 defaultValue: 0,
-                comment: "On create, status is pending until approved or rejected by admin.");
+                comment: "On create, status is UnderReview until approved or rejected by admin.");
 
             migrationBuilder.UpdateData(
                 table: "AspNetUsers",

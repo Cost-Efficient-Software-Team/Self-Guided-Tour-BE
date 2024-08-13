@@ -43,7 +43,7 @@ namespace SelfGuidedTours.Core.Services
 
             return response;
         }
-
+        
         public async Task<Tour> CreateAsync(TourCreateDTO model, string creatorId)
         {
             if (model == null) throw new ArgumentException();
@@ -182,7 +182,7 @@ namespace SelfGuidedTours.Core.Services
                 .ToListAsync();
         }
 
-        public async Task<List<Tour>> GetFilteredTours(string title, string location, decimal? minPrice, decimal? maxPrice, int? minEstimatedDuration, int? maxEstimatedDuration)
+        public async Task<List<Tour>> GetFilteredTours(string title, string destination, decimal? minPrice, decimal? maxPrice, int? minEstimatedDuration, int? maxEstimatedDuration)
         {
             var query = repository.All<Tour>().AsQueryable();
 
@@ -191,9 +191,9 @@ namespace SelfGuidedTours.Core.Services
                 query = query.Where(t => t.Title.Contains(title));
             }
 
-            if (!string.IsNullOrEmpty(location))
+            if (!string.IsNullOrEmpty(destination))
             {
-                query = query.Where(t => t.Destination.Contains(location));
+                query = query.Where(t => t.Destination.Contains(destination));
             }
 
             if (minPrice.HasValue)
