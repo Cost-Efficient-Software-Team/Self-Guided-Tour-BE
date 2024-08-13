@@ -5,7 +5,6 @@ using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Models.Dto;
 using SelfGuidedTours.Core.Models.ResponseDto;
 using SelfGuidedTours.Infrastructure.Common;
-using SelfGuidedTours.Infrastructure.Data.Enums;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using System.Net;
 using static SelfGuidedTours.Common.MessageConstants.ErrorMessages;
@@ -182,39 +181,20 @@ namespace SelfGuidedTours.Core.Services
                 .ToListAsync();
         }
 
-        public async Task<List<Tour>> GetFilteredTours(string title, string destination, decimal? minPrice, decimal? maxPrice, int? minEstimatedDuration, int? maxEstimatedDuration, string sortBy)
+        public async Task<List<Tour>> GetFilteredTours(string searchTerm)
         {
             var query = repository.All<Tour>().AsQueryable();
 
-            if (!string.IsNullOrEmpty(title))
+            if (!string.IsNullOrEmpty(searchTerm))
             {
-                query = query.Where(t => t.Title.Contains(title));
+                query = query.Where(t => t.Destination.Contains(searchTerm)
+                                         || t.Title.Contains(searchTerm)
+                                         || t.Summary.Contains(searchTerm));
             }
 
-            if (!string.IsNullOrEmpty(destination))
-            {
-                query = query.Where(t => t.Destination.Contains(destination));
-            }
-
-            if (minPrice.HasValue)
-            {
-                query = query.Where(t => t.Price >= minPrice);
-            }
-
-            if (maxPrice.HasValue)
-            {
-                query = query.Where(t => t.Price <= maxPrice);
-            }
-
-            if (minEstimatedDuration.HasValue)
-            {
-                query = query.Where(t => t.EstimatedDuration >= minEstimatedDuration);
-            }
-
-            if (maxEstimatedDuration.HasValue)
-            {
-                query = query.Where(t => t.EstimatedDuration <= maxEstimatedDuration);
-            }
+            query = query.OrderBy(t => t.Destination)
+                .ThenBy(t => t.Title)
+                .ThenBy(t => t.Summary);
 
             //sorting
             if (sortBy == "newest")

@@ -5,7 +5,6 @@ using SelfGuidedTours.Api.CustomActionFilters;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Models.Dto;
-using SelfGuidedTours.Core.Models.ErrorResponse;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using System.Net;
 
@@ -41,6 +40,12 @@ namespace SelfGuidedTours.Api.Controllers
 
             return CreatedAtAction(nameof(GetTour), new { id = (tourResponse.TourId) }, tourResponse);
 
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllTours([FromQuery] string searchTerm = "")
+        {
+            var tours = await _tourService.GetFilteredTours(searchTerm);
         }
 
         [HttpPut("update-tour/{id:int}")]
