@@ -21,5 +21,7 @@ namespace SelfGuidedTours.Core.Contracts
         Task<ApiResponse> ApproveTourAsync(int id);
 
         Task<ApiResponse> RejectTourAsync(int id);
+
+        Task<ApiResponse> UpdateTourAsync(int id, TourUpdateDTO model);
     }
 }

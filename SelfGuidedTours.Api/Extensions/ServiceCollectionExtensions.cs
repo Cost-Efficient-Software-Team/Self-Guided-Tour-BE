@@ -96,6 +96,7 @@ namespace SelfGuidedTours.Api.Extensions
         public static IServiceCollection AddApplicationDbContext(this IServiceCollection services, IConfiguration config)
         {
             var connectionString = config.GetConnectionString("DefaultConnection"); // Connection string from user secrets
+
             services.AddDbContext<SelfGuidedToursDbContext>(options =>
             {
                 options.UseSqlServer(connectionString);
@@ -121,7 +122,8 @@ namespace SelfGuidedTours.Api.Extensions
                 .AddEntityFrameworkStores<SelfGuidedToursDbContext>()
                 .AddDefaultTokenProviders();
 
-            // Password requirements
+            //Password requirements
+
             services.Configure<IdentityOptions>(options =>
             {
                 options.Password.RequireDigit = true;
@@ -130,19 +132,20 @@ namespace SelfGuidedTours.Api.Extensions
                 options.Password.RequireUppercase = true;
                 options.Password.RequiredLength = 8;
                 options.Password.RequiredUniqueChars = 1;
+                options.SignIn.RequireConfirmedEmail = true;
             });
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
                     var key = Environment.GetEnvironmentVariable("ACCESSTOKEN_KEY") ??
-                         throw new ApplicationException("ACCESSTOKEN_KEY is not configured.");
+                             throw new ApplicationException("ACCESSTOKEN_KEY is not configured.");
 
                     var issuer = Environment.GetEnvironmentVariable("ISSUER") ??
-                         throw new ApplicationException("ISSUER is not configured.");
+                             throw new ApplicationException("ISSUER is not configured.");
 
                     var audience = Environment.GetEnvironmentVariable("AUDIENCE") ??
-                         throw new ApplicationException("AUDIENCE is not configured.");
+                             throw new ApplicationException("AUDIENCE is not configured.");
 
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
@@ -160,5 +163,6 @@ namespace SelfGuidedTours.Api.Extensions
 
             return services;
         }
+
     }
 }
