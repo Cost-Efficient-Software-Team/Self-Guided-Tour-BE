@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Models.Dto;
@@ -7,19 +8,22 @@ using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using Stripe;
 using System.Net;
-
+using static SelfGuidedTours.Common.MessageConstants.LoggerMessages;
+using static SelfGuidedTours.Common.Constants.PaymentConstants;
 namespace SelfGuidedTours.Core.Services
 {
     public class PaymentService : IPaymentService
     {
         private readonly IRepository _repository;
         private readonly IStripeClient stripeClient;
+        private readonly ILogger<PaymentService> logger;
         private readonly ApiResponse _response;
 
-        public PaymentService(IRepository repository, IStripeClient stripeClient)
+        public PaymentService(IRepository repository, IStripeClient stripeClient, ILogger<PaymentService> logger)
         {
             _repository = repository;
             this.stripeClient = stripeClient;
+            this.logger = logger;
             _response = new ApiResponse();
         }
         /// <summary>
@@ -31,7 +35,7 @@ namespace SelfGuidedTours.Core.Services
         public async Task<string> CreateOrGetCustomerAsync(string userId)
         {
             var user = _repository.All<ApplicationUser>().FirstOrDefault(u => u.Id == userId)
-                ?? throw new ArgumentException("User not found!");
+                ?? throw new ArgumentException(UserNotFoundMessage);
 
             //Check if we already have a stripe customer accout associated with the user, return it
             if (!string.IsNullOrEmpty(user.StripeCustomerId))
@@ -44,12 +48,14 @@ namespace SelfGuidedTours.Core.Services
             {
                 Email = user.Email,
                 Name = user.UserName,
-                Description = "Customer for Jauntster",
+                Description = CustomerDescription,
             };
 
             var customerService = new CustomerService(stripeClient);
 
             var customer = await customerService.CreateAsync(customerOptions);
+
+            logger.LogInformation(StripeCustomerCreatedSuccessfully,customer.Id);
 
             user.StripeCustomerId = customer.Id;
 
@@ -62,10 +68,10 @@ namespace SelfGuidedTours.Core.Services
         public async Task<ApiResponse> FinalizePaymentAsync(string userId, FinalizePaymentRequest paymentRequest)
         {
             if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(paymentRequest.PaymentIntentId))
-                throw new ArgumentNullException("Invalid payment request!");
+                throw new ArgumentNullException(InvalidPaymentRequestMessage);
 
             var user = _repository.All<ApplicationUser>().FirstOrDefault(u => u.Id == userId)
-                ?? throw new ArgumentException("User not found!");
+                ?? throw new ArgumentException(UserNotFoundMessage);
 
 
             // Check if the tour is already purchased by the user
@@ -73,13 +79,13 @@ namespace SelfGuidedTours.Core.Services
                  .FirstOrDefaultAsync(ut => ut.UserId == userId && ut.TourId == paymentRequest.TourId);
 
             if (existingPayment != null)
-                throw new InvalidOperationException("Tour already purchased!");
+                throw new InvalidOperationException(TourAlreadyPurchasedMessage);
 
             var tour = await _repository.All<Tour>().FirstOrDefaultAsync(t => t.TourId == paymentRequest.TourId)
-                    ?? throw new InvalidOperationException("Tour not found!");
+                    ?? throw new InvalidOperationException(TourNotFoundMessage);
 
             if (!tour.Price.HasValue)
-                throw new InvalidOperationException("Tour price is not set!");
+                throw new InvalidOperationException(TourPriceNotSetMessage);
 
             var payment = new Payment
             {
@@ -90,6 +96,8 @@ namespace SelfGuidedTours.Core.Services
                 PaymentDate = DateTime.Now
             };
 
+            logger.LogInformation(PaymentCreatetSuccessfully, payment.PaymentId);
+
             var userTours = new UserTours
             {
                 UserId = userId,
@@ -97,13 +105,15 @@ namespace SelfGuidedTours.Core.Services
                 PurchaseDate = DateTime.Now,
             };
 
+            logger.LogInformation(UserTourCreatedSuccessfully, userTours.UserTourId);
+
             await _repository.AddAsync(userTours);
             await _repository.AddAsync(payment);
             await _repository.SaveChangesAsync();
 
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;
-            _response.Result = new { Message = "Payment successful!" };
+            _response.Result = new { Message = SuccesfullPaymentMessage };
 
             return _response;
         }
@@ -113,26 +123,26 @@ namespace SelfGuidedTours.Core.Services
         {
 
             if (string.IsNullOrEmpty(userId) || tourId <= 0)
-                throw new ArgumentNullException("Invalid payment request!");
+                throw new ArgumentNullException(InvalidPaymentRequestMessage);
 
             // Check if the user exists
             var userExists = await _repository.All<ApplicationUser>().AnyAsync(u => u.Id == userId);
 
             if (!userExists)
-                throw new InvalidOperationException("User not found!");
+                throw new InvalidOperationException(UserNotFoundMessage);
 
 
             // Check if Tour Exists
             var tour = await _repository.All<Tour>()
                 .FirstOrDefaultAsync(t => t.TourId == tourId)
-                        ?? throw new InvalidOperationException("Tour not found!");
+                        ?? throw new InvalidOperationException(TourNotFoundMessage);
 
             // Check if the tour price is set
             if (!tour.Price.HasValue)
             {
                 _response.StatusCode = HttpStatusCode.BadRequest;
                 _response.IsSuccess = false;
-                _response.ErrorMessages.Add("Tour price is not set.");
+                _response.ErrorMessages.Add(TourPriceNotSetMessage);
                 return _response;
             }
 
@@ -153,8 +163,10 @@ namespace SelfGuidedTours.Core.Services
 
             PaymentIntentService service = new(stripeClient);
 
+
             PaymentIntent stripeResponse = await service.CreateAsync(options);
 
+            logger.LogInformation(PaymentIntentCreatedSuccessfully,stripeResponse.Id);
 
             #endregion
 
