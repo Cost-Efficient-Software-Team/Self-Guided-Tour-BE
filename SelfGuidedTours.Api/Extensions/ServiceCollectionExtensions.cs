@@ -93,7 +93,7 @@ namespace SelfGuidedTours.Api.Extensions
             // Setup Stripe
             var stripeKey = config.GetValue<string>("StripeSettings:SecretKey")
                         ?? throw new ApplicationException("Stripe ENV variables are not configured.");
-
+            services.AddSingleton<IStripeClient>(new StripeClient(stripeKey));
 
             return services;
         }
