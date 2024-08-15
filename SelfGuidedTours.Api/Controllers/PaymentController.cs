@@ -65,8 +65,17 @@ namespace SelfGuidedTours.Api.Controllers
                 }
 
                 return Ok();
+        }
             
-            
+        [HttpPost("free/{tourId:int}")]
+        public async Task<ActionResult<ApiResponse>> AddFreeTour([FromRoute] int tourId)
+        {
+            var userId = User.Claims.First().Value
+                ?? throw new ArgumentNullException("User not found!");
+
+            var response = await _paymentService.AddFreeTour(userId, tourId);
+
+            return StatusCode((int)response.StatusCode, response);
         }
     }
 }

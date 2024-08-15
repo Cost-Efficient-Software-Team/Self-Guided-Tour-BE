@@ -27,6 +27,36 @@ namespace SelfGuidedTours.Core.Services
             this.logger = logger;
             _response = new ApiResponse();
         }
+
+        public async Task<ApiResponse> AddFreeTour(string userId, int tourId)
+        {
+            var tour = _repository.All<Tour>().FirstOrDefault(t => t.TourId == tourId)
+                 ?? throw new InvalidOperationException(TourNotFoundMessage);
+
+            // Check if the tour is actualy free
+            if (tour.Price != 0)
+                throw new InvalidOperationException(TourNotFreeMessage);
+
+
+            var userTours = new UserTours
+            {
+                UserId = userId,
+                TourId = tourId,
+                PurchaseDate = DateTime.Now,
+            };
+
+            logger.LogInformation(UserTourCreatedSuccessfully, userTours.UserTourId);
+
+            await _repository.AddAsync(userTours);
+            await _repository.SaveChangesAsync();
+
+            _response.StatusCode = HttpStatusCode.OK;
+            _response.IsSuccess = true;
+            _response.Result = new { Message = FreeTourAddedMessage };
+
+            return _response;
+        }
+
         /// <summary>
         /// Creates or finds an already existing  stripe customer and asssociated with the current user
         /// </summary>
@@ -105,7 +135,7 @@ namespace SelfGuidedTours.Core.Services
 
         public async Task<ApiResponse> MakePaymentAsync(string userId, int tourId)
         {
-            
+
 
             if (string.IsNullOrEmpty(userId) || tourId <= 0)
                 throw new ArgumentNullException(InvalidPaymentRequestMessage);
