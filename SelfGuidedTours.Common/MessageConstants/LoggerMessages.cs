@@ -8,5 +8,6 @@
         public const string PaymentCreatetSuccessfully = "Payment created with id: {0}";
         public const string UserTourCreatedSuccessfully = "UserTour created with id: {0}";
         public const string PaymentIntentCreatedSuccessfully = "PaymentIntent created with id: {0}";
+        public const string PyamentMarkedAsSucceeded = "Payment marked as succeeded with id: {0}";
     }
 }

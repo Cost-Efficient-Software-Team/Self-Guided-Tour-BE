@@ -21,5 +21,7 @@ namespace SelfGuidedTours.Common.Constants
         public const string TourPriceNotSetMessage = "Tour price is not set!";
 
         public const string SuccesfullPaymentMessage = "Payment successful!";
+
+        public const string PaymentNotFoundMessage = "Payment not found!";
     }
 }
