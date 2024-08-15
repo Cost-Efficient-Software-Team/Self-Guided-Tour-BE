@@ -8,8 +8,10 @@ namespace SelfGuidedTours.Core.Contracts
     {
         Task<ApiResponse> MakePaymentAsync(string userId, int tourId);
 
-        Task<ApiResponse> FinalizePaymentAsync(string userId, FinalizePaymentRequest paymentRequest);
+        Task<ApiResponse> FinalizePaymentAsync(string paymentIndentId);
 
         Task<string> CreateOrGetCustomerAsync(string userId);
+
+        Task<ApiResponse> AddFreeTour(string userId, int tourId);
     }
 }

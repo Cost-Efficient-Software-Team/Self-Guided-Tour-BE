@@ -10,6 +10,7 @@ using Stripe;
 using System.Net;
 using static SelfGuidedTours.Common.MessageConstants.LoggerMessages;
 using static SelfGuidedTours.Common.Constants.PaymentConstants;
+using SelfGuidedTours.Infrastructure.Data.Enums;
 namespace SelfGuidedTours.Core.Services
 {
     public class PaymentService : IPaymentService
@@ -55,7 +56,7 @@ namespace SelfGuidedTours.Core.Services
 
             var customer = await customerService.CreateAsync(customerOptions);
 
-            logger.LogInformation(StripeCustomerCreatedSuccessfully,customer.Id);
+            logger.LogInformation(StripeCustomerCreatedSuccessfully, customer.Id);
 
             user.StripeCustomerId = customer.Id;
 
@@ -65,50 +66,33 @@ namespace SelfGuidedTours.Core.Services
             return customer.Id;
         }
 
-        public async Task<ApiResponse> FinalizePaymentAsync(string userId, FinalizePaymentRequest paymentRequest)
+        public async Task<ApiResponse> FinalizePaymentAsync(string paymentIndentId)
         {
-            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(paymentRequest.PaymentIntentId))
-                throw new ArgumentNullException(InvalidPaymentRequestMessage);
+            var payment = await _repository.All<Payment>().FirstOrDefaultAsync(p => p.PaymentIntentId == paymentIndentId)
+                ?? throw new InvalidOperationException(PaymentNotFoundMessage);
 
-            var user = _repository.All<ApplicationUser>().FirstOrDefault(u => u.Id == userId)
-                ?? throw new ArgumentException(UserNotFoundMessage);
-
-
-            // Check if the tour is already purchased by the user
-            var existingPayment = await _repository.All<UserTours>()
-                 .FirstOrDefaultAsync(ut => ut.UserId == userId && ut.TourId == paymentRequest.TourId);
-
-            if (existingPayment != null)
+            // If the payment is marked as succeeded, this means that the user already has the tour
+            if (payment.Status == PaymentStatus.Succeeded)
                 throw new InvalidOperationException(TourAlreadyPurchasedMessage);
 
-            var tour = await _repository.All<Tour>().FirstOrDefaultAsync(t => t.TourId == paymentRequest.TourId)
-                    ?? throw new InvalidOperationException(TourNotFoundMessage);
-
-            if (!tour.Price.HasValue)
-                throw new InvalidOperationException(TourPriceNotSetMessage);
-
-            var payment = new Payment
-            {
-                UserId = userId,
-                TourId = paymentRequest.TourId,
-                PaymentIntentId = paymentRequest.PaymentIntentId,
-                Amount = tour.Price.Value,
-                PaymentDate = DateTime.Now
-            };
-
-            logger.LogInformation(PaymentCreatetSuccessfully, payment.PaymentId);
-
+            // Add the tour to the user
             var userTours = new UserTours
             {
-                UserId = userId,
-                TourId = paymentRequest.TourId,
-                PurchaseDate = DateTime.Now,
+                UserId = payment.UserId,
+                TourId = payment.TourId,
+                PurchaseDate = payment.PaymentDate,
             };
 
             logger.LogInformation(UserTourCreatedSuccessfully, userTours.UserTourId);
 
+            // Mark the payment as succeeded
+            payment.Status = PaymentStatus.Succeeded;
+            payment.UpdatedAt = DateTime.Now;
+            await _repository.UpdateAsync(payment);
+
+            logger.LogInformation(PyamentMarkedAsSucceeded, payment.PaymentId);
+
             await _repository.AddAsync(userTours);
-            await _repository.AddAsync(payment);
             await _repository.SaveChangesAsync();
 
             _response.StatusCode = HttpStatusCode.OK;
@@ -121,6 +105,7 @@ namespace SelfGuidedTours.Core.Services
 
         public async Task<ApiResponse> MakePaymentAsync(string userId, int tourId)
         {
+            
 
             if (string.IsNullOrEmpty(userId) || tourId <= 0)
                 throw new ArgumentNullException(InvalidPaymentRequestMessage);
@@ -139,12 +124,7 @@ namespace SelfGuidedTours.Core.Services
 
             // Check if the tour price is set
             if (!tour.Price.HasValue)
-            {
-                _response.StatusCode = HttpStatusCode.BadRequest;
-                _response.IsSuccess = false;
-                _response.ErrorMessages.Add(TourPriceNotSetMessage);
-                return _response;
-            }
+                throw new InvalidOperationException(TourPriceNotSetMessage);
 
             string customerId = await CreateOrGetCustomerAsync(userId);
 
@@ -166,7 +146,7 @@ namespace SelfGuidedTours.Core.Services
 
             PaymentIntent stripeResponse = await service.CreateAsync(options);
 
-            logger.LogInformation(PaymentIntentCreatedSuccessfully,stripeResponse.Id);
+            logger.LogInformation(PaymentIntentCreatedSuccessfully, stripeResponse.Id);
 
             #endregion
 
@@ -177,6 +157,19 @@ namespace SelfGuidedTours.Core.Services
                 Amount = tour.Price.Value
 
             };
+
+            var payment = new Payment
+            {
+                UserId = userId,
+                TourId = tourId,
+                PaymentIntentId = stripeResponse.Id,
+                Amount = tour.Price.Value,
+                PaymentDate = DateTime.Now
+            };
+
+
+            await _repository.AddAsync(payment);
+            await _repository.SaveChangesAsync();
 
             _response.Result = paymentResult;
             _response.StatusCode = HttpStatusCode.OK;
