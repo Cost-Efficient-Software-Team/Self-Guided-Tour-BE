@@ -94,18 +94,21 @@ namespace SelfGuidedTours.Api.Extensions
             var stripeKey = config.GetValue<string>("StripeSettings:SecretKey")
                         ?? throw new ApplicationException("Stripe ENV variables are not configured.");
             services.AddSingleton<IStripeClient>(new StripeClient(stripeKey));
+
             // Add Stripe customer service in DI container
-            services.AddScoped<CustomerService>(provider =>
+            services.AddScoped(provider =>
             {
                 var stripeClient = provider.GetRequiredService<IStripeClient>();
                 return new CustomerService(stripeClient);
             });
+
             // Add Stripe payment intent service in DI container
-            services.AddScoped<PaymentIntentService>(provider =>
+            services.AddScoped(provider =>
             {
                 var stripeClient = provider.GetRequiredService<IStripeClient>();
                 return new PaymentIntentService(stripeClient);
             });
+
             return services;
         }
 

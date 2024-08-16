@@ -57,7 +57,7 @@ namespace SelfGuidedTours.Core.Services
 
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;
-            _response.Result = new { Message = FreeTourAddedMessage };
+            _response.Result = FreeTourAddedMessage;
 
             return _response;
         }
@@ -158,7 +158,7 @@ namespace SelfGuidedTours.Core.Services
                         ?? throw new InvalidOperationException(TourNotFoundMessage);
 
             // Check if the tour price is set
-            if (!tour.Price.HasValue)
+            if (!tour.Price.HasValue || tour.Price == 0)
                 throw new InvalidOperationException(TourPriceNotSetMessage);
 
             string customerId = await CreateOrGetCustomerAsync(userId);
