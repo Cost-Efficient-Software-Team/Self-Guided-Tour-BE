@@ -18,13 +18,18 @@ namespace SelfGuidedTours.Core.Services
         private readonly IRepository _repository;
         private readonly IStripeClient stripeClient;
         private readonly ILogger<PaymentService> logger;
+        private readonly CustomerService customerService;
+        private readonly PaymentIntentService paymentIntentService;
         private readonly ApiResponse _response;
 
-        public PaymentService(IRepository repository, IStripeClient stripeClient, ILogger<PaymentService> logger)
+        public PaymentService(IRepository repository, IStripeClient stripeClient, ILogger<PaymentService> logger,
+            CustomerService customerService, PaymentIntentService paymentIntentService)
         {
             _repository = repository;
             this.stripeClient = stripeClient;
             this.logger = logger;
+            this.customerService = customerService;
+            this.paymentIntentService = paymentIntentService;
             _response = new ApiResponse();
         }
 
@@ -82,7 +87,7 @@ namespace SelfGuidedTours.Core.Services
                 Description = CustomerDescription,
             };
 
-            var customerService = new CustomerService(stripeClient);
+           // var customerService = new CustomerService(stripeClient);
 
             var customer = await customerService.CreateAsync(customerOptions);
 
@@ -171,10 +176,9 @@ namespace SelfGuidedTours.Core.Services
                 Customer = customerId,
             };
 
-            PaymentIntentService service = new(stripeClient);
 
 
-            PaymentIntent stripeResponse = await service.CreateAsync(options);
+            PaymentIntent stripeResponse = await paymentIntentService.CreateAsync(options);
 
             logger.LogInformation(PaymentIntentCreatedSuccessfully, stripeResponse.Id);
 
