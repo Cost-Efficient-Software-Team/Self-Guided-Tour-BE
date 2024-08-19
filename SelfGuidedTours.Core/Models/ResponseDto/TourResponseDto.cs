@@ -16,6 +16,7 @@ namespace SelfGuidedTours.Core.Models.ResponseDto
         public string ThumbnailImageUrl { get; set; } = null!;
         public int EstimatedDuration { get; set; }
         public string Status { get; set; } = null!;
+        public string TourType { get; set; } = null!;
 
         public ICollection<LandmarkResponseDto> Landmarks { get; set; } = new List<LandmarkResponseDto>();
     }

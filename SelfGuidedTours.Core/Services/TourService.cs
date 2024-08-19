@@ -150,8 +150,9 @@ namespace SelfGuidedTours.Core.Services
                 Summary = tour.Summary,
                 EstimatedDuration = tour.EstimatedDuration,
                 Price = tour.Price,
-                Status = tour.Status.ToString(),
+                Status = tour.Status == Status.UnderReview ? "Under Review": tour.Status.ToString(),
                 Title = tour.Title,
+                TourType = tour.TypeTour.ToString(),
                 Landmarks = tour.Landmarks.Select(l => new LandmarkResponseDto
                 {
                     LandmarkId = l.LandmarkId,
@@ -182,10 +183,10 @@ namespace SelfGuidedTours.Core.Services
                 .ToListAsync();
         }
 
-        public async Task<List<Tour>> GetFilteredTours(string searchTerm, string sortBy)
+        public async Task<List<Tour>> GetFilteredTours(string searchTerm, string sortBy, int pageNumber = 1, int pageSize = 1000)
         {
             var query = repository.All<Tour>().AsQueryable();
-
+            // Filtering
             if (!string.IsNullOrEmpty(searchTerm))
             {
                 query = query.Where(t => t.Destination.Contains(searchTerm)
@@ -218,12 +219,18 @@ namespace SelfGuidedTours.Core.Services
             {
                 query = query.OrderByDescending(t => t.Price);
             }
+           
+            // Pagination
+            var skip = (pageNumber - 1) * pageSize; // Calculate how many items to skip
+
+            query = query.Skip(skip).Take(pageSize);
 
             return await query
-                .Include(t => t.Landmarks)
-                .Include(t => t.Payments)
                 .Include(t => t.Reviews)
-                .Include(t => t.UserTours)
+                .Include(t => t.Landmarks)
+                .ThenInclude(l => l.Resources)
+                .Include(t => t.Landmarks)
+                .ThenInclude(l => l.Coordinate)
                 .ToListAsync();
         }
 

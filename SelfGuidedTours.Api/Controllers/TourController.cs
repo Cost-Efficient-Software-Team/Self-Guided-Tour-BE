@@ -44,11 +44,15 @@ namespace SelfGuidedTours.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllTours([FromQuery] string searchTerm = "", [FromQuery] string sortBy = "default")
+        public async Task<IActionResult> GetAllTours([FromQuery] string searchTerm = "", [FromQuery] string sortBy = "default", [FromQuery] int pageNumber = 1,[FromQuery] int pageSize = 1000)
         {
-            var tours = await _tourService.GetFilteredTours(searchTerm, sortBy);
+            var tours = await _tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
+            // Map tours to Response DTO
+            var toursResponse = tours.
+                Select(t => _tourService.MapTourToTourResponseDto(t))
+                .ToList();
 
-            _response.Result = tours;
+            _response.Result = toursResponse;
             _response.StatusCode = HttpStatusCode.OK;
 
             return Ok(_response);

@@ -49,7 +49,7 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         public Status Status { get; set; } = Status.UnderReview;
 
         [Required]
-        public TypeTour TypeTour { get; set; }
+        public TypeTour TypeTour { get; set; } = TypeTour.Walking;
 
         public DateTime? UpdatedAt { get; set; }
 
