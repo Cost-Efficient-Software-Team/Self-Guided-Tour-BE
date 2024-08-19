@@ -37,7 +37,10 @@
         "ACCESSTOKEN_EXPIRATIONMINUTES": "50",
         "ISSUER": "https://localhost:7038",
         "AUDIENCE": "https://localhost:7038",
-        "CONTAINER_NAME": "landmark-resources"
+        "CONTAINER_NAME": "landmark-resources",
+        "GenericEmailTemplate": "EmailTemplates/GenericEmailTemplate.html",
+        "ConfirmationEmailTemplate": "EmailTemplates/ConfirmationEmailTemplate.html",
+        "PasswordResetEmailTemplate": "EmailTemplates/PasswordResetEmailTemplate.html"
       }
     },
     "IIS Express": {

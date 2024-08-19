@@ -2,8 +2,8 @@
 {
     public enum TypeTour
     {
+        Walking,
         Car,
-        Bike,
-        OnFoot
+        Bike
     }
 }
