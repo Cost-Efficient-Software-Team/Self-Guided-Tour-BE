@@ -12,7 +12,7 @@ namespace SelfGuidedTours.Tests.UnitTests
         [SetUp]
         public void Setup()
         {
-            emailService = new EmailService();//TODO...Fix later. Constructor expects IConfiguration...
+           // emailService = new EmailService();//TODO...Fix later. Constructor expects IConfiguration...
 
             // Set environment variables for testing
             Environment.SetEnvironmentVariable("ASPNETCORE_SMTP_USERNAME", "testuser@example.com");

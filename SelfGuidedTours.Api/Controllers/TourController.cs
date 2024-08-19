@@ -100,16 +100,6 @@ namespace SelfGuidedTours.Api.Controllers
             return Ok(_response);
         }
 
-        [HttpPatch("approve-tour/{id:int}")]
-        [ProducesResponseType(typeof(ApiResponse), 200)]
-        [ProducesResponseType(typeof(ErrorDetails), 400)]
-        [ProducesResponseType(typeof(ErrorDetails), 404)]
-        [ProducesResponseType(401)]
-        public async Task<IActionResult> ApproveTour([FromRoute] int id)
-        {
-            var result = await _tourService.ApproveTourAsync(id);
-
-            return Ok(_response);
-        }   
+   
     }
 }

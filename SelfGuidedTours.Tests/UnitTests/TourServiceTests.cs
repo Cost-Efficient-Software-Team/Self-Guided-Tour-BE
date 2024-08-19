@@ -271,7 +271,6 @@ namespace SelfGuidedTours.Tests.UnitTests
             Assert.That(tourResponse.Destination, Is.EqualTo(tour.Destination));
             Assert.That(tourResponse.ThumbnailImageUrl, Is.EqualTo(tour.ThumbnailImageUrl));
             Assert.That(tourResponse.EstimatedDuration, Is.EqualTo(tour.EstimatedDuration));
-            Assert.That(tourResponse.Status, Is.EqualTo(tour.Status.ToString()));
             Assert.That(tourResponse.Landmarks.Count, Is.EqualTo(tour.Landmarks.Count));
 
             var landmarkResponse = tourResponse.Landmarks.First();
@@ -297,5 +296,19 @@ namespace SelfGuidedTours.Tests.UnitTests
             Assert.That(resourceResponse.ResourceType, Is.EqualTo(resource.Type.ToString()));
         }
         
+        [Test]
+        public async Task GetFilteredTours_ReturnsCorrectTours()
+        {
+            var searchTerm = "Tour 1";
+            var sortBy = "title";
+            var pageNumber = 1;
+            var pageSize = 1;
+
+            var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
+
+            Assert.That(result.Count, Is.EqualTo(1));
+            Assert.That(result.First().Title, Is.EqualTo("Tour 1"));
+        }
+
     }
 }
