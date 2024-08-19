@@ -90,7 +90,8 @@ namespace SelfGuidedTours.Core.Services
                 RefreshToken = refreshToken,
                 ResponseMessage = responseMessage,
                 AccessTokenExpiration = GetTokenExpirationTime(accessToken),
-                Email = user.Email,
+                Email = user.Email!,
+                UserId = user.Id
             };
         }
 
@@ -155,6 +156,11 @@ namespace SelfGuidedTours.Core.Services
             {
                 throw new ArgumentException("Email or password is incorrect!");
             }
+            //Comented out to make testing easier, uncomment for production
+            //if(!user.EmailConfirmed)
+            //{
+            //    throw new UnauthorizedAccessException("Email is not confirmed!");
+            //}
 
             return await AuthenticateAsync(user, "Successfully logged in!");
         }
@@ -175,6 +181,9 @@ namespace SelfGuidedTours.Core.Services
                     Email = googleUser.Email,
                     UserName = googleUser.Email,
                     Name = googleUser.Name,
+                    EmailConfirmed = true,
+                    NormalizedEmail = googleUser.Email.ToUpper(),
+                    NormalizedUserName = googleUser.Email.ToUpper()
                 };
                 var userRole = AssignUserRole(user.Id);
 
