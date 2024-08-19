@@ -42,7 +42,7 @@ namespace SelfGuidedTours.Api.Controllers
             return CreatedAtAction(nameof(GetTour), new { id = (tourResponse.TourId) }, tourResponse);
 
         }
-
+        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> GetAllTours([FromQuery] string searchTerm = "", [FromQuery] string sortBy = "default", [FromQuery] int pageNumber = 1,[FromQuery] int pageSize = 1000)
         {
@@ -88,7 +88,7 @@ namespace SelfGuidedTours.Api.Controllers
 
             return NoContent();
         }
-
+        [AllowAnonymous]
         [HttpGet("{id:int}", Name = "get-tour")]
         public async Task<IActionResult> GetTour(int id)
         {
