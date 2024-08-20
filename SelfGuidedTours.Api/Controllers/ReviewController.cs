@@ -17,13 +17,11 @@ namespace SelfGuidedTours.Api.Controllers
     public class ReviewController : ControllerBase
     {
         private readonly IReviewService _reviewService;
-        private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApiResponse _response;
 
-        public ReviewController(IReviewService reviewService, UserManager<ApplicationUser> userManager)
+        public ReviewController(IReviewService reviewService)
         {
             _reviewService = reviewService;
-            _userManager = userManager;
             _response = new ApiResponse();
         }
 

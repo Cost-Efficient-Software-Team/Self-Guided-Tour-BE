@@ -16,6 +16,7 @@ using SelfGuidedTours.Infrastructure.Data;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using System.Text;
 using System.Text.Json.Serialization;
+using Stripe;
 
 namespace SelfGuidedTours.Api.Extensions
 {
@@ -71,7 +72,7 @@ namespace SelfGuidedTours.Api.Extensions
             services.AddScoped<IPaymentService, PaymentService>();
             services.AddScoped<IBlobService, BlobService>();
             services.AddScoped<IAdminService, AdminService>();
-            services.AddScoped<IReviewService, ReviewService>(); // Add this line
+            services.AddScoped<IReviewService, Core.Services.ReviewService>(); // Add this line
 
             // Token generators
             services.AddScoped<AccessTokenGenerator>();
@@ -88,6 +89,24 @@ namespace SelfGuidedTours.Api.Extensions
                     .AllowAnyMethod()
                     .AllowAnyHeader();
                 });
+            });
+            // Setup Stripe
+            var stripeKey = config.GetValue<string>("StripeSettings:SecretKey")
+                        ?? throw new ApplicationException("Stripe ENV variables are not configured.");
+            services.AddSingleton<IStripeClient>(new StripeClient(stripeKey));
+
+            // Add Stripe customer service in DI container
+            services.AddScoped(provider =>
+            {
+                var stripeClient = provider.GetRequiredService<IStripeClient>();
+                return new CustomerService(stripeClient);
+            });
+
+            // Add Stripe payment intent service in DI container
+            services.AddScoped(provider =>
+            {
+                var stripeClient = provider.GetRequiredService<IStripeClient>();
+                return new PaymentIntentService(stripeClient);
             });
 
             return services;

@@ -9,17 +9,17 @@
 
             public const int DescriptionMinLength = 10;
             public const int DescriptionMaxLength = 500;
-            
+
             public const int SummaryMinLength = 10;
             public const int SummaryMaxLength = 500;
 
-            public const double PriceMinValue = 1.0;
+            public const double PriceMinValue = 0.0;
 
             public const int ThumbnailImageUrlMaxLength = 500;
 
             public const int LocationMinLength = 3;
             public const int LocationMaxLength = 50;
-            
+
             public const int DestinationMinLength = 3;
             public const int DestinationMaxLength = 50;
 

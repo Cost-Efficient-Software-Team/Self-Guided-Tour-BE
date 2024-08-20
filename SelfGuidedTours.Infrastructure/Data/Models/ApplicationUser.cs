@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
 namespace SelfGuidedTours.Infrastructure.Data.Models
@@ -6,6 +7,8 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
     public class ApplicationUser : IdentityUser
     {
         public string Name { get; set; } = null!;
+        [Comment("Id of the stripe customer associated with the user. Created when the user makes a payment.")]
+        public string? StripeCustomerId { get; set; }
         public string? Credentials { get; set; }
         [Required]
         public DateTime CreatedAt { get; set; } = DateTime.Now;

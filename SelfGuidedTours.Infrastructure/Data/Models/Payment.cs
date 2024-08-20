@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using SelfGuidedTours.Infrastructure.Data.Enums;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SelfGuidedTours.Infrastructure.Data.Models
@@ -21,6 +22,7 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         [Required]
         [Column(TypeName = "decimal(10, 2)")]
         public decimal Amount { get; set; }
+        public PaymentStatus Status { get; set; } = PaymentStatus.Pending;
 
         [Required]
         public DateTime PaymentDate { get; set; } = DateTime.Now;
