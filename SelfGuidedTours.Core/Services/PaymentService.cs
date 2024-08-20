@@ -1,16 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Models;
-using SelfGuidedTours.Core.Models.Dto;
 using SelfGuidedTours.Infrastructure.Common;
+using SelfGuidedTours.Infrastructure.Data.Enums;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using Stripe;
 using System.Net;
-using static SelfGuidedTours.Common.MessageConstants.LoggerMessages;
 using static SelfGuidedTours.Common.Constants.PaymentConstants;
-using SelfGuidedTours.Infrastructure.Data.Enums;
+using static SelfGuidedTours.Common.MessageConstants.LoggerMessages;
 namespace SelfGuidedTours.Core.Services
 {
     public class PaymentService : IPaymentService
@@ -36,12 +34,17 @@ namespace SelfGuidedTours.Core.Services
         public async Task<ApiResponse> AddFreeTour(string userId, int tourId)
         {
             var tour = _repository.All<Tour>().FirstOrDefault(t => t.TourId == tourId)
-                 ?? throw new InvalidOperationException(TourNotFoundMessage);
+                       ?? throw new InvalidOperationException(TourNotFoundMessage);
 
             // Check if the tour is actualy free
             if (tour.Price != 0)
                 throw new InvalidOperationException(TourNotFreeMessage);
 
+            var existingUserTour = _repository.All<UserTours>()
+                .FirstOrDefault(ut => ut.UserId == userId && ut.TourId == tourId);
+
+            if (existingUserTour != null)
+                throw new InvalidOperationException(TourAlreadyPurchasedMessage);
 
             var userTours = new UserTours
             {
@@ -87,7 +90,7 @@ namespace SelfGuidedTours.Core.Services
                 Description = CustomerDescription,
             };
 
-           // var customerService = new CustomerService(stripeClient);
+            // var customerService = new CustomerService(stripeClient);
 
             var customer = await customerService.CreateAsync(customerOptions);
 
