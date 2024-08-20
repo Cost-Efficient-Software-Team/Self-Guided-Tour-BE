@@ -128,7 +128,7 @@ namespace SelfGuidedTours.Core.Services
             payment.UpdatedAt = DateTime.Now;
             await _repository.UpdateAsync(payment);
 
-            logger.LogInformation(PyamentMarkedAsSucceeded, payment.PaymentId);
+            logger.LogInformation(PaymentMarkedAsSucceeded, payment.PaymentId);
 
             await _repository.AddAsync(userTours);
             await _repository.SaveChangesAsync();

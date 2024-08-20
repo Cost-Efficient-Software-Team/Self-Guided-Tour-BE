@@ -63,7 +63,7 @@ namespace SelfGuidedTours.Core.Services
                 throw new KeyNotFoundException(WarningMessageForNotFoundedToursForAdmin);
             }
 
-            logger.LogInformation(InformationMessageForAllSucessfullyReturnedToursForAdmin, status);
+            logger.LogInformation(InformationMessageForAllSuccessfullyReturnedToursForAdmin, status);
 
             return tours;
         }
