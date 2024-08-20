@@ -17,7 +17,9 @@ public class EmailService : IEmailService
 
     public async Task SendEmail(SendEmailDto sendEmailRequest, string emailBodyFormat = "html")
     {
-        var templatePath = _configuration["EmailTemplates:GenericEmailTemplate"];
+        var templatePath = Environment.GetEnvironmentVariable("GenericEmailTemplate") 
+                ?? throw new ApplicationException("Email template is not configured.");
+
         if (!File.Exists(templatePath))
         {
             throw new FileNotFoundException($"Email template not found at path: {templatePath}");
@@ -51,7 +53,9 @@ public class EmailService : IEmailService
 
     public async Task SendPasswordResetEmailAsync(string email, string resetLink)
     {
-        var templatePath = _configuration["EmailTemplates:PasswordResetEmailTemplate"];
+        var templatePath = Environment.GetEnvironmentVariable("PasswordResetEmailTemplate") 
+                ?? throw new ApplicationException("Password reset email template is not configured.");
+
         if (!File.Exists(templatePath))
         {
             throw new FileNotFoundException($"Email template not found at path: {templatePath}");
@@ -80,7 +84,9 @@ public class EmailService : IEmailService
 
     public async Task SendEmailConfirmationAsync(string email, string confirmationLink)
     {
-        var templatePath = _configuration["EmailTemplates:ConfirmationEmailTemplate"];
+        var templatePath = Environment.GetEnvironmentVariable("ConfirmationEmailTemplate")
+                ?? throw new ApplicationException("Email confirmation template is not configured.");
+
         if (!File.Exists(templatePath))
         {
             throw new FileNotFoundException($"Email template not found at path: {templatePath}");

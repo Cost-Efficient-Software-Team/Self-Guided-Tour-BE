@@ -15,9 +15,11 @@ namespace SelfGuidedTours.Tests.UnitTests
         [SetUp]
         public void Setup()
         {
+
             
             cofigurationMock = new Mock<IConfiguration>();
             emailService = new EmailService(cofigurationMock.Object);
+
             // Set environment variables for testing
             Environment.SetEnvironmentVariable("ASPNETCORE_SMTP_USERNAME", "testuser@example.com");
             Environment.SetEnvironmentVariable("ASPNETCORE_SMTP_HOST", "smtp.example.com");

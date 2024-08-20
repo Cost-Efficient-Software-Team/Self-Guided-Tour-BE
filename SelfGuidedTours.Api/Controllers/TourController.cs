@@ -42,13 +42,17 @@ namespace SelfGuidedTours.Api.Controllers
             return CreatedAtAction(nameof(GetTour), new { id = (tourResponse.TourId) }, tourResponse);
 
         }
-
+        [AllowAnonymous]
         [HttpGet]
-        public async Task<IActionResult> GetAllTours([FromQuery] string searchTerm = "", [FromQuery] string sortBy = "default")
+        public async Task<IActionResult> GetAllTours([FromQuery] string searchTerm = "", [FromQuery] string sortBy = "default", [FromQuery] int pageNumber = 1,[FromQuery] int pageSize = 1000)
         {
-            var tours = await _tourService.GetFilteredTours(searchTerm, sortBy);
+            var tours = await _tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
+            // Map tours to Response DTO
+            var toursResponse = tours.
+                Select(t => _tourService.MapTourToTourResponseDto(t))
+                .ToList();
 
-            _response.Result = tours;
+            _response.Result = toursResponse;
             _response.StatusCode = HttpStatusCode.OK;
 
             return Ok(_response);
@@ -84,7 +88,7 @@ namespace SelfGuidedTours.Api.Controllers
 
             return NoContent();
         }
-
+        [AllowAnonymous]
         [HttpGet("{id:int}", Name = "get-tour")]
         public async Task<IActionResult> GetTour(int id)
         {
@@ -96,16 +100,6 @@ namespace SelfGuidedTours.Api.Controllers
             return Ok(_response);
         }
 
-        [HttpPatch("approve-tour/{id:int}")]
-        [ProducesResponseType(typeof(ApiResponse), 200)]
-        [ProducesResponseType(typeof(ErrorDetails), 400)]
-        [ProducesResponseType(typeof(ErrorDetails), 404)]
-        [ProducesResponseType(401)]
-        public async Task<IActionResult> ApproveTour([FromRoute] int id)
-        {
-            var result = await _tourService.ApproveTourAsync(id);
-
-            return Ok(_response);
-        }   
+   
     }
 }
