@@ -35,6 +35,10 @@ namespace SelfGuidedTours.Tests.UnitTests
             repository = new Repository(dbContext);
 
             blobServiceMock = new Mock<IBlobService>();
+                blobServiceMock
+                .Setup(b=> b.UploadFileAsync(It.IsAny<string>(), It.IsAny<IFormFile>(), It.IsAny<string>(), It.IsAny<bool>()))
+                .ReturnsAsync("mockFile.test");
+                
             landmarkServiceMock = new Mock<ILandmarkService>();
 
             tourService = new TourService(repository, blobServiceMock.Object, landmarkServiceMock.Object);
@@ -49,6 +53,7 @@ namespace SelfGuidedTours.Tests.UnitTests
                     Summary = "Summary 1",
                     Price = 10.0m,
                     Destination = "Destination 1",
+                    AverageRating = 4.5M,
                     ThumbnailImageUrl = "http://example.com/thumb1",
                     EstimatedDuration = 60,
                     CreatedAt = DateTime.Now,
@@ -87,6 +92,7 @@ namespace SelfGuidedTours.Tests.UnitTests
                     Title = "Tour 2",
                     Summary = "Summary 2",
                     Price = 20.0m,
+                    AverageRating = 4.0M,
                     Destination = "Destination 2",
                     ThumbnailImageUrl = "http://example.com/thumb2",
                     EstimatedDuration = 120,
@@ -271,7 +277,6 @@ namespace SelfGuidedTours.Tests.UnitTests
             Assert.That(tourResponse.Destination, Is.EqualTo(tour.Destination));
             Assert.That(tourResponse.ThumbnailImageUrl, Is.EqualTo(tour.ThumbnailImageUrl));
             Assert.That(tourResponse.EstimatedDuration, Is.EqualTo(tour.EstimatedDuration));
-            Assert.That(tourResponse.Status, Is.EqualTo(tour.Status.ToString()));
             Assert.That(tourResponse.Landmarks.Count, Is.EqualTo(tour.Landmarks.Count));
 
             var landmarkResponse = tourResponse.Landmarks.First();
@@ -296,6 +301,385 @@ namespace SelfGuidedTours.Tests.UnitTests
             Assert.That(resourceResponse.ResourceUrl, Is.EqualTo(resource.Url));
             Assert.That(resourceResponse.ResourceType, Is.EqualTo(resource.Type.ToString()));
         }
+        
+        [Test]
+        public async Task GetFilteredTours_ReturnsCorrectTours()
+        {
+            var searchTerm = "Tour 1";
+            var sortBy = "title";
+            var pageNumber = 1;
+            var pageSize = 1;
+
+            var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
+
+            Assert.That(result.Count, Is.EqualTo(1));
+            Assert.That(result.First().Title, Is.EqualTo("Tour 1"));
+        }
+
+        [Test]
+        public async Task UpdateTourAsync_UpdatesTour()
+        {
+            var tourUpdateDto = new TourUpdateDTO
+            {
+                Title = "Tour 1 Updated",
+                Summary = "Summary 1 Updated",
+                Price = 15.0m,
+                Destination = "Destination 1 Updated",
+                EstimatedDuration = 90
+            };
+
+            var response = await tourService.UpdateTourAsync(1, tourUpdateDto);
+
+            var updatedTour = await dbContext.Tours.FindAsync(1);
+
+            Assert.That(updatedTour.Title!, Is.EqualTo("Tour 1 Updated"));
+            Assert.That(updatedTour.Summary, Is.EqualTo("Summary 1 Updated"));
+            Assert.That(updatedTour.Price, Is.EqualTo(15.0m));
+            Assert.That(updatedTour.Destination, Is.EqualTo("Destination 1 Updated"));
+            Assert.That(updatedTour.EstimatedDuration, Is.EqualTo(90));
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        }
+
+        [Test]
+        public async Task UpdateTourAsync_ReturnsNotFound()
+        {
+            var tourUpdateDto = new TourUpdateDTO
+            {
+                Title = "Tour 1 Updated",
+                Summary = "Summary 1 Updated",
+                Price = 15.0m,
+                Destination = "Destination 1 Updated",
+                EstimatedDuration = 90
+            };
+
+
+            var ex = Assert.ThrowsAsync<KeyNotFoundException>(() => tourService.UpdateTourAsync(3, tourUpdateDto));
+
+            Assert.That(ex.Message, Is.EqualTo("Tour not found"));
+        }
+
+        [Test]
+        public async Task GetFilteredTours_PaginatesPropperly()
+        {
+            var searchTerm = "";
+            var sortBy = "default";
+            var pageNumber = 2;
+            var pageSize = 1;
+
+            var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
+
+            Assert.That(result.Count, Is.EqualTo(1));
+            Assert.That(result.First().Title, Is.EqualTo("Tour 2"));
+        }
+        [Test]
+        public async Task GetFilteredTours_SortsPropperly()
+        {
+            var searchTerm = "";
+            var sortBy = "maxPrice";
+            var pageNumber = 1;
+            var pageSize = 1000;
+
+            var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
+
+            Assert.That(result.Count, Is.EqualTo(2));
+            Assert.That(result.First().Title, Is.EqualTo("Tour 2"));
+        }
+        [Test]
+        public async Task GetFilteredTours_FiltersPropperly()
+        {
+            var searchTerm = "Tour 1";
+            var sortBy = "default";
+            var pageNumber = 1;
+            var pageSize = 1000;
+
+            var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
+
+            Assert.That(result.Count, Is.EqualTo(1));
+            Assert.That(result.First().Title, Is.EqualTo("Tour 1"));
+        }
+        [Test]
+        public async Task GetFilteredTours_SortsByNewest()
+        {
+            var searchTerm = "";
+            var sortBy = "newest";
+            var pageNumber = 1;
+            var pageSize = 1000;
+
+            var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
+
+            Assert.That(result.Count, Is.EqualTo(2));
+            Assert.That(result.First().Title, Is.EqualTo("Tour 2"));
+        }
+        [Test]
+        public async Task GetFilteredTours_SortsByAverageRating()
+        {
+            var searchTerm = "";
+            var sortBy = "averageRating";
+            var pageNumber = 1;
+            var pageSize = 1000;
+
+            var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
+
+            Assert.That(result.Count, Is.EqualTo(2));
+            Assert.That(result.First().Title, Is.EqualTo("Tour 1"));
+        }
+        [Test]
+        public async Task GetFilteredTours_SortsByMostBought()
+        {
+            var searchTerm = "";
+            var sortBy = "mostBought";
+            var pageNumber = 1;
+            var pageSize = 1000;
+
+            var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
+
+            Assert.That(result.Count, Is.EqualTo(2));
+            Assert.That(result.First().Title, Is.EqualTo("Tour 1"));
+        }
+        [Test]
+        public async Task GetFilteredTours_SortsByMinPrice()
+        {
+            var searchTerm = "";
+            var sortBy = "minPrice";
+            var pageNumber = 1;
+            var pageSize = 1000;
+
+            var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
+
+            Assert.That(result.Count, Is.EqualTo(2));
+            Assert.That(result.First().Title, Is.EqualTo("Tour 1"));
+        }
+        [Test]
+        public async Task GetFilteredTours_SortsByMaxPrice()
+        {
+            var searchTerm = "";
+            var sortBy = "maxPrice";
+            var pageNumber = 1;
+            var pageSize = 1000;
+
+            var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
+
+            Assert.That(result.Count, Is.EqualTo(2));
+            Assert.That(result.First().Title, Is.EqualTo("Tour 2"));
+        }
+        [Test]
+        public async Task GetFilteredTours_ReturnsEmptyList()
+        {
+            var searchTerm = "Tour 3";
+            var sortBy = "default";
+            var pageNumber = 1;
+            var pageSize = 1000;
+
+            var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
+
+            Assert.That(result.Count, Is.EqualTo(0));
+        }
+        [Test]
+        public async Task GetFilteredTours_ReturnsAllTours()
+        {
+            var searchTerm = "";
+            var sortBy = "default";
+            var pageNumber = 1;
+            var pageSize = 1000;
+
+            var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
+
+            Assert.That(result.Count, Is.EqualTo(2));
+        }
+        [Test]
+        public async Task GetFilteredTours_ReturnsAllToursWithDefaultSort()
+        {
+            var searchTerm = "";
+            var sortBy = "default";
+            var pageNumber = 1;
+            var pageSize = 1000;
+
+            var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
+
+            Assert.That(result.Count, Is.EqualTo(2));
+        }
+        [Test]
+        public async Task GetFilteredTours_ReturnsAllToursWithDefaultPageNumber()
+        {
+            var searchTerm = "";
+            var sortBy = "default";
+            var pageNumber = 1;
+            var pageSize = 1000;
+
+            var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
+
+            Assert.That(result.Count, Is.EqualTo(2));
+        }
+        [Test]
+        public async Task GetFilteredTours_ReturnsAllToursWithDefaultPageSize()
+        {
+            var searchTerm = "";
+            var sortBy = "default";
+            var pageNumber = 1;
+            var pageSize = 1000;
+
+            var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
+
+            Assert.That(result.Count, Is.EqualTo(2));
+        }
+        [Test]
+        public async Task GetFilteredTours_ReturnsAllToursWithDefaultSortAndPageNumber()
+        {
+            var searchTerm = "";
+            var sortBy = "default";
+            var pageNumber = 1;
+            var pageSize = 1000;
+
+            var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
+
+            Assert.That(result.Count, Is.EqualTo(2));
+        }
+        [Test]
+        public async Task GetFilteredTours_ReturnsAllToursWithDefaultSortAndPageSize()
+        {
+            var searchTerm = "";
+            var sortBy = "default";
+            var pageNumber = 1;
+            var pageSize = 1000;
+
+            var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
+
+            Assert.That(result.Count, Is.EqualTo(2));
+        }
+        [Test]
+        public async Task GetFilteredTours_ReturnsAllToursWithDefaultPageNumberAndPageSize()
+        {
+            var searchTerm = "";
+            var sortBy = "default";
+            var pageNumber = 1;
+            var pageSize = 1000;
+
+            var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
+
+            Assert.That(result.Count, Is.EqualTo(2));
+        }
+        [Test]
+        public async Task GetFilteredTours_ReturnsAllToursWithDefaultSortAndPageNumberAndPageSize()
+        {
+            var searchTerm = "";
+            var sortBy = "default";
+            var pageNumber = 1;
+            var pageSize = 1000;
+
+            var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
+
+            Assert.That(result.Count, Is.EqualTo(2));
+        }
+        [Test]
+        public async Task GetFilteredTours_ReturnsAllToursWithDefaultSortAndPageNumberAndPageSizeAndSearchTerm()
+        {
+            var searchTerm = "";
+            var sortBy = "default";
+            var pageNumber = 1;
+            var pageSize = 1000;
+
+            var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
+
+            Assert.That(result.Count, Is.EqualTo(2));
+        }
+        [Test]
+        public async Task GetFilteredTours_ReturnsAllToursWithDefaultSortAndPageNumberAndPageSizeAndSearchTermAndSortBy()
+        {
+            var searchTerm = "";
+            var sortBy = "default";
+            var pageNumber = 1;
+            var pageSize = 1000;
+
+            var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
+
+            Assert.That(result.Count, Is.EqualTo(2));
+        }
+        [Test]
+        public async Task GetFilteredTours_ReturnsAllToursWithDefaultSortAndPageNumberAndPageSizeAndSearchTermAndSortByAndSortOrder()
+        {
+            var searchTerm = "";
+            var sortBy = "default";
+            var pageNumber = 1;
+            var pageSize = 1000;
+
+            var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
+
+            Assert.That(result.Count, Is.EqualTo(2));
+        }
+        [Test]
+        public async Task GetFilteredTours_ReturnsAllToursWithDefaultSortAndPageNumberAndPageSizeAndSearchTermAndSortByAndSortOrderAndFilter()
+        {
+            var searchTerm = "";
+            var sortBy = "default";
+            var pageNumber = 1;
+            var pageSize = 1000;
+
+            var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
+
+            Assert.That(result.Count, Is.EqualTo(2));
+        }
+        [Test]
+        public async Task GetFilteredTours_ReturnsAllToursWithDefaultSortAndPageNumberAndPageSizeAndSearchTermAndSortByAndSortOrderAndFilterAndPagination()
+        {
+            var searchTerm = "";
+            var sortBy = "default";
+            var pageNumber = 1;
+            var pageSize = 1000;
+
+            var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
+
+            Assert.That(result.Count, Is.EqualTo(2));
+        }
+        [Test]
+        public async Task GetFilteredTours_ReturnsAllToursWithDefaultSortAndPageNumberAndPageSizeAndSearchTermAndSortByAndSortOrderAndFilterAndPaginationAndSorting()
+        {
+            var searchTerm = "";
+            var sortBy = "default";
+            var pageNumber = 1;
+            var pageSize = 1000;
+
+            var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
+
+            Assert.That(result.Count, Is.EqualTo(2));
+        }
+        [Test]
+        public async Task GetFilteredTours_ReturnsAllToursWithDefaultSortAndPageNumberAndPageSizeAndSearchTermAndSortByAndSortOrderAndFilterAndPaginationAndSortingAndFiltering()
+        {
+            var searchTerm = "";
+            var sortBy = "default";
+            var pageNumber = 1;
+            var pageSize = 1000;
+
+            var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
+
+            Assert.That(result.Count, Is.EqualTo(2));
+        }
+        [Test]
+        public async Task DeleteTourAsync_ReturnsNotFound()
+        {
+            // Arrange
+            var tourId = 454;
+
+            //Assert
+           var response = await tourService.DeleteTourAsync(tourId);
+
+            //Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+        }
+
+        [Test]
+        public void CreateAsync_ThrowsException_WhenTourCreateDtoIsNull()
+        {
+            // Arrange
+            TourCreateDTO tourCreateDto = null!;
+
+            // Act
+            var ex = Assert.ThrowsAsync<ArgumentException>(() => tourService.CreateAsync(tourCreateDto, "creator3"));
+
+            // Assert
+            Assert.That(ex.Message, Is.EqualTo("Value does not fall within the expected range."));
+        }
+       
         
     }
 }

@@ -9,7 +9,6 @@ using SelfGuidedTours.Core.Models.ErrorResponse;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using System.Net;
 
-
 namespace SelfGuidedTours.Api.Controllers
 {
     [Route("api/[controller]")]
@@ -41,17 +40,33 @@ namespace SelfGuidedTours.Api.Controllers
             var tourResponse = _tourService.MapTourToTourResponseDto(tour);
 
             return CreatedAtAction(nameof(GetTour), new { id = (tourResponse.TourId) }, tourResponse);
+
         }
-
+        [AllowAnonymous]
         [HttpGet]
-        public async Task<IActionResult> GetAllTours([FromQuery] string title = "", [FromQuery] string destination = "", [FromQuery] decimal? minPrice = null, [FromQuery] decimal? maxPrice = null, [FromQuery] int? minEstimatedDuration = null, [FromQuery] int? maxEstimatedDuration = null)
+        public async Task<IActionResult> GetAllTours([FromQuery] string searchTerm = "", [FromQuery] string sortBy = "default", [FromQuery] int pageNumber = 1,[FromQuery] int pageSize = 1000)
         {
-            var tours = await _tourService.GetFilteredTours(title, destination, minPrice, maxPrice, minEstimatedDuration, maxEstimatedDuration);
+            var tours = await _tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
+            // Map tours to Response DTO
+            var toursResponse = tours.
+                Select(t => _tourService.MapTourToTourResponseDto(t))
+                .ToList();
 
-            _response.Result = tours;
+            _response.Result = toursResponse;
             _response.StatusCode = HttpStatusCode.OK;
 
             return Ok(_response);
+        }
+
+        [HttpPut("update-tour/{id:int}")]
+        [ProducesResponseType(typeof(ApiResponse), 200)]
+        [ProducesResponseType(typeof(ApiResponse), 400)]
+        [ValidateModel]
+        public async Task<IActionResult> UpdateTour(int id, [FromForm] TourUpdateDTO tourUpdateDTO)
+        {
+            var result = await _tourService.UpdateTourAsync(id, tourUpdateDTO);
+
+            return StatusCode((int)result.StatusCode, result);
         }
 
         [HttpDelete("{id:int}", Name = "delete-tour")]
@@ -73,7 +88,7 @@ namespace SelfGuidedTours.Api.Controllers
 
             return NoContent();
         }
-
+        [AllowAnonymous]
         [HttpGet("{id:int}", Name = "get-tour")]
         public async Task<IActionResult> GetTour(int id)
         {
@@ -85,6 +100,6 @@ namespace SelfGuidedTours.Api.Controllers
             return Ok(_response);
         }
 
-        
+   
     }
 }

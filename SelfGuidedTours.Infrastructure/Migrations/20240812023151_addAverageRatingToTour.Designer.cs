@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SelfGuidedTours.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SelfGuidedTours.Infrastructure.Data;
 namespace SelfGuidedTours.Infrastructure.Migrations
 {
     [DbContext(typeof(SelfGuidedToursDbContext))]
-    partial class SelfGuidedToursDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240812023151_addAverageRatingToTour")]
+    partial class addAverageRatingToTour
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -377,9 +380,6 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.Property<int>("TourId")
                         .HasColumnType("int");
 
@@ -508,9 +508,6 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
-
-                    b.Property<int>("TypeTour")
-                        .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -646,10 +643,6 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("StripeCustomerId")
-                        .HasColumnType("nvarchar(max)")
-                        .HasComment("Id of the stripe customer associated with the user. Created when the user makes a payment.");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -660,17 +653,17 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         {
                             Id = "27d78708-8671-4b05-bd5e-17aa91392224",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "ee5b71d5-3af1-44f6-b4d6-fd68f6a3960a",
+                            ConcurrencyStamp = "e6355698-6d3e-4dbe-a00f-3460ee378f0a",
                             Email = "admin@selfguidedtours.bg",
                             EmailConfirmed = false,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@SELFGUIDEDTOURS.BG",
                             NormalizedUserName = "ADMIN ADMINOV",
-                            PasswordHash = "AQAAAAIAAYagAAAAEOwdPeaWXYW4ySRQhGR0MkNWDhygpRIt3bSAiKlBfp3zJCCnebmtOwNbvD9dHKDRyw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEJVjOm3sfWsgrhOO7arBq8btJeuT/gix8BptRlpWyfbDnjtgGKPzsdtr8uRYz6T9Eg==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "6304ad3e-c51d-42a1-87ba-a8ebc4085707",
+                            SecurityStamp = "1109a2cf-4f13-4239-bd2d-26fce588d523",
                             TwoFactorEnabled = false,
-                            CreatedAt = new DateTime(2024, 8, 15, 11, 12, 33, 549, DateTimeKind.Local).AddTicks(7512),
+                            CreatedAt = new DateTime(2024, 8, 12, 5, 31, 49, 802, DateTimeKind.Local).AddTicks(2490),
                             Name = "Admin Adminov"
                         });
                 });

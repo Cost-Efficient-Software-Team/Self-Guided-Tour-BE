@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Moq;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.CustomExceptions;
 using SelfGuidedTours.Core.Models.Auth;
@@ -30,7 +31,7 @@ namespace SelfGuidedTours.Tests.UnitTests
         private TokenGenerator tokenGenerator;
         private ILoggerFactory loggerFactory;
         private IProfileService profileService;
-        private readonly UserManager<ApplicationUser>? userManager;
+        private  Mock<UserManager<ApplicationUser>> mockUserManager;
         private IdentityRole[] roles;
 
         private IEnumerable<ApplicationUser> users;
@@ -46,6 +47,10 @@ namespace SelfGuidedTours.Tests.UnitTests
         public async Task SetupAsync()
         {
             var hasher = new PasswordHasher<ApplicationUser>();
+
+             var store = new Mock<IUserStore<ApplicationUser>>();
+
+            mockUserManager = new Mock<UserManager<ApplicationUser>>(store.Object, null, null, null, null, null, null, null, null);
 
             #region User and Admin initializing
 
@@ -72,8 +77,8 @@ namespace SelfGuidedTours.Tests.UnitTests
             #endregion
             roles =
             [
-                new IdentityRole("User"),
-                new IdentityRole("Admin")
+                new IdentityRole("4f8554d2-cfaa-44b5-90ce-e883c804ae90"), // User
+                new IdentityRole("656a6079-ec9a-4a98-a484-2d1752156d60") // Admin
             ];
             var useRole = new IdentityUserRole<string>()
             {
@@ -111,12 +116,14 @@ namespace SelfGuidedTours.Tests.UnitTests
             refreshTokenService = new RefreshTokenService(repository);
             logger = new Logger<AuthService>(loggerFactory);
 
-            profileService = new ProfileService(repository, userManager!);
+            profileService = new ProfileService(repository, mockUserManager.Object);
 
             // AuthService initialized
             service = new AuthService(repository, accessTokenGenerator,
-                refreshTokenGenerator, refreshTokenValidator, refreshTokenService, profileService, userManager, logger);
+                refreshTokenGenerator, refreshTokenValidator, refreshTokenService, profileService, mockUserManager.Object, logger);
 
+            mockUserManager.Setup(m => m.FindByEmailAsync(It.IsAny<string>())).ReturnsAsync((string email) => users.SingleOrDefault(u => u.Email == email));
+            mockUserManager.Setup(m => m.GenerateEmailConfirmationTokenAsync(It.IsAny<ApplicationUser>())).ReturnsAsync("MockToken");
             // Environment Variables
             Environment.SetEnvironmentVariable("ACCESSTOKEN_KEY", "4y7XS2AHicSOs2uUJCxwlHWqTJNExW3UDUjMeXi96uLEso1YV4RazqQubpFBdx0zZGtdxBelKURhh0WXxPR0mEJQHk_0U9HeYtqcMManhoP3X2Ge8jgxh6k4C_Gd4UPTc6lkx0Ca5eRE16ciFQ6wmYDnaXC8NbngGqartHccAxE");
             Environment.SetEnvironmentVariable("ACCESSTOKEN_EXPIRATIONMINUTES", "50");

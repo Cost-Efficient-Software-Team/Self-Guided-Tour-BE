@@ -4,18 +4,19 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Azure;
 using Microsoft.IdentityModel.Tokens;
-using SelfGuidedTours.Core.Contracts.BlobStorage;
 using SelfGuidedTours.Core.Contracts;
+using SelfGuidedTours.Core.Contracts.BlobStorage;
 using SelfGuidedTours.Core.Models.ErrorResponse;
 using SelfGuidedTours.Core.Services;
 using SelfGuidedTours.Core.Services.BlobStorage;
 using SelfGuidedTours.Core.Services.TokenGenerators;
 using SelfGuidedTours.Core.Services.TokenValidators;
 using SelfGuidedTours.Infrastructure.Common;
-using SelfGuidedTours.Infrastructure.Data.Models;
 using SelfGuidedTours.Infrastructure.Data;
+using SelfGuidedTours.Infrastructure.Data.Models;
 using System.Text;
 using System.Text.Json.Serialization;
+using Stripe;
 
 namespace SelfGuidedTours.Api.Extensions
 {
@@ -28,7 +29,7 @@ namespace SelfGuidedTours.Api.Extensions
              {
                  options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
              })
-             .ConfigureApiBehaviorOptions(options =>  //Customize the response for invalid model state, by overriding the default behavior
+             .ConfigureApiBehaviorOptions(options =>  // Customize the response for invalid model state, by overriding the default behavior
              {
                  options.InvalidModelStateResponseFactory = ContextBoundObject =>
                  {
@@ -42,11 +43,10 @@ namespace SelfGuidedTours.Api.Extensions
                      {
                          ErrorId = Guid.NewGuid(),
                          StatusCode = StatusCodes.Status400BadRequest,
-                         Message = "One or more validation errors occured",
+                         Message = "One or more validation errors occurred",
                          Errors = errors,
                          Type = "https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.1"
                      };
-
 
                      return new BadRequestObjectResult(errorResponse)
                      {
@@ -57,9 +57,10 @@ namespace SelfGuidedTours.Api.Extensions
 
             return services;
         }
+
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
         {
-            //Inject services here
+            // Inject services here
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IRefreshTokenService, RefreshTokenService>();
@@ -71,8 +72,9 @@ namespace SelfGuidedTours.Api.Extensions
             services.AddScoped<IPaymentService, PaymentService>();
             services.AddScoped<IBlobService, BlobService>();
             services.AddScoped<IAdminService, AdminService>();
+            services.AddScoped<IReviewService, Core.Services.ReviewService>(); // Add this line
 
-            //Token generators
+            // Token generators
             services.AddScoped<AccessTokenGenerator>();
             services.AddScoped<RefreshTokenGenerator>();
             services.AddScoped<TokenGenerator>();
@@ -88,12 +90,32 @@ namespace SelfGuidedTours.Api.Extensions
                     .AllowAnyHeader();
                 });
             });
+            // Setup Stripe
+            var stripeKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY")
+                        ?? throw new ApplicationException("Stripe ENV variables are not configured.");
+            services.AddSingleton<IStripeClient>(new StripeClient(stripeKey));
+
+            // Add Stripe customer service in DI container
+            services.AddScoped(provider =>
+            {
+                var stripeClient = provider.GetRequiredService<IStripeClient>();
+                return new CustomerService(stripeClient);
+            });
+
+            // Add Stripe payment intent service in DI container
+            services.AddScoped(provider =>
+            {
+                var stripeClient = provider.GetRequiredService<IStripeClient>();
+                return new PaymentIntentService(stripeClient);
+            });
 
             return services;
         }
+
         public static IServiceCollection AddApplicationDbContext(this IServiceCollection services, IConfiguration config)
         {
-            var connectionString = config.GetConnectionString("DefaultConnection"); //Connection string from user secrets
+            var connectionString = config.GetConnectionString("DefaultConnection"); // Connection string from user secrets
+
             services.AddDbContext<SelfGuidedToursDbContext>(options =>
             {
                 options.UseSqlServer(connectionString);
@@ -110,6 +132,7 @@ namespace SelfGuidedTours.Api.Extensions
 
             return services;
         }
+
         public static IServiceCollection AddApplicationIdentity(this IServiceCollection services, IConfiguration config)
         {
             services.AddIdentityCore<ApplicationUser>()
@@ -118,8 +141,8 @@ namespace SelfGuidedTours.Api.Extensions
                 .AddEntityFrameworkStores<SelfGuidedToursDbContext>()
                 .AddDefaultTokenProviders();
 
-
             //Password requirements
+
             services.Configure<IdentityOptions>(options =>
             {
                 options.Password.RequireDigit = true;
@@ -128,19 +151,20 @@ namespace SelfGuidedTours.Api.Extensions
                 options.Password.RequireUppercase = true;
                 options.Password.RequiredLength = 8;
                 options.Password.RequiredUniqueChars = 1;
+                options.SignIn.RequireConfirmedEmail = true;
             });
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
                     var key = Environment.GetEnvironmentVariable("ACCESSTOKEN_KEY") ??
-                         throw new ApplicationException("ACCESSTOKEN_KEY is not configured.");
+                             throw new ApplicationException("ACCESSTOKEN_KEY is not configured.");
 
                     var issuer = Environment.GetEnvironmentVariable("ISSUER") ??
-                         throw new ApplicationException("ISSUER is not configured.");
+                             throw new ApplicationException("ISSUER is not configured.");
 
                     var audience = Environment.GetEnvironmentVariable("AUDIENCE") ??
-                         throw new ApplicationException("AUDIENCE is not configured.");
+                             throw new ApplicationException("AUDIENCE is not configured.");
 
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
@@ -156,8 +180,8 @@ namespace SelfGuidedTours.Api.Extensions
                     };
                 });
 
-
             return services;
         }
+
     }
 }

@@ -1,4 +1,6 @@
-﻿using SelfGuidedTours.Core.Contracts;
+﻿using Microsoft.Extensions.Configuration;
+using Moq;
+using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Services;
 
@@ -8,11 +10,15 @@ namespace SelfGuidedTours.Tests.UnitTests
     public class EmailServiceTests
     {
         private IEmailService emailService;
+        private Mock<IConfiguration> cofigurationMock;
 
         [SetUp]
         public void Setup()
         {
-            emailService = new EmailService();
+
+            
+            cofigurationMock = new Mock<IConfiguration>();
+            emailService = new EmailService(cofigurationMock.Object);
 
             // Set environment variables for testing
             Environment.SetEnvironmentVariable("ASPNETCORE_SMTP_USERNAME", "testuser@example.com");
