@@ -259,7 +259,7 @@ namespace SelfGuidedTours.Core.Services
             {
                 query = query.Where(t => t.Destination.Contains(searchTerm)
                                          || t.Title.Contains(searchTerm)
-                                         || t.Summary.Contains(searchTerm));
+                                         || (t.Summary != null && t.Summary.Contains(searchTerm)));
             }
 
             var totalToursCount = await query.CountAsync();
