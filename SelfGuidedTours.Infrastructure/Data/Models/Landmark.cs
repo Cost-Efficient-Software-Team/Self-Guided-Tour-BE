@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using static SelfGuidedTours.Common.ValidationConstants.ValidationConstants.Landmark;
 using static SelfGuidedTours.Common.MessageConstants.ErrorMessages;
+using static SelfGuidedTours.Common.ValidationConstants.ValidationConstants.Landmark;
 namespace SelfGuidedTours.Infrastructure.Data.Models
 {
     public class Landmark
@@ -21,9 +21,8 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         [StringLength(NameMaxLength, MinimumLength = NameMinLength, ErrorMessage = LengthErrorMessage)]
         public string LocationName { get; set; } = null!;
 
-        [Required]
-        [StringLength(DescriptionMaxLength, MinimumLength = DescriptionMinLength, ErrorMessage = LengthErrorMessage)]
-        public string Description { get; set; } = null!;
+        [StringLength(DescriptionMaxLength, ErrorMessage = LengthErrorMessage)]
+        public string? Description { get; set; }
 
         [Required]
         public int CoordinateId { get; set; }

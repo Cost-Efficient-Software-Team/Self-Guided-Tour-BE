@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using static SelfGuidedTours.Common.ValidationConstants.ValidationConstants.Landmark;
 using static SelfGuidedTours.Common.MessageConstants.ErrorMessages;
+using static SelfGuidedTours.Common.ValidationConstants.ValidationConstants.Landmark;
 namespace SelfGuidedTours.Core.Models.Dto
 {
     public class LandmarkCreateTourDTO
@@ -29,9 +29,8 @@ namespace SelfGuidedTours.Core.Models.Dto
         [Required]
         public int StopOrder { get; set; }
 
-        [Required]
-        [StringLength(DescriptionMaxLength, MinimumLength = DescriptionMinLength, ErrorMessage = LengthErrorMessage)]
-        public string Description { get; set; } = null!;
+        [StringLength(DescriptionMaxLength, ErrorMessage = LengthErrorMessage)]
+        public string? Description { get; set; }
 
         public List<IFormFile> Resources { get; set; }
     }
