@@ -21,13 +21,11 @@ namespace SelfGuidedTours.Tests.UnitTests
         private ITourService tourService;
         private Mock<IBlobService> blobServiceMock;
         private Mock<ILandmarkService> landmarkServiceMock;
-
         [SetUp]
         public async Task SetupAsync()
         {
             var dbContextOptions = new DbContextOptionsBuilder<SelfGuidedToursDbContext>()
-                        .UseInMemoryDatabase("SelfGuidedToursInMemoryDb"
-                            + Guid.NewGuid().ToString())
+                        .UseInMemoryDatabase("SelfGuidedToursInMemoryDb" + Guid.NewGuid().ToString())
                         .Options;
 
             dbContext = new SelfGuidedToursDbContext(dbContextOptions);
@@ -35,10 +33,9 @@ namespace SelfGuidedTours.Tests.UnitTests
             repository = new Repository(dbContext);
 
             blobServiceMock = new Mock<IBlobService>();
-                blobServiceMock
-                .Setup(b=> b.UploadFileAsync(It.IsAny<string>(), It.IsAny<IFormFile>(), It.IsAny<string>(), It.IsAny<bool>()))
-                .ReturnsAsync("mockFile.test");
-                
+            blobServiceMock.Setup(b => b.UploadFileAsync(It.IsAny<string>(), It.IsAny<IFormFile>(), It.IsAny<string>(), It.IsAny<bool>()))
+                           .ReturnsAsync("mockFile.test");
+
             landmarkServiceMock = new Mock<ILandmarkService>();
 
             tourService = new TourService(repository, blobServiceMock.Object, landmarkServiceMock.Object);
@@ -56,8 +53,8 @@ namespace SelfGuidedTours.Tests.UnitTests
                     AverageRating = 4.5M,
                     ThumbnailImageUrl = "http://example.com/thumb1",
                     EstimatedDuration = 60,
-                    CreatedAt = DateTime.Now,
-                    Status = Status.UnderReview,
+                    CreatedAt = DateTime.Now.AddDays(-10), // За тестовете за новост
+                    Status = Status.Approved,
                     Landmarks = new List<Landmark>
                     {
                         new Landmark
@@ -96,7 +93,7 @@ namespace SelfGuidedTours.Tests.UnitTests
                     Destination = "Destination 2",
                     ThumbnailImageUrl = "http://example.com/thumb2",
                     EstimatedDuration = 120,
-                    CreatedAt = DateTime.Now,
+                    CreatedAt = DateTime.Now, // За тестовете за новост
                     Status = Status.Approved,
                     Landmarks = new List<Landmark>()
                 }
@@ -104,15 +101,13 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             await dbContext.AddRangeAsync(tours);
             await dbContext.SaveChangesAsync();
-
-            // Set environment variable for container name
-            Environment.SetEnvironmentVariable("CONTAINER_NAME", "test-container");
         }
 
         [TearDown]
-        public void TearDown()
+        public async Task TearDown()
         {
-            dbContext.Dispose();
+            await dbContext.Database.EnsureDeletedAsync();
+            await dbContext.DisposeAsync();
         }
 
         [Test]
@@ -301,19 +296,19 @@ namespace SelfGuidedTours.Tests.UnitTests
             Assert.That(resourceResponse.ResourceUrl, Is.EqualTo(resource.Url));
             Assert.That(resourceResponse.ResourceType, Is.EqualTo(resource.Type.ToString()));
         }
-        
+
         [Test]
-        public async Task GetFilteredTours_ReturnsCorrectTours()
+        public async Task GetFilteredTours_PaginatesProperly()
         {
-            var searchTerm = "Tour 1";
-            var sortBy = "title";
-            var pageNumber = 1;
+            var searchTerm = "";
+            var sortBy = "default";
+            var pageNumber = 2;
             var pageSize = 1;
 
             var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
 
-            Assert.That(result.Count, Is.EqualTo(1));
-            Assert.That(result.First().Title, Is.EqualTo("Tour 1"));
+            Assert.That(result.Tours.Count, Is.EqualTo(1));
+            Assert.That(result.Tours.First().Title, Is.EqualTo("Tour 2"));
         }
 
         [Test]
@@ -368,8 +363,8 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
 
-            Assert.That(result.Count, Is.EqualTo(1));
-            Assert.That(result.First().Title, Is.EqualTo("Tour 2"));
+            Assert.That(result.Tours.Count, Is.EqualTo(1));
+            Assert.That(result.Tours.First().Title, Is.EqualTo("Tour 2"));
         }
         [Test]
         public async Task GetFilteredTours_SortsPropperly()
@@ -381,22 +376,26 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
 
-            Assert.That(result.Count, Is.EqualTo(2));
-            Assert.That(result.First().Title, Is.EqualTo("Tour 2"));
+            Assert.That(result.Tours.Count, Is.EqualTo(2));
+            Assert.That(result.Tours.First().Title, Is.EqualTo("Tour 2"));
         }
         [Test]
         public async Task GetFilteredTours_FiltersPropperly()
         {
+            // Arrange
             var searchTerm = "Tour 1";
             var sortBy = "default";
             var pageNumber = 1;
             var pageSize = 1000;
 
+            // Act
             var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
 
-            Assert.That(result.Count, Is.EqualTo(1));
-            Assert.That(result.First().Title, Is.EqualTo("Tour 1"));
+            // Assert
+            Assert.That(result.Tours.Count, Is.EqualTo(1));
+            Assert.That(result.Tours.First().Title, Is.EqualTo("Tour 1"));
         }
+
         [Test]
         public async Task GetFilteredTours_SortsByNewest()
         {
@@ -407,8 +406,8 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
 
-            Assert.That(result.Count, Is.EqualTo(2));
-            Assert.That(result.First().Title, Is.EqualTo("Tour 2"));
+            Assert.That(result.Tours.Count, Is.EqualTo(2));
+            Assert.That(result.Tours.First().Title, Is.EqualTo("Tour 2"));
         }
         [Test]
         public async Task GetFilteredTours_SortsByAverageRating()
@@ -420,8 +419,8 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
 
-            Assert.That(result.Count, Is.EqualTo(2));
-            Assert.That(result.First().Title, Is.EqualTo("Tour 1"));
+            Assert.That(result.Tours.Count, Is.EqualTo(2));
+            Assert.That(result.Tours.First().Title, Is.EqualTo("Tour 1"));
         }
         [Test]
         public async Task GetFilteredTours_SortsByMostBought()
@@ -433,8 +432,8 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
 
-            Assert.That(result.Count, Is.EqualTo(2));
-            Assert.That(result.First().Title, Is.EqualTo("Tour 1"));
+            Assert.That(result.Tours.Count, Is.EqualTo(2));
+            Assert.That(result.Tours.First().Title, Is.EqualTo("Tour 1"));
         }
         [Test]
         public async Task GetFilteredTours_SortsByMinPrice()
@@ -446,8 +445,8 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
 
-            Assert.That(result.Count, Is.EqualTo(2));
-            Assert.That(result.First().Title, Is.EqualTo("Tour 1"));
+            Assert.That(result.Tours.Count, Is.EqualTo(2));
+            Assert.That(result.Tours.First().Title, Is.EqualTo("Tour 1"));
         }
         [Test]
         public async Task GetFilteredTours_SortsByMaxPrice()
@@ -459,8 +458,8 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
 
-            Assert.That(result.Count, Is.EqualTo(2));
-            Assert.That(result.First().Title, Is.EqualTo("Tour 2"));
+            Assert.That(result.Tours.Count, Is.EqualTo(2));
+            Assert.That(result.Tours.First().Title, Is.EqualTo("Tour 2"));
         }
         [Test]
         public async Task GetFilteredTours_ReturnsEmptyList()
@@ -472,7 +471,7 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
 
-            Assert.That(result.Count, Is.EqualTo(0));
+            Assert.That(result.Tours.Count, Is.EqualTo(0));
         }
         [Test]
         public async Task GetFilteredTours_ReturnsAllTours()
@@ -484,7 +483,7 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
 
-            Assert.That(result.Count, Is.EqualTo(2));
+            Assert.That(result.Tours.Count, Is.EqualTo(2));
         }
         [Test]
         public async Task GetFilteredTours_ReturnsAllToursWithDefaultSort()
@@ -496,7 +495,7 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
 
-            Assert.That(result.Count, Is.EqualTo(2));
+            Assert.That(result.Tours.Count, Is.EqualTo(2));
         }
         [Test]
         public async Task GetFilteredTours_ReturnsAllToursWithDefaultPageNumber()
@@ -508,7 +507,7 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
 
-            Assert.That(result.Count, Is.EqualTo(2));
+            Assert.That(result.Tours.Count, Is.EqualTo(2));
         }
         [Test]
         public async Task GetFilteredTours_ReturnsAllToursWithDefaultPageSize()
@@ -520,7 +519,7 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
 
-            Assert.That(result.Count, Is.EqualTo(2));
+            Assert.That(result.Tours.Count, Is.EqualTo(2));
         }
         [Test]
         public async Task GetFilteredTours_ReturnsAllToursWithDefaultSortAndPageNumber()
@@ -532,7 +531,7 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
 
-            Assert.That(result.Count, Is.EqualTo(2));
+            Assert.That(result.Tours.Count, Is.EqualTo(2));
         }
         [Test]
         public async Task GetFilteredTours_ReturnsAllToursWithDefaultSortAndPageSize()
@@ -544,7 +543,7 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
 
-            Assert.That(result.Count, Is.EqualTo(2));
+            Assert.That(result.Tours.Count, Is.EqualTo(2));
         }
         [Test]
         public async Task GetFilteredTours_ReturnsAllToursWithDefaultPageNumberAndPageSize()
@@ -556,7 +555,7 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
 
-            Assert.That(result.Count, Is.EqualTo(2));
+            Assert.That(result.Tours.Count, Is.EqualTo(2));
         }
         [Test]
         public async Task GetFilteredTours_ReturnsAllToursWithDefaultSortAndPageNumberAndPageSize()
@@ -568,7 +567,7 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
 
-            Assert.That(result.Count, Is.EqualTo(2));
+            Assert.That(result.Tours.Count, Is.EqualTo(2));
         }
         [Test]
         public async Task GetFilteredTours_ReturnsAllToursWithDefaultSortAndPageNumberAndPageSizeAndSearchTerm()
@@ -580,7 +579,7 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
 
-            Assert.That(result.Count, Is.EqualTo(2));
+            Assert.That(result.Tours.Count, Is.EqualTo(2));
         }
         [Test]
         public async Task GetFilteredTours_ReturnsAllToursWithDefaultSortAndPageNumberAndPageSizeAndSearchTermAndSortBy()
@@ -592,7 +591,7 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
 
-            Assert.That(result.Count, Is.EqualTo(2));
+            Assert.That(result.Tours.Count, Is.EqualTo(2));
         }
         [Test]
         public async Task GetFilteredTours_ReturnsAllToursWithDefaultSortAndPageNumberAndPageSizeAndSearchTermAndSortByAndSortOrder()
@@ -604,7 +603,7 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
 
-            Assert.That(result.Count, Is.EqualTo(2));
+            Assert.That(result.Tours.Count, Is.EqualTo(2));
         }
         [Test]
         public async Task GetFilteredTours_ReturnsAllToursWithDefaultSortAndPageNumberAndPageSizeAndSearchTermAndSortByAndSortOrderAndFilter()
@@ -616,7 +615,7 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
 
-            Assert.That(result.Count, Is.EqualTo(2));
+            Assert.That(result.Tours.Count, Is.EqualTo(2));
         }
         [Test]
         public async Task GetFilteredTours_ReturnsAllToursWithDefaultSortAndPageNumberAndPageSizeAndSearchTermAndSortByAndSortOrderAndFilterAndPagination()
@@ -628,7 +627,7 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
 
-            Assert.That(result.Count, Is.EqualTo(2));
+            Assert.That(result.Tours.Count, Is.EqualTo(2));
         }
         [Test]
         public async Task GetFilteredTours_ReturnsAllToursWithDefaultSortAndPageNumberAndPageSizeAndSearchTermAndSortByAndSortOrderAndFilterAndPaginationAndSorting()
@@ -640,7 +639,7 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
 
-            Assert.That(result.Count, Is.EqualTo(2));
+            Assert.That(result.Tours.Count, Is.EqualTo(2));
         }
         [Test]
         public async Task GetFilteredTours_ReturnsAllToursWithDefaultSortAndPageNumberAndPageSizeAndSearchTermAndSortByAndSortOrderAndFilterAndPaginationAndSortingAndFiltering()
@@ -652,7 +651,7 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             var result = await tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
 
-            Assert.That(result.Count, Is.EqualTo(2));
+            Assert.That(result.Tours.Count, Is.EqualTo(2));
         }
         [Test]
         public async Task DeleteTourAsync_ReturnsNotFound()
@@ -661,7 +660,7 @@ namespace SelfGuidedTours.Tests.UnitTests
             var tourId = 454;
 
             //Assert
-           var response = await tourService.DeleteTourAsync(tourId);
+            var response = await tourService.DeleteTourAsync(tourId);
 
             //Assert
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
@@ -679,7 +678,7 @@ namespace SelfGuidedTours.Tests.UnitTests
             // Assert
             Assert.That(ex.Message, Is.EqualTo("Value does not fall within the expected range."));
         }
-       
-        
+
+
     }
 }
