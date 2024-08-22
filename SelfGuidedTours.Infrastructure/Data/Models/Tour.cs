@@ -20,9 +20,8 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         [StringLength(TitleMaxLength, MinimumLength = TitleMinLength, ErrorMessage = LengthErrorMessage)]
         public string Title { get; set; } = null!;
 
-        [Required]
-        [StringLength(SummaryMaxLength, MinimumLength = SummaryMinLength, ErrorMessage = LengthErrorMessage)]
-        public string Summary { get; set; } = null!;
+        [StringLength(SummaryMaxLength, ErrorMessage = LengthErrorMessage)]
+        public string? Summary { get; set; }
 
         [Column(TypeName = "decimal(10, 2)")]
         public decimal? Price { get; set; }
