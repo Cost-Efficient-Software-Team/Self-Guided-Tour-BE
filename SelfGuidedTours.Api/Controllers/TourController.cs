@@ -101,14 +101,15 @@ namespace SelfGuidedTours.Api.Controllers
 
         [AllowAnonymous]
         [HttpGet("total-pages")]
-        public async Task<IActionResult> GetTotalPages([FromQuery] string searchTerm = "", [FromQuery] int pageSize = 1000)
+        public async Task<IActionResult> GetTotalPagesNumber([FromQuery] string searchTerm = "", [FromQuery] string sortBy = "default", [FromQuery] int pageSize = 1000)
         {
-            var totalPages = await _tourService.GetTotalPagesNumberAsync(searchTerm, pageSize);
+            var totalPages = await _tourService.GetTotalPagesNumberAsync(searchTerm, sortBy, pageSize);
 
             _response.Result = totalPages;
             _response.StatusCode = HttpStatusCode.OK;
 
             return Ok(_response);
         }
+
     }
 }

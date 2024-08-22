@@ -250,7 +250,7 @@ namespace SelfGuidedTours.Core.Services
             return response;
         }
 
-        public async Task<int> GetTotalPagesNumberAsync(string searchTerm, int pageSize)
+        public async Task<int> GetTotalPagesNumberAsync(string searchTerm, string sortBy, int pageSize)
         {
             var query = repository.All<Tour>().AsQueryable();
 
@@ -262,11 +262,45 @@ namespace SelfGuidedTours.Core.Services
                                          || (t.Summary != null && t.Summary.Contains(searchTerm)));
             }
 
-            var totalToursCount = await query.CountAsync();
-            var totalPages = (int)Math.Ceiling(totalToursCount / (double)pageSize);
+            // Sorting
+            if (sortBy == "newest")
+            {
+                query = query.OrderByDescending(t => t.CreatedAt);
+            }
+            else if (sortBy == "averageRating")
+            {
+                query = query.OrderByDescending(t => t.AverageRating);
+            }
+            else if (sortBy == "mostBought")
+            {
+                query = query.OrderByDescending(t => t.Payments.Count);
+            }
+            else if (sortBy == "minPrice")
+            {
+                query = query.OrderBy(t => t.Price);
+            }
+            else if (sortBy == "maxPrice")
+            {
+                query = query.OrderByDescending(t => t.Price);
+            }
+            else
+            {
+                query = query.OrderBy(t => t.Destination)
+                    .ThenBy(t => t.Title)
+                    .ThenBy(t => t.Summary);
+            }
+
+            // Apply Distinct to avoid duplicate tours
+            query = query.Distinct();
+
+            // Calculate total pages
+            var totalCount = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
             return totalPages;
         }
+
+
 
     }
 }

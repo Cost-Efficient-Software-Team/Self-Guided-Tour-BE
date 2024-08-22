@@ -19,6 +19,6 @@ namespace SelfGuidedTours.Core.Contracts
 
         Task<ApiResponse> UpdateTourAsync(int id, TourUpdateDTO model);
 
-        Task<int> GetTotalPagesNumberAsync(string searchTerm, int pageSize);
+        Task<int> GetTotalPagesNumberAsync(string searchTerm, string sortBy, int pageSize);
     }
 }
