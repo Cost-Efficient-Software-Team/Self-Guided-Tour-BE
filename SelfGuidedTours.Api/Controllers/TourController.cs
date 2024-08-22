@@ -5,7 +5,6 @@ using SelfGuidedTours.Api.CustomActionFilters;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Models.Dto;
-using SelfGuidedTours.Core.Models.ErrorResponse;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using System.Net;
 
@@ -44,7 +43,7 @@ namespace SelfGuidedTours.Api.Controllers
         }
         [AllowAnonymous]
         [HttpGet]
-        public async Task<IActionResult> GetAllTours([FromQuery] string searchTerm = "", [FromQuery] string sortBy = "default", [FromQuery] int pageNumber = 1,[FromQuery] int pageSize = 1000)
+        public async Task<IActionResult> GetAllTours([FromQuery] string searchTerm = "", [FromQuery] string sortBy = "default", [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 1000)
         {
             var tours = await _tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
             // Map tours to Response DTO
@@ -100,6 +99,16 @@ namespace SelfGuidedTours.Api.Controllers
             return Ok(_response);
         }
 
-   
+        [AllowAnonymous]
+        [HttpGet("total-pages")]
+        public async Task<IActionResult> GetTotalPages([FromQuery] string searchTerm = "", [FromQuery] int pageSize = 1000)
+        {
+            var totalPages = await _tourService.GetTotalPagesNumberAsync(searchTerm, pageSize);
+
+            _response.Result = totalPages;
+            _response.StatusCode = HttpStatusCode.OK;
+
+            return Ok(_response);
+        }
     }
 }

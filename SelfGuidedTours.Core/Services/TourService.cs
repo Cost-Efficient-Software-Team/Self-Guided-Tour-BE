@@ -133,7 +133,7 @@ namespace SelfGuidedTours.Core.Services
                 Summary = tour.Summary,
                 EstimatedDuration = tour.EstimatedDuration,
                 Price = tour.Price,
-                Status = tour.Status == Status.UnderReview ? "Under Review": tour.Status.ToString(),
+                Status = tour.Status == Status.UnderReview ? "Under Review" : tour.Status.ToString(),
                 Title = tour.Title,
                 TourType = tour.TypeTour.ToString(),
                 Landmarks = tour.Landmarks.Select(l => new LandmarkResponseDto
@@ -174,7 +174,7 @@ namespace SelfGuidedTours.Core.Services
             {
                 query = query.Where(t => t.Destination.Contains(searchTerm)
                                          || t.Title.Contains(searchTerm)
-                                         || t.Summary.Contains(searchTerm));
+                                         || (t.Summary != null && t.Summary.Contains(searchTerm)));
             }
 
             query = query.OrderBy(t => t.Destination)
@@ -202,7 +202,7 @@ namespace SelfGuidedTours.Core.Services
             {
                 query = query.OrderByDescending(t => t.Price);
             }
-           
+
             // Pagination
             var skip = (pageNumber - 1) * pageSize; // Calculate how many items to skip
 
@@ -249,5 +249,24 @@ namespace SelfGuidedTours.Core.Services
 
             return response;
         }
+
+        public async Task<int> GetTotalPagesNumberAsync(string searchTerm, int pageSize)
+        {
+            var query = repository.All<Tour>().AsQueryable();
+
+            // Filtering
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                query = query.Where(t => t.Destination.Contains(searchTerm)
+                                         || t.Title.Contains(searchTerm)
+                                         || t.Summary.Contains(searchTerm));
+            }
+
+            var totalToursCount = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalToursCount / (double)pageSize);
+
+            return totalPages;
+        }
+
     }
 }
