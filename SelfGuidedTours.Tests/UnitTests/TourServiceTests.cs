@@ -53,7 +53,7 @@ namespace SelfGuidedTours.Tests.UnitTests
                     AverageRating = 4.5M,
                     ThumbnailImageUrl = "http://example.com/thumb1",
                     EstimatedDuration = 60,
-                    CreatedAt = DateTime.Now.AddDays(-10), // За тестовете за новост
+                    CreatedAt = DateTime.Now.AddDays(-10),
                     Status = Status.Approved,
                     Landmarks = new List<Landmark>
                     {
@@ -93,7 +93,7 @@ namespace SelfGuidedTours.Tests.UnitTests
                     Destination = "Destination 2",
                     ThumbnailImageUrl = "http://example.com/thumb2",
                     EstimatedDuration = 120,
-                    CreatedAt = DateTime.Now, // За тестовете за новост
+                    CreatedAt = DateTime.Now,
                     Status = Status.Approved,
                     Landmarks = new List<Landmark>()
                 }
