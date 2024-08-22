@@ -45,17 +45,22 @@ namespace SelfGuidedTours.Api.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllTours([FromQuery] string searchTerm = "", [FromQuery] string sortBy = "default", [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 1000)
         {
-            var tours = await _tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
-            // Map tours to Response DTO
-            var toursResponse = tours.
-                Select(t => _tourService.MapTourToTourResponseDto(t))
+            var (tours, totalPages) = await _tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
+
+            var toursResponse = tours
+                .Select(t => _tourService.MapTourToTourResponseDto(t))
                 .ToList();
 
-            _response.Result = toursResponse;
+            _response.Result = new
+            {
+                Tours = toursResponse,
+                TotalPages = totalPages
+            };
             _response.StatusCode = HttpStatusCode.OK;
 
             return Ok(_response);
         }
+
 
         [HttpPut("update-tour/{id:int}")]
         [ProducesResponseType(typeof(ApiResponse), 200)]
@@ -98,18 +103,5 @@ namespace SelfGuidedTours.Api.Controllers
 
             return Ok(_response);
         }
-
-        [AllowAnonymous]
-        [HttpGet("total-pages")]
-        public async Task<IActionResult> GetTotalPagesNumber([FromQuery] string searchTerm = "", [FromQuery] string sortBy = "default", [FromQuery] int pageSize = 1000)
-        {
-            var totalPages = await _tourService.GetTotalPagesNumberAsync(searchTerm, sortBy, pageSize);
-
-            _response.Result = totalPages;
-            _response.StatusCode = HttpStatusCode.OK;
-
-            return Ok(_response);
-        }
-
     }
 }

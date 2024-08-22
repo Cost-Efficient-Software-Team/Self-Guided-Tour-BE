@@ -7,7 +7,7 @@ namespace SelfGuidedTours.Core.Contracts
 {
     public interface ITourService
     {
-        Task<List<Tour>> GetFilteredTours(string searchTerm, string sortBy, int pageNumber = 1, int pageSize = 1000);
+        Task<(List<Tour> Tours, int TotalPages)> GetFilteredTours(string searchTerm, string sortBy, int pageNumber = 1, int pageSize = 1000);
 
         Task<Tour> CreateAsync(TourCreateDTO model, string creatorId);
 
@@ -18,7 +18,5 @@ namespace SelfGuidedTours.Core.Contracts
         TourResponseDto MapTourToTourResponseDto(Tour tour);
 
         Task<ApiResponse> UpdateTourAsync(int id, TourUpdateDTO model);
-
-        Task<int> GetTotalPagesNumberAsync(string searchTerm, string sortBy, int pageSize);
     }
 }

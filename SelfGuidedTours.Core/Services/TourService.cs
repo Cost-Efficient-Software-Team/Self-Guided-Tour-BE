@@ -166,10 +166,11 @@ namespace SelfGuidedTours.Core.Services
                 .ToListAsync();
         }
 
-        public async Task<List<Tour>> GetFilteredTours(string searchTerm, string sortBy, int pageNumber = 1, int pageSize = 1000)
+        public async Task<(List<Tour> Tours, int TotalPages)> GetFilteredTours(string searchTerm, string sortBy, int pageNumber = 1, int pageSize = 1000)
         {
             var query = repository.All<Tour>().AsQueryable();
-            // Filtering
+
+            //filters
             if (!string.IsNullOrEmpty(searchTerm))
             {
                 query = query.Where(t => t.Destination.Contains(searchTerm)
@@ -177,44 +178,44 @@ namespace SelfGuidedTours.Core.Services
                                          || (t.Summary != null && t.Summary.Contains(searchTerm)));
             }
 
-            query = query.OrderBy(t => t.Destination)
-                .ThenBy(t => t.Title)
-                .ThenBy(t => t.Summary);
-
             //sorting
-            if (sortBy == "newest")
+            switch (sortBy)
             {
-                query = query.OrderByDescending(t => t.CreatedAt);
-            }
-            else if (sortBy == "averageRating")
-            {
-                query = query.OrderByDescending(t => t.AverageRating);
-            }
-            else if (sortBy == "mostBought")
-            {
-                query = query.OrderByDescending(t => t.Payments.Count);
-            }
-            else if (sortBy == "minPrice")
-            {
-                query = query.OrderBy(t => t.Price);
-            }
-            else if (sortBy == "maxPrice")
-            {
-                query = query.OrderByDescending(t => t.Price);
+                case "newest":
+                    query = query.OrderByDescending(t => t.CreatedAt);
+                    break;
+                case "averageRating":
+                    query = query.OrderByDescending(t => t.AverageRating);
+                    break;
+                case "mostBought":
+                    query = query.OrderByDescending(t => t.Payments.Count);
+                    break;
+                case "minPrice":
+                    query = query.OrderBy(t => t.Price);
+                    break;
+                case "maxPrice":
+                    query = query.OrderByDescending(t => t.Price);
+                    break;
+                default:
+                    query = query.OrderBy(t => t.Destination)
+                        .ThenBy(t => t.Title)
+                        .ThenBy(t => t.Summary);
+                    break;
             }
 
-            // Pagination
-            var skip = (pageNumber - 1) * pageSize; // Calculate how many items to skip
+            var totalCount = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
-            query = query.Skip(skip).Take(pageSize);
-
-            return await query
+            var skip = (pageNumber - 1) * pageSize;
+            var tours = await query.Skip(skip).Take(pageSize)
                 .Include(t => t.Reviews)
                 .Include(t => t.Landmarks)
                 .ThenInclude(l => l.Resources)
                 .Include(t => t.Landmarks)
                 .ThenInclude(l => l.Coordinate)
                 .ToListAsync();
+
+            return (tours, totalPages);
         }
 
         public async Task<ApiResponse> UpdateTourAsync(int id, TourUpdateDTO model)
@@ -242,67 +243,14 @@ namespace SelfGuidedTours.Core.Services
                 tour.ThumbnailImageUrl = thumbnailUrl;
             }
 
-            // Update landmarks
             await landmarkService.UpdateLandmarksForTourAsync(model.Landmarks, tour);
 
-            // ????????? ?? ????????? ? ?????? ?????
             await repository.SaveChangesAsync();
 
-            // ?????????? ?? ????????
             response.StatusCode = HttpStatusCode.OK;
             response.Result = MapTourToTourResponseDto(tour);
 
             return response;
-        }
-
-        public async Task<int> GetTotalPagesNumberAsync(string searchTerm, string sortBy, int pageSize)
-        {
-            var query = repository.All<Tour>().AsQueryable();
-
-            // Filtering
-            if (!string.IsNullOrEmpty(searchTerm))
-            {
-                query = query.Where(t => t.Destination.Contains(searchTerm)
-                                         || t.Title.Contains(searchTerm)
-                                         || (t.Summary != null && t.Summary.Contains(searchTerm)));
-            }
-
-            // Sorting
-            if (sortBy == "newest")
-            {
-                query = query.OrderByDescending(t => t.CreatedAt);
-            }
-            else if (sortBy == "averageRating")
-            {
-                query = query.OrderByDescending(t => t.AverageRating);
-            }
-            else if (sortBy == "mostBought")
-            {
-                query = query.OrderByDescending(t => t.Payments.Count);
-            }
-            else if (sortBy == "minPrice")
-            {
-                query = query.OrderBy(t => t.Price);
-            }
-            else if (sortBy == "maxPrice")
-            {
-                query = query.OrderByDescending(t => t.Price);
-            }
-            else
-            {
-                query = query.OrderBy(t => t.Destination)
-                    .ThenBy(t => t.Title)
-                    .ThenBy(t => t.Summary);
-            }
-
-            // Apply Distinct to avoid duplicate tours
-            query = query.Distinct();
-
-            // Calculate total pages
-            var totalCount = await query.CountAsync();
-            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
-
-            return totalPages;
         }
     }
 }
