@@ -5,6 +5,7 @@ namespace SelfGuidedTours.Core.Contracts
 {
     public interface ILandmarkService
     {
-        Task<ICollection<Landmark>> CreateLandmarskForTourAsync(ICollection<LandmarkCreateTourDTO> landmarksDto, Tour tour);
+        Task<ICollection<Landmark>> CreateLandmarksForTourAsync(ICollection<LandmarkCreateTourDTO> landmarksDto, Tour tour);
+        Task<ICollection<Landmark>> UpdateLandmarksForTourAsync(ICollection<LandmarkUpdateTourDTO> landmarksDto, Tour tour);
     }
 }

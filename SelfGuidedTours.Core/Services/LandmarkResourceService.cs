@@ -17,7 +17,7 @@ namespace SelfGuidedTours.Core.Services
             this.blobService = blobService;
             this.repository = repository;
         }
-        public async Task CreateLandmarkResoursecAsync(ICollection<IFormFile> resources, Landmark landmark)
+        public async Task CreateLandmarkResourcesAsync(ICollection<IFormFile> resources, Landmark landmark)
         {
             if (landmark is null) throw new ArgumentException(TourWithNoLandmarksErrorMessage);
 
@@ -39,10 +39,36 @@ namespace SelfGuidedTours.Core.Services
                 };
 
                 await repository.AddAsync(landmarkResource);
-     
-            }
 
+            }
         }
+
+        public async Task UpdateLandmarkResourcesAsync(ICollection<IFormFile> resources, Landmark landmark)
+        {
+            if (landmark is null) throw new ArgumentException(TourWithNoLandmarksErrorMessage);
+
+            var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME");
+
+            if (containerName is null) throw new Exception(ContainerNameErrorMessage);
+
+            //Think about validating if there are 0 resources, is that okay or not
+            foreach (var resource in resources)
+            {
+                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(resource.FileName)}";
+                var resourceUrl = await blobService.UploadFileAsync(containerName, resource, fileName);
+
+                var landmarkResource = new LandmarkResource
+                {
+                    Url = resourceUrl,
+                    Type = GetResourceType(resource.ContentType),
+                    Landmark = landmark
+                };
+
+                await repository.AddAsync(landmarkResource);
+
+            }
+        }
+
         private ResourceType GetResourceType(string contentType)
         {
             return contentType switch

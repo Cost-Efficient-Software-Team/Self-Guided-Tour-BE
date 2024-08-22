@@ -54,7 +54,7 @@ namespace SelfGuidedTours.Core.Services
 
             await repository.AddAsync(tourToAdd);
 
-            await landmarkService.CreateLandmarskForTourAsync(model.Landmarks, tourToAdd);
+            await landmarkService.CreateLandmarksForTourAsync(model.Landmarks, tourToAdd);
 
             await repository.SaveChangesAsync();
 
@@ -220,7 +220,7 @@ namespace SelfGuidedTours.Core.Services
         public async Task<ApiResponse> UpdateTourAsync(int id, TourUpdateDTO model)
         {
             var tour = await repository.GetByIdAsync<Tour>(id)
-                ?? throw new KeyNotFoundException(TourNotFoundErrorMessage);
+                       ?? throw new KeyNotFoundException(TourNotFoundErrorMessage);
 
             tour.Title = model.Title;
             tour.Summary = model.Summary;
@@ -242,8 +242,13 @@ namespace SelfGuidedTours.Core.Services
                 tour.ThumbnailImageUrl = thumbnailUrl;
             }
 
+            // Update landmarks
+            await landmarkService.UpdateLandmarksForTourAsync(model.Landmarks, tour);
+
+            // ????????? ?? ????????? ? ?????? ?????
             await repository.SaveChangesAsync();
 
+            // ?????????? ?? ????????
             response.StatusCode = HttpStatusCode.OK;
             response.Result = MapTourToTourResponseDto(tour);
 
@@ -299,8 +304,5 @@ namespace SelfGuidedTours.Core.Services
 
             return totalPages;
         }
-
-
-
     }
 }

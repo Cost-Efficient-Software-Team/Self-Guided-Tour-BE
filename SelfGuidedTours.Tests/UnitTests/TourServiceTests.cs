@@ -159,7 +159,7 @@ namespace SelfGuidedTours.Tests.UnitTests
             blobServiceMock.Setup(b => b.UploadFileAsync(It.IsAny<string>(), It.IsAny<IFormFile>(), It.IsAny<string>(), true))
                 .ReturnsAsync("http://example.com/thumb3");
 
-            landmarkServiceMock.Setup(l => l.CreateLandmarskForTourAsync(It.IsAny<ICollection<LandmarkCreateTourDTO>>(), It.IsAny<Tour>()))
+            landmarkServiceMock.Setup(l => l.CreateLandmarksForTourAsync(It.IsAny<ICollection<LandmarkCreateTourDTO>>(), It.IsAny<Tour>()))
                 .ReturnsAsync(new List<Landmark>());
 
             var newTour = await tourService.CreateAsync(tourCreateDto, "creator3");
