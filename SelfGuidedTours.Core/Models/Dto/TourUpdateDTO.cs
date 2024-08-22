@@ -17,8 +17,9 @@ namespace SelfGuidedTours.Core.Models.Dto
         [StringLength(TitleMaxLength, MinimumLength = TitleMinLength, ErrorMessage = LengthErrorMessage)]
         public string Title { get; set; } = null!;
 
-        [StringLength(SummaryMaxLength, ErrorMessage = LengthErrorMessage)]
-        public string? Summary { get; set; }
+        [Required]
+        [StringLength(SummaryMaxLength, MinimumLength = SummaryMinLength, ErrorMessage = LengthErrorMessage)]
+        public string Summary { get; set; } = null!;
 
         [Range(PriceMinValue, int.MaxValue)]
         public decimal? Price { get; set; } = null!;

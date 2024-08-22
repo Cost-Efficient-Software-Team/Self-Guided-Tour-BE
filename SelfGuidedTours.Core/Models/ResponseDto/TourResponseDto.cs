@@ -4,7 +4,7 @@
     {
         public int TourId { get; set; }
         public string Title { get; set; } = null!;
-        public string? Summary { get; set; }
+        public string Summary { get; set; } = null!;
         public decimal? Price { get; set; }
         public string Destination { get; set; } = null!;
         public string ThumbnailImageUrl { get; set; } = null!;
