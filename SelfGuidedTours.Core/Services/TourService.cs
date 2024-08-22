@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Contracts.BlobStorage;
 using SelfGuidedTours.Core.Models;
@@ -156,19 +156,12 @@ namespace SelfGuidedTours.Core.Services
             return tourResponse;
         }
 
-        public async Task<List<Tour>> GetAllTours()
-        {
-            return await repository.All<Tour>()
-                .Include(t => t.Landmarks)
-                .Include(t => t.Payments)
-                .Include(t => t.Reviews)
-                .Include(t => t.UserTours)
-                .ToListAsync();
-        }
-
         public async Task<(List<Tour> Tours, int TotalPages)> GetFilteredTours(string searchTerm, string sortBy, int pageNumber = 1, int pageSize = 1000)
         {
-            var query = repository.All<Tour>().AsQueryable();
+            //var query = repository.All<Tour>().AsQueryable(); //Turn On if you want to test faster  // Use this to not confirm each tour during development  //remove during production
+            var query = repository.All<Tour>()
+                .Where(t => t.Status == Status.Approved)
+                .AsQueryable();//Turn Off is the above code is On!
 
             //filters
             if (!string.IsNullOrEmpty(searchTerm))
