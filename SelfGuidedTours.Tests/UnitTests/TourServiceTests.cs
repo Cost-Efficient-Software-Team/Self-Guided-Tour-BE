@@ -99,6 +99,8 @@ namespace SelfGuidedTours.Tests.UnitTests
                 }
             };
 
+            Environment.SetEnvironmentVariable("CONTAINER_NAME", "test-container");
+
             await dbContext.AddRangeAsync(tours);
             await dbContext.SaveChangesAsync();
         }
