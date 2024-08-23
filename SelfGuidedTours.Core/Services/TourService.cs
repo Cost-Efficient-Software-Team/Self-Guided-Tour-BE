@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Contracts.BlobStorage;
 using SelfGuidedTours.Core.Models;
@@ -54,7 +54,7 @@ namespace SelfGuidedTours.Core.Services
 
             await repository.AddAsync(tourToAdd);
 
-            await landmarkService.CreateLandmarskForTourAsync(model.Landmarks, tourToAdd);
+            await landmarkService.CreateLandmarksForTourAsync(model.Landmarks, tourToAdd);
 
             await repository.SaveChangesAsync();
 
@@ -133,7 +133,7 @@ namespace SelfGuidedTours.Core.Services
                 Summary = tour.Summary,
                 EstimatedDuration = tour.EstimatedDuration,
                 Price = tour.Price,
-                Status = tour.Status == Status.UnderReview ? "Under Review": tour.Status.ToString(),
+                Status = tour.Status == Status.UnderReview ? "Under Review" : tour.Status.ToString(),
                 Title = tour.Title,
                 TourType = tour.TypeTour.ToString(),
                 Landmarks = tour.Landmarks.Select(l => new LandmarkResponseDto
@@ -156,20 +156,14 @@ namespace SelfGuidedTours.Core.Services
             return tourResponse;
         }
 
-        public async Task<List<Tour>> GetAllTours()
+        public async Task<(List<Tour> Tours, int TotalPages)> GetFilteredTours(string searchTerm, string sortBy, int pageNumber = 1, int pageSize = 1000)
         {
-            return await repository.All<Tour>()
-                .Include(t => t.Landmarks)
-                .Include(t => t.Payments)
-                .Include(t => t.Reviews)
-                .Include(t => t.UserTours)
-                .ToListAsync();
-        }
+            //var query = repository.All<Tour>().AsQueryable(); //Turn On if you want to test faster  // Use this to not confirm each tour during development  //remove during production
+            var query = repository.All<Tour>()
+                .Where(t => t.Status == Status.Approved)
+                .AsQueryable();//Turn Off is the above code is On!
 
-        public async Task<List<Tour>> GetFilteredTours(string searchTerm, string sortBy, int pageNumber = 1, int pageSize = 1000)
-        {
-            var query = repository.All<Tour>().AsQueryable();
-            // Filtering
+            //filters
             if (!string.IsNullOrEmpty(searchTerm))
             {
                 query = query.Where(t => t.Destination.Contains(searchTerm)
@@ -177,50 +171,50 @@ namespace SelfGuidedTours.Core.Services
                                          || t.Summary.Contains(searchTerm));
             }
 
-            query = query.OrderBy(t => t.Destination)
-                .ThenBy(t => t.Title)
-                .ThenBy(t => t.Summary);
-
             //sorting
-            if (sortBy == "newest")
+            switch (sortBy)
             {
-                query = query.OrderByDescending(t => t.CreatedAt);
+                case "newest":
+                    query = query.OrderByDescending(t => t.CreatedAt);
+                    break;
+                case "averageRating":
+                    query = query.OrderByDescending(t => t.AverageRating);
+                    break;
+                case "mostBought":
+                    query = query.OrderByDescending(t => t.Payments.Count);
+                    break;
+                case "minPrice":
+                    query = query.OrderBy(t => t.Price);
+                    break;
+                case "maxPrice":
+                    query = query.OrderByDescending(t => t.Price);
+                    break;
+                default:
+                    query = query.OrderBy(t => t.Destination)
+                        .ThenBy(t => t.Title)
+                        .ThenBy(t => t.Summary);
+                    break;
             }
-            else if (sortBy == "averageRating")
-            {
-                query = query.OrderByDescending(t => t.AverageRating);
-            }
-            else if (sortBy == "mostBought")
-            {
-                query = query.OrderByDescending(t => t.Payments.Count);
-            }
-            else if (sortBy == "minPrice")
-            {
-                query = query.OrderBy(t => t.Price);
-            }
-            else if (sortBy == "maxPrice")
-            {
-                query = query.OrderByDescending(t => t.Price);
-            }
-           
-            // Pagination
-            var skip = (pageNumber - 1) * pageSize; // Calculate how many items to skip
 
-            query = query.Skip(skip).Take(pageSize);
+            var totalCount = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
-            return await query
+            var skip = (pageNumber - 1) * pageSize;
+            var tours = await query.Skip(skip).Take(pageSize)
                 .Include(t => t.Reviews)
                 .Include(t => t.Landmarks)
                 .ThenInclude(l => l.Resources)
                 .Include(t => t.Landmarks)
                 .ThenInclude(l => l.Coordinate)
                 .ToListAsync();
+
+            return (tours, totalPages);
         }
 
         public async Task<ApiResponse> UpdateTourAsync(int id, TourUpdateDTO model)
         {
             var tour = await repository.GetByIdAsync<Tour>(id)
-                ?? throw new KeyNotFoundException(TourNotFoundErrorMessage);
+                       ?? throw new KeyNotFoundException(TourNotFoundErrorMessage);
 
             tour.Title = model.Title;
             tour.Summary = model.Summary;
@@ -241,6 +235,8 @@ namespace SelfGuidedTours.Core.Services
 
                 tour.ThumbnailImageUrl = thumbnailUrl;
             }
+
+            await landmarkService.UpdateLandmarksForTourAsync(model.Landmarks, tour);
 
             await repository.SaveChangesAsync();
 

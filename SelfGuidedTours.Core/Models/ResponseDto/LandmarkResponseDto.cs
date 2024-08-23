@@ -8,7 +8,7 @@
 
         public string LocationName { get; set; } = null!;
 
-        public string Description { get; set; } = null!;
+        public string? Description { get; set; }
         public int StopOrder { get; set; }
         public decimal Latitude { get; set; }
         public decimal Longitude { get; set; }

@@ -5,9 +5,9 @@ using static SelfGuidedTours.Common.MessageConstants.ErrorMessages;
 using static SelfGuidedTours.Common.ValidationConstants.ValidationConstants.Landmark;
 namespace SelfGuidedTours.Core.Models.Dto
 {
-    public class LandmarkCreateTourDTO
+    public class LandmarkUpdateTourDTO
     {
-        public LandmarkCreateTourDTO()
+        public LandmarkUpdateTourDTO()
         {
             Resources = new List<IFormFile>();
         }
