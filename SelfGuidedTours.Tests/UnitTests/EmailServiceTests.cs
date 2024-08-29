@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Moq;
 using SelfGuidedTours.Core.Contracts;
+using SelfGuidedTours.Core.Contracts.BlobStorage;
 using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Services;
 
@@ -10,21 +11,26 @@ namespace SelfGuidedTours.Tests.UnitTests
     public class EmailServiceTests
     {
         private IEmailService emailService;
-        private Mock<IConfiguration> cofigurationMock;
 
         [SetUp]
         public void Setup()
         {
 
             
-            cofigurationMock = new Mock<IConfiguration>();
-            emailService = new EmailService(cofigurationMock.Object);
+            var blobServiceMock = new Mock<IBlobService>();
+            blobServiceMock.Setup(x => x.GetEmailTemplateAsync(It.IsAny<string>()))
+                .ReturnsAsync("Test email template");
+
+            emailService = new EmailService(blobServiceMock.Object);
 
             // Set environment variables for testing
             Environment.SetEnvironmentVariable("ASPNETCORE_SMTP_USERNAME", "testuser@example.com");
             Environment.SetEnvironmentVariable("ASPNETCORE_SMTP_HOST", "smtp.example.com");
             Environment.SetEnvironmentVariable("ASPNETCORE_SMTP_PORT", "587");
             Environment.SetEnvironmentVariable("ASPNETCORE_SMTP_PASSWORD", "testpassword");
+            Environment.SetEnvironmentVariable("GenericEmailTemplate", "genericEmailTemplate");
+            Environment.SetEnvironmentVariable("PasswordResetEmailTemplate", "passwordResetEmailTemplate");
+           
         }
 
         [TearDown]

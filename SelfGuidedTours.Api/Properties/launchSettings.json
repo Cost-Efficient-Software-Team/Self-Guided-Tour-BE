@@ -40,9 +40,9 @@
         "CONTAINER_NAME": "landmark-resources",
         "STRIPE_SECRET_KEY": "sk_test_51PkIqVRqAW3M0tQmfAmfSVKhwt5rUEqPcSEnWr4VyyBpCNvXY2ffxvRGt3hBFoq8s6q9EA3Qj93fzdPgb8q1PziU00qxffv9Hj",
         "STRIPE_ENDPOINT_SECRET": "whsec_5ba0ef09a5db82d10ae6ff74f43cbb66343bc88188faf5143e29239c64d8c805",
-        "GenericEmailTemplate": "EmailTemplates/GenericEmailTemplate.html",
-        "ConfirmationEmailTemplate": "EmailTemplates/ConfirmationEmailTemplate.html",
-        "PasswordResetEmailTemplate": "EmailTemplates/PasswordResetEmailTemplate.html"
+        "GenericEmailTemplate": "https://selfguidedstorage.blob.core.windows.net/email-templates/GenericEmailTemplate.html",
+        "ConfirmationEmailTemplate": "https://selfguidedstorage.blob.core.windows.net/email-templates/ConfirmationEmailTemplate.html",
+        "PasswordResetEmailTemplate": "https://selfguidedstorage.blob.core.windows.net/email-templates/PasswordResetEmailTemplate.html"
       }
     },
     "IIS Express": {
