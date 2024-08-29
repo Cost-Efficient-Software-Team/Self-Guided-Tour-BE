@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SelfGuidedTours.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SelfGuidedTours.Infrastructure.Data;
 namespace SelfGuidedTours.Infrastructure.Migrations
 {
     [DbContext(typeof(SelfGuidedToursDbContext))]
-    partial class SelfGuidedToursDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240822191253_landmarksDescriptionCanBeNullNow")]
+    partial class landmarksDescriptionCanBeNullNow
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -261,6 +264,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CoordinateId"));
 
                     b.Property<string>("City")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Country")
@@ -658,17 +662,17 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         {
                             Id = "27d78708-8671-4b05-bd5e-17aa91392224",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "9c5f1ef0-b650-4ac4-915e-d2381a7d49d5",
+                            ConcurrencyStamp = "6094ee2b-1146-43dd-a5b8-f25fabd60ac7",
                             Email = "admin@selfguidedtours.bg",
                             EmailConfirmed = false,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@SELFGUIDEDTOURS.BG",
                             NormalizedUserName = "ADMIN ADMINOV",
-                            PasswordHash = "AQAAAAIAAYagAAAAENaZKympHG2VcQUp7gwu07NumyLr4wHHA6uF6fYZz2A7qergxqo9QDjnQ/KCn4WX/Q==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEKufWq1jzityLrl4t1Gh8vjtKrZmpwqlNb3Kar3rkC2ZUphSx0XVJ4F6kiy23vZ+hg==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "437c2575-ada8-43f5-898a-b6001fc992a0",
+                            SecurityStamp = "40984865-63c7-4e1d-a74c-198cec7ed918",
                             TwoFactorEnabled = false,
-                            CreatedAt = new DateTime(2024, 8, 23, 15, 29, 5, 240, DateTimeKind.Local).AddTicks(7335),
+                            CreatedAt = new DateTime(2024, 8, 22, 22, 12, 51, 882, DateTimeKind.Local).AddTicks(846),
                             Name = "Admin Adminov"
                         });
                 });

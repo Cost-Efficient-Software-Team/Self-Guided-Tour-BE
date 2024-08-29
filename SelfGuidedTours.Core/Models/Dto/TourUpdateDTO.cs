@@ -10,7 +10,7 @@ namespace SelfGuidedTours.Core.Models.Dto
     {
         public TourUpdateDTO()
         {
-            Landmarks = new HashSet<LandmarkCreateTourDTO>();
+            Landmarks = new HashSet<LandmarkUpdateTourDTO>();
         }
 
         [Required]
@@ -37,6 +37,6 @@ namespace SelfGuidedTours.Core.Models.Dto
         [Range(EstimatedDurationMinValueInMinutes, EstimatedDurationMaxValueInMinutes)]
         public int EstimatedDuration { get; set; }
 
-        public ICollection<LandmarkCreateTourDTO> Landmarks { get; set; }
+        public ICollection<LandmarkUpdateTourDTO> Landmarks { get; set; }
     }
 }

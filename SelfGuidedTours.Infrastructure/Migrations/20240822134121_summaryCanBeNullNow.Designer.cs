@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SelfGuidedTours.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SelfGuidedTours.Infrastructure.Data;
 namespace SelfGuidedTours.Infrastructure.Migrations
 {
     [DbContext(typeof(SelfGuidedToursDbContext))]
-    partial class SelfGuidedToursDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240822134121_summaryCanBeNullNow")]
+    partial class summaryCanBeNullNow
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -261,6 +264,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CoordinateId"));
 
                     b.Property<string>("City")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Country")
@@ -299,6 +303,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
@@ -493,7 +498,6 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         .HasComment("On create, status is UnderReview until approved or rejected by admin.");
 
                     b.Property<string>("Summary")
-                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
@@ -658,17 +662,17 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         {
                             Id = "27d78708-8671-4b05-bd5e-17aa91392224",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "9c5f1ef0-b650-4ac4-915e-d2381a7d49d5",
+                            ConcurrencyStamp = "a0797ded-0bd5-4715-b486-6eb9833fd5b8",
                             Email = "admin@selfguidedtours.bg",
                             EmailConfirmed = false,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@SELFGUIDEDTOURS.BG",
                             NormalizedUserName = "ADMIN ADMINOV",
-                            PasswordHash = "AQAAAAIAAYagAAAAENaZKympHG2VcQUp7gwu07NumyLr4wHHA6uF6fYZz2A7qergxqo9QDjnQ/KCn4WX/Q==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEG2XWx+wfkGjWq1zol5+7W1RY2B4KmcX9wpJ/KCsNxaGowDKLANKvap2BQUvLIksOQ==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "437c2575-ada8-43f5-898a-b6001fc992a0",
+                            SecurityStamp = "51a1a68a-a530-4caf-8f1a-1b9b9961117a",
                             TwoFactorEnabled = false,
-                            CreatedAt = new DateTime(2024, 8, 23, 15, 29, 5, 240, DateTimeKind.Local).AddTicks(7335),
+                            CreatedAt = new DateTime(2024, 8, 22, 16, 41, 20, 622, DateTimeKind.Local).AddTicks(184),
                             Name = "Admin Adminov"
                         });
                 });

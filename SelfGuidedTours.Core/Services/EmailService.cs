@@ -4,28 +4,26 @@ using Microsoft.Extensions.Configuration;
 using MimeKit;
 using MimeKit.Text;
 using SelfGuidedTours.Core.Contracts;
+using SelfGuidedTours.Core.Contracts.BlobStorage;
 using SelfGuidedTours.Core.Models;
 
 public class EmailService : IEmailService
 {
-    private readonly IConfiguration _configuration;
+    private readonly IBlobService blobService;
 
-    public EmailService(IConfiguration configuration)
+    public EmailService( IBlobService blobService)
     {
-        _configuration = configuration;
+        this.blobService = blobService;
     }
 
     public async Task SendEmail(SendEmailDto sendEmailRequest, string emailBodyFormat = "html")
     {
-        var templatePath = Environment.GetEnvironmentVariable("GenericEmailTemplate") 
-                ?? throw new ApplicationException("Email template is not configured.");
+        var templateUrl = Environment.GetEnvironmentVariable("GenericEmailTemplate") 
+             ?? throw new ApplicationException("Email template is not configured.");
+        
+       
 
-        if (!File.Exists(templatePath))
-        {
-            throw new FileNotFoundException($"Email template not found at path: {templatePath}");
-        }
-
-        var emailBody = await File.ReadAllTextAsync(templatePath);
+        var emailBody = await blobService.GetEmailTemplateAsync(templateUrl);
         emailBody = emailBody.Replace("{{EmailBody}}", sendEmailRequest.Body);
         emailBody = emailBody.Replace("{{Subject}}", sendEmailRequest.Subject);
 
@@ -53,15 +51,11 @@ public class EmailService : IEmailService
 
     public async Task SendPasswordResetEmailAsync(string email, string resetLink)
     {
-        var templatePath = Environment.GetEnvironmentVariable("PasswordResetEmailTemplate") 
+        var templateUrl = Environment.GetEnvironmentVariable("PasswordResetEmailTemplate") 
                 ?? throw new ApplicationException("Password reset email template is not configured.");
 
-        if (!File.Exists(templatePath))
-        {
-            throw new FileNotFoundException($"Email template not found at path: {templatePath}");
-        }
 
-        var emailBody = await File.ReadAllTextAsync(templatePath);
+        var emailBody = await blobService.GetEmailTemplateAsync(templateUrl);
         emailBody = emailBody.Replace("{{UserName}}", email);
         emailBody = emailBody.Replace("{{ResetLink}}", resetLink);
 
@@ -84,15 +78,10 @@ public class EmailService : IEmailService
 
     public async Task SendEmailConfirmationAsync(string email, string confirmationLink)
     {
-        var templatePath = Environment.GetEnvironmentVariable("ConfirmationEmailTemplate")
+        var templateUrl = Environment.GetEnvironmentVariable("ConfirmationEmailTemplate")
                 ?? throw new ApplicationException("Email confirmation template is not configured.");
 
-        if (!File.Exists(templatePath))
-        {
-            throw new FileNotFoundException($"Email template not found at path: {templatePath}");
-        }
-
-        var emailBody = await File.ReadAllTextAsync(templatePath);
+        var emailBody = await blobService.GetEmailTemplateAsync(templateUrl);
         emailBody = emailBody.Replace("{{UserName}}", email);
         emailBody = emailBody.Replace("{{ConfirmationLink}}", confirmationLink);
 

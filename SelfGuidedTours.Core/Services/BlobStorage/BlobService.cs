@@ -82,5 +82,26 @@ namespace SelfGuidedTours.Core.Services.BlobStorage
         {
             return (bytes / 1024f) / 1024f;
         }
+
+        public async Task<string> GetEmailTemplateAsync(string templateUrl)
+        {
+            // Create a new BlobClient instance from the blob URL
+            var blobClient =  new BlobClient(new Uri(templateUrl));
+
+            if(await blobClient.ExistsAsync())
+            {
+                // Download the blob's contents in memory
+                var downloadedTemplate = await blobClient.DownloadContentAsync();
+
+                // Return the contents of the blob as a string
+                return downloadedTemplate.Value.Content.ToString();
+            }
+            else
+            {
+                throw new FileNotFoundException($"Email template not found at URL: {templateUrl}");
+            }
+
+            
+        }
     }
 }

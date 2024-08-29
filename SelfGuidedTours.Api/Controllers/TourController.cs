@@ -5,7 +5,6 @@ using SelfGuidedTours.Api.CustomActionFilters;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Models.Dto;
-using SelfGuidedTours.Core.Models.ErrorResponse;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using System.Net;
 
@@ -44,19 +43,24 @@ namespace SelfGuidedTours.Api.Controllers
         }
         [AllowAnonymous]
         [HttpGet]
-        public async Task<IActionResult> GetAllTours([FromQuery] string searchTerm = "", [FromQuery] string sortBy = "default", [FromQuery] int pageNumber = 1,[FromQuery] int pageSize = 1000)
+        public async Task<IActionResult> GetAllTours([FromQuery] string searchTerm = "", [FromQuery] string sortBy = "default", [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 1000)
         {
-            var tours = await _tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
-            // Map tours to Response DTO
-            var toursResponse = tours.
-                Select(t => _tourService.MapTourToTourResponseDto(t))
+            var (tours, totalPages) = await _tourService.GetFilteredTours(searchTerm, sortBy, pageNumber, pageSize);
+
+            var toursResponse = tours
+                .Select(t => _tourService.MapTourToTourResponseDto(t))
                 .ToList();
 
-            _response.Result = toursResponse;
+            _response.Result = new
+            {
+                Tours = toursResponse,
+                TotalPages = totalPages
+            };
             _response.StatusCode = HttpStatusCode.OK;
 
             return Ok(_response);
         }
+
 
         [HttpPut("update-tour/{id:int}")]
         [ProducesResponseType(typeof(ApiResponse), 200)]
@@ -99,7 +103,5 @@ namespace SelfGuidedTours.Api.Controllers
 
             return Ok(_response);
         }
-
-   
     }
 }
