@@ -3,7 +3,7 @@
     public enum TypeTour
     {
         Walking,
-        Car,
-        Bike
+        Driving,
+        Bicycling
     }
 }
