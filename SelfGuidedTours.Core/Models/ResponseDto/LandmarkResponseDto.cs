@@ -4,7 +4,7 @@
     {
         public int LandmarkId { get; set; }
 
-        public string City { get; set; } = string.Empty;
+        public string? City { get; set; } = string.Empty;
 
         public string LocationName { get; set; } = null!;
 

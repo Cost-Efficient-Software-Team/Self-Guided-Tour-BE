@@ -77,8 +77,20 @@ namespace SelfGuidedTours.Tests.UnitTests
             #endregion
             roles =
             [
-                new IdentityRole("4f8554d2-cfaa-44b5-90ce-e883c804ae90"), // User
-                new IdentityRole("656a6079-ec9a-4a98-a484-2d1752156d60") // Admin
+                new IdentityRole
+                {
+                   Id = "4f8554d2-cfaa-44b5-90ce-e883c804ae90",
+                   Name = "User",
+                   NormalizedName = "USER",
+                   ConcurrencyStamp = "4f8554d2-cfaa-44b5-90ce-e883c804ae90"
+                },
+                new IdentityRole
+                {
+                    Id = "656a6079-ec9a-4a98-a484-2d1752156d60",
+                    Name = "Admin",
+                    NormalizedName = "ADMIN",
+                    ConcurrencyStamp = "656a6079-ec9a-4a98-a484-2d1752156d60"
+                }
             ];
             var useRole = new IdentityUserRole<string>()
             {
