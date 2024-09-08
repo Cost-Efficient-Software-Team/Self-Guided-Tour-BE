@@ -28,21 +28,13 @@ namespace SelfGuidedTours.Api.Controllers
             _response = new ApiResponse();
         }
 
-        [HttpGet("{userId}")]
+        [HttpGet]
         [ProducesResponseType(typeof(UserProfileDto), 200)]
         [ProducesResponseType(typeof(ApiResponse), 404)]
-        public async Task<IActionResult> GetProfile(Guid userId)
+        public async Task<IActionResult> GetProfile()
         {
-            var profile = await _profileService.GetProfileAsync(userId);
-            if (profile == null)
-            {
-                _response.StatusCode = HttpStatusCode.NotFound;
-                _response.ErrorMessages.Add("Profile not found");
-                return NotFound(_response);
-            }
-            _response.Result = profile;
-            _response.StatusCode = HttpStatusCode.OK;
-            return Ok(_response);
+            var user = 
+           
         }
 
         [HttpPut("{userId}")]
