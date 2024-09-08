@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SelfGuidedTours.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SelfGuidedTours.Infrastructure.Data;
 namespace SelfGuidedTours.Infrastructure.Migrations
 {
     [DbContext(typeof(SelfGuidedToursDbContext))]
-    partial class SelfGuidedToursDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240908165351_Add Profile fields")]
+    partial class AddProfilefields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -261,9 +264,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CoordinateId"));
 
                     b.Property<string>("City")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Country")
                         .IsRequired()
@@ -273,10 +274,10 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<decimal>("Latitude")
-                        .HasColumnType("decimal(38, 20)");
+                        .HasColumnType("decimal(10, 2)");
 
                     b.Property<decimal>("Longitude")
-                        .HasColumnType("decimal(38, 20)");
+                        .HasColumnType("decimal(10, 2)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -308,10 +309,6 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("PlaceId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("StopOrder")
                         .HasColumnType("int");
@@ -372,7 +369,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PaymentId"));
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(38, 20)");
+                        .HasColumnType("decimal(10, 2)");
 
                     b.Property<DateTime>("PaymentDate")
                         .HasColumnType("datetime2");
@@ -492,7 +489,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         .HasComment("Estimated duration in minutes");
 
                     b.Property<decimal?>("Price")
-                        .HasColumnType("decimal(38, 20)");
+                        .HasColumnType("decimal(10, 2)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int")
@@ -535,7 +532,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TransactionId"));
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(38, 20)");
+                        .HasColumnType("decimal(10, 2)");
 
                     b.Property<DateTime>("TransactionDate")
                         .HasColumnType("datetime2");
@@ -616,7 +613,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("WalletId"));
 
                     b.Property<decimal>("Balance")
-                        .HasColumnType("decimal(38, 20)");
+                        .HasColumnType("decimal(10, 2)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -680,17 +677,17 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         {
                             Id = "27d78708-8671-4b05-bd5e-17aa91392224",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "0fe912d3-0243-47ca-802c-49888bfa9a04",
+                            ConcurrencyStamp = "174f63c9-bc10-4e5d-ad72-41573827a8a5",
                             Email = "admin@selfguidedtours.bg",
                             EmailConfirmed = false,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@SELFGUIDEDTOURS.BG",
                             NormalizedUserName = "ADMIN ADMINOV",
-                            PasswordHash = "AQAAAAIAAYagAAAAEIEbm7KxGHvdoirod73NXdJaBhn8CCM82SdRlMeOm1S6RfbnmCYvINKnBSsU0Rb3NA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEKoFu+TBj9d3V7fSTelY+wLXDpQKQYD48lyg6tARG2xrBYJTDchZyU5NLO7dOrVc2g==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "77e47a5f-6db8-4678-a349-74ba7200efb1",
+                            SecurityStamp = "77ad568b-f44e-4420-a93a-e26e8316f5d8",
                             TwoFactorEnabled = false,
-                            CreatedAt = new DateTime(2024, 9, 18, 5, 30, 12, 337, DateTimeKind.Local).AddTicks(550),
+                            CreatedAt = new DateTime(2024, 9, 8, 19, 53, 50, 198, DateTimeKind.Local).AddTicks(6070),
                             Name = "Admin Adminov"
                         });
                 });
