@@ -50,5 +50,11 @@
             public const int UrlMinLength = 10;
             public const int UrlMaxLength = 500;
         }
+        public static class User
+        {
+            public const int NameMaxLenght = 50;
+
+            public const int BioMaxLength = 500;
+        }
     }
 }

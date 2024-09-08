@@ -6,7 +6,7 @@ namespace SelfGuidedTours.Core.Contracts
 {
     public interface IProfileService
     {
-        Task<UserProfileDto?> GetProfileAsync(Guid userId);
+        Task<UserProfileDto?> GetProfileAsync();
         Task<UserProfile?> UpdateProfileAsync(Guid userId, UserProfile profile);
         Task CreateProfileAsync(UserProfile userProfile);
     }
