@@ -3,6 +3,7 @@
     public class TourResponseDto
     {
         public int TourId { get; set; }
+        public string CreatorId { get; set; } = null!;
         public string Title { get; set; } = null!;
         public string Summary { get; set; } = null!;
         public decimal? Price { get; set; }
