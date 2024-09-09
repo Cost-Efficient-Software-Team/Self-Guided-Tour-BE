@@ -15,5 +15,7 @@ namespace SelfGuidedTours.Core.Models.RequestDto
         public string? PhoneNumber { get; set; }
         public string? AboutYourself { get; set; }
         public string? Email { get; set; } = string.Empty;
+        public string? Password { get; set; } = string.Empty;
+
     }
 }
