@@ -128,6 +128,7 @@ namespace SelfGuidedTours.Core.Services
             var tourResponse = new TourResponseDto
             {
                 TourId = tour.TourId,
+                CreatorId = tour.CreatorId,
                 ThumbnailImageUrl = tour.ThumbnailImageUrl,
                 Destination = tour.Destination,
                 Summary = tour.Summary,
