@@ -47,14 +47,14 @@ namespace SelfGuidedTours.Core.Services
           var user = await _userManager.FindByIdAsync(userId)
                 ?? throw new InvalidOperationException("User not found");
             //If there is a profile picture, upload it to blob storage and get the URL
-            string? profilePictureUrl = await HandleProfilePictureAsync(profile?.ProfilePicture);
+            string? profilePictureUrl = await HandleProfilePictureAsync(profile?.ProfilePicture, user);
             //Update the user's profile
-            user.FirstName = profile?.FirstName;
-            user.LastName = profile?.LastName;
-            user.ProfilePictureUrl =profilePictureUrl;
-            user.PhoneNumber = profile?.PhoneNumber;
-            user.Bio = profile?.AboutYourself;
-            user.Email = profile?.Email;
+            user.FirstName = profile?.FirstName ?? user.FirstName;
+            user.LastName = profile?.LastName ?? user.LastName;
+            user.ProfilePictureUrl =profilePictureUrl ?? user.ProfilePictureUrl;
+            user.PhoneNumber = profile?.PhoneNumber ?? user.PhoneNumber;
+            user.Bio = profile?.AboutYourself ?? user.Bio;
+            user.Email = profile?.Email ?? user.Email;
 
             await _repository.UpdateAsync(user);
             await _repository.SaveChangesAsync();
@@ -79,17 +79,24 @@ namespace SelfGuidedTours.Core.Services
             await _repository.SaveChangesAsync();
         }
 
-        protected async Task<string> HandleProfilePictureAsync(IFormFile? profilePicture)
+        protected async Task<string> HandleProfilePictureAsync(IFormFile? profilePicture, ApplicationUser user)
         {
             if (profilePicture is null)
                 return string.Empty;
             //TODO: take this from env variables when we decide if its going to be in a different container
             string containerName = "profile-pictures";
-            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(profilePicture.FileName)}";
+
+            
+            var fileName = $"{user.Id}-{profilePicture.Name}{Path.GetExtension(profilePicture.FileName)}";
+
+            if(user.ProfilePictureUrl != null)
+            {
+                await blobSerivice.DeleteFileAsync(containerName, user.ProfilePictureUrl);
+            }
 
             var profilePictureUrl = await blobSerivice.UploadFileAsync(containerName,profilePicture, fileName, true);
 
-            return profilePictureUrl ?? string.Empty;
+            return profilePictureUrl;
         }
     }
 }
