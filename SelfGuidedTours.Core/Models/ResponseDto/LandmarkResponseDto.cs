@@ -13,5 +13,6 @@
         public decimal Latitude { get; set; }
         public decimal Longitude { get; set; }
         public ICollection<ResourceResponseDto> Resources { get; set; } = new HashSet<ResourceResponseDto>();
+        public string PlaceId { get; set; } = null!;
     }
 }

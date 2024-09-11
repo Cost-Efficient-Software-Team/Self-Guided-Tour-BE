@@ -32,6 +32,9 @@ namespace SelfGuidedTours.Core.Models.Dto
         [StringLength(DescriptionMaxLength, ErrorMessage = LengthErrorMessage)]
         public string? Description { get; set; }
 
+        [Required]
+        public string PlaceId { get; set; } = null!;
+
         public List<IFormFile> Resources { get; set; }
     }
 }
