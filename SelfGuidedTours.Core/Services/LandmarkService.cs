@@ -36,7 +36,8 @@ namespace SelfGuidedTours.Core.Services
                     Description = landmarkDto.Description,
                     Coordinate = cordinate,
                     StopOrder = landmarkDto.StopOrder,
-                    Tour = tour
+                    Tour = tour,
+                    PlaceId = landmarkDto.PlaceId
                 };
 
                 await repository.AddAsync(landmark);
@@ -68,7 +69,8 @@ namespace SelfGuidedTours.Core.Services
                     Description = landmarkDto.Description,
                     Coordinate = cordinate,
                     StopOrder = landmarkDto.StopOrder,
-                    Tour = tour
+                    Tour = tour,
+                    PlaceId = landmarkDto.PlaceId
                 };
 
                 await repository.AddAsync(landmark);

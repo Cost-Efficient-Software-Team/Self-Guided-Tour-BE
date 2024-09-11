@@ -146,6 +146,7 @@ namespace SelfGuidedTours.Core.Services
                     City = l.Coordinate.City,
                     Latitude = l.Coordinate.Latitude,
                     Longitude = l.Coordinate.Longitude,
+                    PlaceId = l.PlaceId,
                     Resources = l.Resources.Select(r => new ResourceResponseDto
                     {
                         ResourceId = r.LandmarkResourceId,
