@@ -20,7 +20,7 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         public Tour Tour { get; set; } = null!;
 
         [Required]
-        [Column(TypeName = "decimal(10, 2)")]
+        [Column(TypeName = "decimal(38, 20)")]
         public decimal Amount { get; set; }
         public PaymentStatus Status { get; set; } = PaymentStatus.Pending;
 

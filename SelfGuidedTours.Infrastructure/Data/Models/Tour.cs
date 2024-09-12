@@ -24,7 +24,7 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         [StringLength(SummaryMaxLength, MinimumLength = SummaryMinLength, ErrorMessage = LengthErrorMessage)]
         public string Summary { get; set; } = null!;
 
-        [Column(TypeName = "decimal(10, 2)")]
+        [Column(TypeName = "decimal(38, 20)")]
         public decimal? Price { get; set; }
 
         [Required]

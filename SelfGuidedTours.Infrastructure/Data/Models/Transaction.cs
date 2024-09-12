@@ -14,7 +14,7 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         public Wallet Wallet { get; set; } = null!;
 
         [Required]
-        [Column(TypeName = "decimal(10, 2)")]
+        [Column(TypeName = "decimal(38, 20)")]
         public decimal Amount { get; set; }
 
         [Required]

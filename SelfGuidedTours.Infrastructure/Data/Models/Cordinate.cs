@@ -9,11 +9,11 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         public int CoordinateId { get; set; }
 
         [Required]
-        [Column(TypeName = "decimal(10, 2)")]
+        [Column(TypeName = "decimal(38, 20)")]
         public decimal Latitude { get; set; }
 
         [Required]
-        [Column(TypeName = "decimal(10, 2)")]
+        [Column(TypeName = "decimal(38, 20)")]
         public decimal Longitude { get; set; }
 
         public string? City { get; set; } = string.Empty;
