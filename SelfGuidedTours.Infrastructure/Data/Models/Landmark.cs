@@ -33,6 +33,9 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         public DateTime? UpdatedAt { get; set; }
+
+        [Required]
+        public string PlaceId { get; set; } = null!;
         public ICollection<LandmarkResource> Resources { get; set; } = new HashSet<LandmarkResource>();
     }
 }
