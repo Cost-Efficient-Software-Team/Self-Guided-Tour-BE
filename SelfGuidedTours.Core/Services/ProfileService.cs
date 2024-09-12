@@ -81,7 +81,7 @@ namespace SelfGuidedTours.Core.Services
 
         protected async Task<string> HandleProfilePictureAsync(IFormFile? profilePicture, ApplicationUser user)
         {
-            if (profilePicture is null)
+            if (profilePicture is null || profilePicture.FileName == "undefined")
                 return string.Empty;
             //TODO: take this from env variables when we decide if its going to be in a different container
             string containerName = "profile-pictures";
