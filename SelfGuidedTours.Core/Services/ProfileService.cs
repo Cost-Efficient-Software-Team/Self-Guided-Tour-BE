@@ -34,7 +34,7 @@ namespace SelfGuidedTours.Core.Services
                 LastName = user.LastName,
                 ProfilePictureUrl = user.ProfilePictureUrl,
                 PhoneNumber = user.PhoneNumber,
-                AboutYourself = user.Bio,
+                About = user.Bio,
                 Email = user.Email!,
             };
                 
@@ -53,7 +53,7 @@ namespace SelfGuidedTours.Core.Services
             user.LastName = profile?.LastName ?? user.LastName;
             user.ProfilePictureUrl =profilePictureUrl ?? user.ProfilePictureUrl;
             user.PhoneNumber = profile?.PhoneNumber ?? user.PhoneNumber;
-            user.Bio = profile?.AboutYourself ?? user.Bio;
+            user.Bio = profile?.About ?? user.Bio;
             user.Email = profile?.Email ?? user.Email;
 
             await _repository.UpdateAsync(user);
@@ -66,7 +66,7 @@ namespace SelfGuidedTours.Core.Services
                 LastName = user.LastName,
                 ProfilePictureUrl = user.ProfilePictureUrl,
                 PhoneNumber = user.PhoneNumber,
-                AboutYourself = user.Bio,
+                About = user.Bio,
                 Email = user.Email!,
             };
 
@@ -91,7 +91,7 @@ namespace SelfGuidedTours.Core.Services
 
             if(user.ProfilePictureUrl != null)
             {
-                await blobSerivice.DeleteFileAsync(containerName, user.ProfilePictureUrl);
+                await blobSerivice.DeleteFileAsync(fileName, containerName);
             }
 
             var profilePictureUrl = await blobSerivice.UploadFileAsync(containerName,profilePicture, fileName, true);
