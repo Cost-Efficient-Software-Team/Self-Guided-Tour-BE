@@ -63,6 +63,7 @@ namespace SelfGuidedTours.Tests.UnitTests
                             LocationName = "NDK",
                             Description = "National Palace of Culture",
                             StopOrder = 1,
+                            PlaceId = "1",
                             Coordinate = new Coordinate
                             {
                                 Latitude = 42.6863M,
@@ -189,7 +190,8 @@ namespace SelfGuidedTours.Tests.UnitTests
                 LocationName = "NDK",
                 Description = "National Palace of Culture",
                 Coordinate = coordinate,
-                CoordinateId = coordinate.CoordinateId
+                CoordinateId = coordinate.CoordinateId,
+                PlaceId = "1"
             };
 
             await repository.AddAsync(landmark);

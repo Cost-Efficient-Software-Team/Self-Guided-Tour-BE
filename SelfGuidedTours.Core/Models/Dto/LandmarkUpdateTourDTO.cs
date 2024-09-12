@@ -33,5 +33,8 @@ namespace SelfGuidedTours.Core.Models.Dto
         public string? Description { get; set; }
 
         public List<IFormFile> Resources { get; set; }
+
+        [Required]
+        public string PlaceId { get; set; } = null!;
     }
 }
