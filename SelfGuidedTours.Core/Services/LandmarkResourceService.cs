@@ -48,10 +48,16 @@ namespace SelfGuidedTours.Core.Services
             if (landmark is null) throw new ArgumentException(TourWithNoLandmarksErrorMessage);
 
             var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME");
-
             if (containerName is null) throw new Exception(ContainerNameErrorMessage);
 
-            //Think about validating if there are 0 resources, is that okay or not
+            // Първо премахваме старите ресурси от базата и от Blob Storage
+            foreach (var existingResource in landmark.Resources)
+            {
+                await blobService.DeleteFileAsync(containerName, existingResource.Url); // Изтриване от Blob Storage
+                repository.Delete(existingResource); // Изтриване от базата данни
+            }
+
+            // Качваме новите ресурси
             foreach (var resource in resources)
             {
                 var fileName = $"{Guid.NewGuid()}{Path.GetExtension(resource.FileName)}";
@@ -65,9 +71,13 @@ namespace SelfGuidedTours.Core.Services
                 };
 
                 await repository.AddAsync(landmarkResource);
-
             }
+
+            // Записваме промените в базата данни
+            await repository.SaveChangesAsync();
         }
+
+
 
         private ResourceType GetResourceType(string contentType)
         {
