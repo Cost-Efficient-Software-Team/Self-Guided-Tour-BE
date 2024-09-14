@@ -1,4 +1,5 @@
-﻿using SelfGuidedTours.Core.Contracts;
+﻿using Microsoft.EntityFrameworkCore;
+using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Models.Dto;
 using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data.Models;
@@ -50,35 +51,65 @@ namespace SelfGuidedTours.Core.Services
 
         public async Task<ICollection<Landmark>> UpdateLandmarksForTourAsync(ICollection<LandmarkUpdateTourDTO> landmarksDto, Tour tour)
         {
-            if (landmarksDto.Count == 0) throw new ArgumentException(TourWithNoLandmarksErrorMessage);
-            var ladnmarksToAdd = new List<Landmark>();
+            if (landmarksDto.Count == 0)
+                throw new ArgumentException(TourWithNoLandmarksErrorMessage);
+
+            var landmarksToUpdate = new List<Landmark>();
+
             foreach (var landmarkDto in landmarksDto)
             {
-                var cordinate = new Coordinate
+                var existingLandmark = await repository.All<Landmark>()
+                    .Include(l => l.Coordinate)
+                    .FirstOrDefaultAsync(l => l.PlaceId == landmarkDto.PlaceId && l.TourId == tour.TourId);
+
+                Landmark landmark;
+
+                if (existingLandmark != null)
                 {
-                    Latitude = landmarkDto.Latitude,
-                    Longitude = landmarkDto.Longitude,
-                    City = landmarkDto.City
-                };
+                    existingLandmark.LocationName = landmarkDto.LocationName;
+                    existingLandmark.Description = landmarkDto.Description;
+                    existingLandmark.StopOrder = landmarkDto.StopOrder;
 
-                await repository.AddAsync(cordinate);
+                    existingLandmark.Coordinate.Latitude = landmarkDto.Latitude;
+                    existingLandmark.Coordinate.Longitude = landmarkDto.Longitude;
+                    existingLandmark.Coordinate.City = landmarkDto.City;
 
-                var landmark = new Landmark
+                    await resourceService.UpdateLandmarkResourcesAsync(landmarkDto.Resources, existingLandmark);
+
+                    landmark = existingLandmark;
+                }
+                else
                 {
-                    LocationName = landmarkDto.LocationName,
-                    Description = landmarkDto.Description,
-                    Coordinate = cordinate,
-                    StopOrder = landmarkDto.StopOrder,
-                    Tour = tour,
-                    PlaceId = landmarkDto.PlaceId
-                };
+                    var coordinate = new Coordinate
+                    {
+                        Latitude = landmarkDto.Latitude,
+                        Longitude = landmarkDto.Longitude,
+                        City = landmarkDto.City
+                    };
 
-                await repository.AddAsync(landmark);
+                    await repository.AddAsync(coordinate);
 
-                await resourceService.UpdateLandmarkResourcesAsync(landmarkDto.Resources!, landmark);
+                    landmark = new Landmark
+                    {
+                        LocationName = landmarkDto.LocationName,
+                        Description = landmarkDto.Description,
+                        Coordinate = coordinate,
+                        StopOrder = landmarkDto.StopOrder,
+                        Tour = tour,
+                        PlaceId = landmarkDto.PlaceId
+                    };
+
+                    await repository.AddAsync(landmark);
+                    await resourceService.CreateLandmarkResourcesAsync(landmarkDto.Resources, landmark);
+                }
+                landmarksToUpdate.Add(landmark);
             }
 
-            return ladnmarksToAdd;
+            await repository.SaveChangesAsync();
+
+            return landmarksToUpdate;
         }
+
+
     }
 }
