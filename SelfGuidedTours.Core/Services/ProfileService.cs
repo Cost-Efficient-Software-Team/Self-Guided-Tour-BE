@@ -55,6 +55,7 @@ namespace SelfGuidedTours.Core.Services
             user.PhoneNumber = profile?.PhoneNumber ?? user.PhoneNumber;
             user.Bio = profile?.About ?? user.Bio;
             user.Email = profile?.Email ?? user.Email;
+            user.UserName = profile?.Email ?? user.Email;
 
             await _repository.UpdateAsync(user);
             await _repository.SaveChangesAsync();
@@ -79,10 +80,12 @@ namespace SelfGuidedTours.Core.Services
             await _repository.SaveChangesAsync();
         }
 
-        protected async Task<string> HandleProfilePictureAsync(IFormFile? profilePicture, ApplicationUser user)
+        protected async Task<string?> HandleProfilePictureAsync(IFormFile? profilePicture, ApplicationUser user)
         {
+            //If there is no profile picture, return null.
+            //If the user already has a profile picture but doesent want changes the FileName is undefined
             if (profilePicture is null || profilePicture.FileName == "undefined")
-                return string.Empty;
+                return null;
             //TODO: take this from env variables when we decide if its going to be in a different container
             string containerName = "profile-pictures";
 
