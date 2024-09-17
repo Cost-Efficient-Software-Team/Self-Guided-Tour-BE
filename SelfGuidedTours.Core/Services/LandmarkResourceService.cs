@@ -57,8 +57,8 @@ namespace SelfGuidedTours.Core.Services
         public async Task UpdateLandmarkResourcesAsync(List<LandmarkResourceUpdateDTO> resourcesDto, Landmark landmark)
         {
             var existingResources = await repository.All<LandmarkResource>()
-                                        .Where(lr => lr.LandmarkId == landmark.LandmarkId)
-                                        .ToListAsync();
+                                            .Where(lr => lr.LandmarkId == landmark.LandmarkId)
+                                            .ToListAsync();
 
             foreach (var resourceDto in resourcesDto)
             {
@@ -74,7 +74,7 @@ namespace SelfGuidedTours.Core.Services
                         await blobService.DeleteFileAsync(existingResource.Url, containerName);
 
                         var fileName = $"{Guid.NewGuid()}{Path.GetExtension(resourceDto.ResourceFile.FileName)}";
-                        var newResourceUrl = await blobService.UploadFileAsync(containerName, resourceDto.ResourceFile, fileName, true);
+                        var newResourceUrl = await blobService.UploadFileAsync(containerName, resourceDto.ResourceFile, fileName);
 
                         existingResource.Url = newResourceUrl;
                     }
@@ -111,7 +111,7 @@ namespace SelfGuidedTours.Core.Services
                                 ?? throw new ApplicationException(ContainerNameErrorMessage);
 
             var fileName = $"{Guid.NewGuid()}{Path.GetExtension(resourceFile.FileName)}";
-            var resourceUrl = await blobService.UploadFileAsync(containerName, resourceFile, fileName, true);
+            var resourceUrl = await blobService.UploadFileAsync(containerName, resourceFile, fileName);
 
             return resourceUrl;
         }
