@@ -11,6 +11,8 @@ namespace SelfGuidedTours.Core.Models.Dto
             Resources = new List<LandmarkResourceUpdateDTO>();
         }
 
+        public int? LandmarkId { get; set; }
+
         [Required]
         [Column(TypeName = "decimal(10, 6)")]
         public decimal Latitude { get; set; }
