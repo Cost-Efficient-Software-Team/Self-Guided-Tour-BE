@@ -86,7 +86,7 @@ namespace SelfGuidedTours.Core.Services
                         LandmarkId = landmark.LandmarkId,
                         Url = resourceDto.ResourceFile != null ?
                                 await UploadNewResourceFile(resourceDto.ResourceFile) :
-                                resourceDto.ResourceUrl,
+                                resourceDto.ResourceUrl ?? throw new ArgumentNullException(nameof(resourceDto.ResourceUrl)), // Добавяме проверка за null
                         Type = resourceDto.Type,
                         CreatedAt = DateTime.Now
                     };
@@ -97,6 +97,7 @@ namespace SelfGuidedTours.Core.Services
 
             await repository.SaveChangesAsync();
         }
+
 
         private async Task<string> UploadNewResourceFile(IFormFile resourceFile)
         {
