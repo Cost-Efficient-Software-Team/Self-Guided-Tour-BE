@@ -16,38 +16,38 @@ namespace SelfGuidedTours.Core.Services
             this.repository = repository;
             this.resourceService = resourceService;
         }
+
         public async Task<ICollection<Landmark>> CreateLandmarksForTourAsync(ICollection<LandmarkCreateTourDTO> landmarksDto, Tour tour)
         {
             if (landmarksDto.Count == 0) throw new ArgumentException(TourWithNoLandmarksErrorMessage);
-            var ladnmarksToAdd = new List<Landmark>();
+            var landmarksToAdd = new List<Landmark>();
             foreach (var landmarkDto in landmarksDto)
             {
-                var cordinate = new Coordinate
+                var coordinate = new Coordinate
                 {
                     Latitude = landmarkDto.Latitude,
                     Longitude = landmarkDto.Longitude,
                     City = landmarkDto.City
                 };
-
-                await repository.AddAsync(cordinate);
+                await repository.AddAsync(coordinate);
 
                 var landmark = new Landmark
                 {
                     LocationName = landmarkDto.LocationName,
                     Description = landmarkDto.Description,
-                    Coordinate = cordinate,
+                    Coordinate = coordinate,
                     StopOrder = landmarkDto.StopOrder,
                     Tour = tour,
                     PlaceId = landmarkDto.PlaceId
                 };
 
                 await repository.AddAsync(landmark);
-
-                await resourceService.CreateLandmarkResourcesAsync(landmarkDto.Resources!, landmark);
+                await resourceService.CreateLandmarkResourcesAsync(landmarkDto.Resources, landmark);
             }
 
-            return ladnmarksToAdd;
+            return landmarksToAdd;
         }
+
 
         public async Task<ICollection<Landmark>> UpdateLandmarksForTourAsync(ICollection<LandmarkUpdateTourDTO> landmarksDto, Tour tour)
         {
@@ -58,25 +58,27 @@ namespace SelfGuidedTours.Core.Services
 
             foreach (var landmarkDto in landmarksDto)
             {
-                var existingLandmark = await repository.All<Landmark>()
-                    .Include(l => l.Coordinate)
-                    .FirstOrDefaultAsync(l => l.PlaceId == landmarkDto.PlaceId && l.TourId == tour.TourId);
-
-                Landmark landmark;
+                Landmark? existingLandmark = null;
+                if (landmarkDto.LandmarkId.HasValue)
+                {
+                    existingLandmark = await repository.All<Landmark>()
+                        .Include(l => l.Coordinate)
+                        .Include(l => l.Resources)
+                        .FirstOrDefaultAsync(l => l.LandmarkId == landmarkDto.LandmarkId.Value && l.TourId == tour.TourId);
+                }
 
                 if (existingLandmark != null)
                 {
                     existingLandmark.LocationName = landmarkDto.LocationName;
                     existingLandmark.Description = landmarkDto.Description;
                     existingLandmark.StopOrder = landmarkDto.StopOrder;
-
                     existingLandmark.Coordinate.Latitude = landmarkDto.Latitude;
                     existingLandmark.Coordinate.Longitude = landmarkDto.Longitude;
                     existingLandmark.Coordinate.City = landmarkDto.City;
+                    existingLandmark.UpdatedAt = DateTime.Now;
 
                     await resourceService.UpdateLandmarkResourcesAsync(landmarkDto.Resources, existingLandmark);
-
-                    landmark = existingLandmark;
+                    landmarksToUpdate.Add(existingLandmark);
                 }
                 else
                 {
@@ -86,30 +88,25 @@ namespace SelfGuidedTours.Core.Services
                         Longitude = landmarkDto.Longitude,
                         City = landmarkDto.City
                     };
-
                     await repository.AddAsync(coordinate);
-
-                    landmark = new Landmark
+                    var newLandmark = new Landmark
                     {
                         LocationName = landmarkDto.LocationName,
                         Description = landmarkDto.Description,
                         Coordinate = coordinate,
                         StopOrder = landmarkDto.StopOrder,
                         Tour = tour,
-                        PlaceId = landmarkDto.PlaceId
+                        PlaceId = landmarkDto.PlaceId,
+                        CreatedAt = DateTime.Now
                     };
 
-                    await repository.AddAsync(landmark);
-                    await resourceService.CreateLandmarkResourcesAsync(landmarkDto.Resources, landmark);
+                    await repository.AddAsync(newLandmark);
+                    await resourceService.CreateLandmarkResourcesAsync(landmarkDto.Resources, newLandmark);
+                    landmarksToUpdate.Add(newLandmark);
                 }
-                landmarksToUpdate.Add(landmark);
             }
-
             await repository.SaveChangesAsync();
-
             return landmarksToUpdate;
         }
-
-
     }
 }
