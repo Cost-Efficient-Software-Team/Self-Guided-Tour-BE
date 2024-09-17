@@ -83,6 +83,8 @@ namespace SelfGuidedTours.Core.Services
                         existingResource.Url = resourceDto.ResourceUrl;
                     }
 
+                    existingResource.Type = resourceDto.Type;
+
                     existingResource.UpdatedAt = DateTime.Now;
                 }
                 else
