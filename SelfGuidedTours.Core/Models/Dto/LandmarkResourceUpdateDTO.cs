@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using SelfGuidedTours.Infrastructure.Data.Enums;
 using System.ComponentModel.DataAnnotations;
-
 namespace SelfGuidedTours.Core.Models.Dto
 {
     public class LandmarkResourceUpdateDTO
@@ -14,6 +13,5 @@ namespace SelfGuidedTours.Core.Models.Dto
 
         [Required]
         public ResourceType Type { get; set; }
-
     }
 }

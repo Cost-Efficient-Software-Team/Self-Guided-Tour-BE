@@ -23,9 +23,7 @@ namespace SelfGuidedTours.Core.Services
         public async Task CreateLandmarkResourcesAsync(List<LandmarkResourceUpdateDTO> resourcesDto, Landmark landmark)
         {
             if (landmark is null) throw new ArgumentException(TourWithNoLandmarksErrorMessage);
-
             var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME");
-
             if (containerName is null) throw new Exception(ContainerNameErrorMessage);
 
             foreach (var resourceDto in resourcesDto)
@@ -52,7 +50,6 @@ namespace SelfGuidedTours.Core.Services
                     Type = resourceDto.Type,
                     Landmark = landmark
                 };
-
                 await repository.AddAsync(landmarkResource);
             }
         }
@@ -69,7 +66,6 @@ namespace SelfGuidedTours.Core.Services
 
                 if (existingResource != null)
                 {
-                    // Обновяване на съществуващ ресурс
                     if (resourceDto.ResourceFile != null)
                     {
                         var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME")
@@ -91,7 +87,6 @@ namespace SelfGuidedTours.Core.Services
                 }
                 else
                 {
-                    // Създаване на нов ресурс
                     var newResource = new LandmarkResource
                     {
                         LandmarkId = landmark.LandmarkId,
@@ -105,7 +100,6 @@ namespace SelfGuidedTours.Core.Services
                     await repository.AddAsync(newResource);
                 }
             }
-
             await repository.SaveChangesAsync();
         }
 

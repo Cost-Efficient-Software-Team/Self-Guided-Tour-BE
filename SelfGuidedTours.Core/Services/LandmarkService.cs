@@ -29,7 +29,6 @@ namespace SelfGuidedTours.Core.Services
                     Longitude = landmarkDto.Longitude,
                     City = landmarkDto.City
                 };
-
                 await repository.AddAsync(coordinate);
 
                 var landmark = new Landmark
@@ -43,8 +42,6 @@ namespace SelfGuidedTours.Core.Services
                 };
 
                 await repository.AddAsync(landmark);
-
-                // Създаване на ресурсите
                 await resourceService.CreateLandmarkResourcesAsync(landmarkDto.Resources, landmark);
             }
 
@@ -62,7 +59,6 @@ namespace SelfGuidedTours.Core.Services
             foreach (var landmarkDto in landmarksDto)
             {
                 Landmark? existingLandmark = null;
-
                 if (landmarkDto.LandmarkId.HasValue)
                 {
                     existingLandmark = await repository.All<Landmark>()
@@ -73,7 +69,6 @@ namespace SelfGuidedTours.Core.Services
 
                 if (existingLandmark != null)
                 {
-                    // Обновяване на съществуваща забележителност
                     existingLandmark.LocationName = landmarkDto.LocationName;
                     existingLandmark.Description = landmarkDto.Description;
                     existingLandmark.StopOrder = landmarkDto.StopOrder;
@@ -82,14 +77,11 @@ namespace SelfGuidedTours.Core.Services
                     existingLandmark.Coordinate.City = landmarkDto.City;
                     existingLandmark.UpdatedAt = DateTime.Now;
 
-                    // Обновяване на ресурсите
                     await resourceService.UpdateLandmarkResourcesAsync(landmarkDto.Resources, existingLandmark);
-
                     landmarksToUpdate.Add(existingLandmark);
                 }
                 else
                 {
-                    // Създаване на нова забележителност
                     var coordinate = new Coordinate
                     {
                         Latitude = landmarkDto.Latitude,
@@ -97,7 +89,6 @@ namespace SelfGuidedTours.Core.Services
                         City = landmarkDto.City
                     };
                     await repository.AddAsync(coordinate);
-
                     var newLandmark = new Landmark
                     {
                         LocationName = landmarkDto.LocationName,
@@ -110,14 +101,10 @@ namespace SelfGuidedTours.Core.Services
                     };
 
                     await repository.AddAsync(newLandmark);
-
-                    // Създаване на ресурси за новата забележителност
                     await resourceService.CreateLandmarkResourcesAsync(landmarkDto.Resources, newLandmark);
-
                     landmarksToUpdate.Add(newLandmark);
                 }
             }
-
             await repository.SaveChangesAsync();
             return landmarksToUpdate;
         }

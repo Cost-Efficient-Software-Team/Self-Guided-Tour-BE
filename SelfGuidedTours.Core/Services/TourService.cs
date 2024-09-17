@@ -225,7 +225,7 @@ namespace SelfGuidedTours.Core.Services
             tour.EstimatedDuration = model.EstimatedDuration;
             tour.TypeTour = model.TypeTour;
 
-            if (model.ThumbnailImage != null)//delete every time the thumbnile on update
+            if (model.ThumbnailImage != null)
             {
                 var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME")
                                     ?? throw new ApplicationException(ContainerNameErrorMessage);
