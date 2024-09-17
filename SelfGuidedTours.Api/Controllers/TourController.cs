@@ -61,36 +61,16 @@ namespace SelfGuidedTours.Api.Controllers
             return Ok(_response);
         }
 
-
-        //[HttpPut("update-tour/{id:int}")]
-        //[ProducesResponseType(typeof(ApiResponse), 200)]
-        //[ProducesResponseType(typeof(ApiResponse), 400)]
-        //[ValidateModel]
-        //public async Task<IActionResult> UpdateTour(int id, [FromForm] TourUpdateDTO tourUpdateDTO)
-        //{
-        //    var result = await _tourService.UpdateTourAsync(id, tourUpdateDTO);
-
-        //    return StatusCode((int)result.StatusCode, result);
-        //}
-
         [HttpPut("update-tour/{id:int}")]
+        [ProducesResponseType(typeof(ApiResponse), 200)]
+        [ProducesResponseType(typeof(ApiResponse), 400)]
+        [ValidateModel]
         public async Task<IActionResult> UpdateTour(int id, [FromForm] TourUpdateDTO tourUpdateDTO)
         {
-            // ???????? ?? ???????? ?????
-            foreach (var landmark in tourUpdateDTO.Landmarks)
-            {
-                foreach (var resource in landmark.Resources)
-                {
-                    // ????????? ???????????
-                    Console.WriteLine($"Resource ID: {resource.LandmarkResourceId}");
-                }
-            }
-
             var result = await _tourService.UpdateTourAsync(id, tourUpdateDTO);
 
             return StatusCode((int)result.StatusCode, result);
         }
-
 
         [HttpDelete("{id:int}", Name = "delete-tour")]
         public async Task<IActionResult> DeleteTour([FromRoute] int id)
