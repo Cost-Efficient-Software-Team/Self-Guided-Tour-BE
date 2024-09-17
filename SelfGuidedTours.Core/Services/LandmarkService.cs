@@ -61,7 +61,7 @@ namespace SelfGuidedTours.Core.Services
 
             foreach (var landmarkDto in landmarksDto)
             {
-                Landmark existingLandmark = null;
+                Landmark? existingLandmark = null;
 
                 if (landmarkDto.LandmarkId.HasValue)
                 {
@@ -121,11 +121,5 @@ namespace SelfGuidedTours.Core.Services
             await repository.SaveChangesAsync();
             return landmarksToUpdate;
         }
-
-
-
-
-
-
     }
 }
