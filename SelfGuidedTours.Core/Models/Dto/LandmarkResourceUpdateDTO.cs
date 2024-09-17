@@ -6,7 +6,7 @@ namespace SelfGuidedTours.Core.Models.Dto
 {
     public class LandmarkResourceUpdateDTO
     {
-        public int LandmarkResourceId { get; set; } // ID на ресурса, който ще се обновява
+        public int? LandmarkResourceId { get; set; } // ID на ресурса, който ще се обновява
 
         // Поддръжка за файлове - ако потребителят качва нов файл
         public IFormFile? ResourceFile { get; set; }

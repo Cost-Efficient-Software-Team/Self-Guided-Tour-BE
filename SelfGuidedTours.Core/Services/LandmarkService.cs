@@ -2,7 +2,6 @@
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Models.Dto;
 using SelfGuidedTours.Infrastructure.Common;
-using SelfGuidedTours.Infrastructure.Data.Enums;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using static SelfGuidedTours.Common.MessageConstants.ErrorMessages;
 namespace SelfGuidedTours.Core.Services
@@ -17,26 +16,27 @@ namespace SelfGuidedTours.Core.Services
             this.repository = repository;
             this.resourceService = resourceService;
         }
+
         public async Task<ICollection<Landmark>> CreateLandmarksForTourAsync(ICollection<LandmarkCreateTourDTO> landmarksDto, Tour tour)
         {
             if (landmarksDto.Count == 0) throw new ArgumentException(TourWithNoLandmarksErrorMessage);
-            var ladnmarksToAdd = new List<Landmark>();
+            var landmarksToAdd = new List<Landmark>();
             foreach (var landmarkDto in landmarksDto)
             {
-                var cordinate = new Coordinate
+                var coordinate = new Coordinate
                 {
                     Latitude = landmarkDto.Latitude,
                     Longitude = landmarkDto.Longitude,
                     City = landmarkDto.City
                 };
 
-                await repository.AddAsync(cordinate);
+                await repository.AddAsync(coordinate);
 
                 var landmark = new Landmark
                 {
                     LocationName = landmarkDto.LocationName,
                     Description = landmarkDto.Description,
-                    Coordinate = cordinate,
+                    Coordinate = coordinate,
                     StopOrder = landmarkDto.StopOrder,
                     Tour = tour,
                     PlaceId = landmarkDto.PlaceId
@@ -44,11 +44,13 @@ namespace SelfGuidedTours.Core.Services
 
                 await repository.AddAsync(landmark);
 
-                await resourceService.CreateLandmarkResourcesAsync(landmarkDto.Resources!, landmark);
+                // Създаване на ресурсите
+                await resourceService.CreateLandmarkResourcesAsync(landmarkDto.Resources, landmark);
             }
 
-            return ladnmarksToAdd;
+            return landmarksToAdd;
         }
+
 
         public async Task<ICollection<Landmark>> UpdateLandmarksForTourAsync(ICollection<LandmarkUpdateTourDTO> landmarksDto, Tour tour)
         {
@@ -68,7 +70,7 @@ namespace SelfGuidedTours.Core.Services
 
                 if (existingLandmark != null)
                 {
-                    // Обновяване на съществуващ маркер
+                    // Обновяване на съществуваща забележителност
                     existingLandmark.LocationName = landmarkDto.LocationName;
                     existingLandmark.Description = landmarkDto.Description;
                     existingLandmark.StopOrder = landmarkDto.StopOrder;
@@ -76,23 +78,14 @@ namespace SelfGuidedTours.Core.Services
                     existingLandmark.Coordinate.Longitude = landmarkDto.Longitude;
                     existingLandmark.Coordinate.City = landmarkDto.City;
 
-                    // Трансформиране на IFormFile към LandmarkResourceUpdateDTO
-                    var landmarkResourceDtos = landmarkDto.Resources
-                        .Select(file => new LandmarkResourceUpdateDTO
-                        {
-                            ResourceFile = file, // Предаваме качения файл
-                            Type = ResourceType.Image // Пример: задаваме типа на ресурса (може да бъде Image, Video, Audio)
-                        })
-                        .ToList();
-
                     // Обновяване на ресурсите
-                    await resourceService.UpdateLandmarkResourcesAsync(landmarkResourceDtos, existingLandmark);
+                    await resourceService.UpdateLandmarkResourcesAsync(landmarkDto.Resources, existingLandmark);
 
                     landmark = existingLandmark;
                 }
                 else
                 {
-                    // Създаване на нов маркер
+                    // Създаване на нова забележителност
                     var coordinate = new Coordinate
                     {
                         Latitude = landmarkDto.Latitude,
@@ -113,15 +106,7 @@ namespace SelfGuidedTours.Core.Services
 
                     await repository.AddAsync(landmark);
 
-                    // Създаване на ресурси за новия маркер
-                    var landmarkResourceDtos = landmarkDto.Resources
-                        .Select(file => new LandmarkResourceUpdateDTO
-                        {
-                            ResourceFile = file,
-                            Type = ResourceType.Image // Задаваме типа
-                        })
-                        .ToList();
-
+                    // Създаване на ресурси за новата забележителност
                     await resourceService.CreateLandmarkResourcesAsync(landmarkDto.Resources, landmark);
                 }
 
@@ -131,6 +116,7 @@ namespace SelfGuidedTours.Core.Services
             await repository.SaveChangesAsync();
             return landmarksToUpdate;
         }
+
 
 
 
