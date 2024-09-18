@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using static SelfGuidedTours.Common.MessageConstants.ErrorMessages;
 using static SelfGuidedTours.Common.ValidationConstants.ValidationConstants.Landmark;
@@ -8,7 +9,7 @@ namespace SelfGuidedTours.Core.Models.Dto
     {
         public LandmarkUpdateTourDTO()
         {
-            Resources = new List<LandmarkResourceUpdateDTO>();
+            Resources = new List<IFormFile>();
         }
 
         public int? LandmarkId { get; set; }
@@ -37,6 +38,6 @@ namespace SelfGuidedTours.Core.Models.Dto
         [Required]
         public string PlaceId { get; set; } = null!;
 
-        public List<LandmarkResourceUpdateDTO> Resources { get; set; }
+        public List<IFormFile> Resources { get; set; }
     }
 }
