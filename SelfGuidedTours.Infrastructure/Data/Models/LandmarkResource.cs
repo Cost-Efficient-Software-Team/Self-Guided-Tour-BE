@@ -1,9 +1,8 @@
 ﻿using SelfGuidedTours.Infrastructure.Data.Enums;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using static SelfGuidedTours.Common.ValidationConstants.ValidationConstants.LandmarkResource;
 using static SelfGuidedTours.Common.MessageConstants.ErrorMessages;
-using Microsoft.AspNetCore.Http;
+using static SelfGuidedTours.Common.ValidationConstants.ValidationConstants.LandmarkResource;
 namespace SelfGuidedTours.Infrastructure.Data.Models
 {
     public class LandmarkResource

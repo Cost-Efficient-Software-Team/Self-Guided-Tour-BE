@@ -14,7 +14,7 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         public ApplicationUser User { get; set; } = null!;
 
         [Required]
-        [Column(TypeName = "decimal(10, 2)")]
+        [Column(TypeName = "decimal(38, 20)")]
         public decimal Balance { get; set; } = 0;
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime? UpdatedAt { get; set; }

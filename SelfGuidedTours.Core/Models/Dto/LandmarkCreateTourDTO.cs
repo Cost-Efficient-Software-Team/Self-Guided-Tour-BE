@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using static SelfGuidedTours.Common.MessageConstants.ErrorMessages;
 using static SelfGuidedTours.Common.ValidationConstants.ValidationConstants.Landmark;
@@ -9,7 +8,7 @@ namespace SelfGuidedTours.Core.Models.Dto
     {
         public LandmarkCreateTourDTO()
         {
-            Resources = new List<IFormFile>();
+            Resources = new List<LandmarkResourceUpdateDTO>();
         }
 
         [Required]
@@ -20,8 +19,8 @@ namespace SelfGuidedTours.Core.Models.Dto
         [Column(TypeName = "decimal(10, 2)")]
         public decimal Longitude { get; set; }
 
-        [StringLength(CityMaxLength, MinimumLength = CityMinLength, ErrorMessage = LengthErrorMessage)]
-        public string City { get; set; } = string.Empty;
+        [StringLength(CityMaxLength, ErrorMessage = LengthErrorMessage)]
+        public string? City { get; set; } = string.Empty;
 
         [Required]
         [StringLength(NameMaxLength, MinimumLength = NameMinLength, ErrorMessage = LengthErrorMessage)]
@@ -35,6 +34,6 @@ namespace SelfGuidedTours.Core.Models.Dto
         [Required]
         public string PlaceId { get; set; } = null!;
 
-        public List<IFormFile> Resources { get; set; }
+        public List<LandmarkResourceUpdateDTO> Resources { get; set; }
     }
 }

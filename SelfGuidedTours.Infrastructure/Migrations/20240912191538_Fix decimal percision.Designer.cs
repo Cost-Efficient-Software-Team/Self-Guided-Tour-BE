@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SelfGuidedTours.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SelfGuidedTours.Infrastructure.Data;
 namespace SelfGuidedTours.Infrastructure.Migrations
 {
     [DbContext(typeof(SelfGuidedToursDbContext))]
-    partial class SelfGuidedToursDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240912191538_Fix decimal percision")]
+    partial class Fixdecimalpercision
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -261,9 +264,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CoordinateId"));
 
                     b.Property<string>("City")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Country")
                         .IsRequired()
@@ -664,17 +665,17 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         {
                             Id = "27d78708-8671-4b05-bd5e-17aa91392224",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "0fe912d3-0243-47ca-802c-49888bfa9a04",
+                            ConcurrencyStamp = "ec61339d-789f-4655-b807-86bd64997e4d",
                             Email = "admin@selfguidedtours.bg",
                             EmailConfirmed = false,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@SELFGUIDEDTOURS.BG",
                             NormalizedUserName = "ADMIN ADMINOV",
-                            PasswordHash = "AQAAAAIAAYagAAAAEIEbm7KxGHvdoirod73NXdJaBhn8CCM82SdRlMeOm1S6RfbnmCYvINKnBSsU0Rb3NA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEKGlIdh+Zf0fpmari/kGmqPYDs0cL6xOsouSr3S/wLoPGDFW4dVpmL+Akfw2VWVFUA==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "77e47a5f-6db8-4678-a349-74ba7200efb1",
+                            SecurityStamp = "f7472e89-45b1-423a-8c3a-4eca8f402818",
                             TwoFactorEnabled = false,
-                            CreatedAt = new DateTime(2024, 9, 18, 5, 30, 12, 337, DateTimeKind.Local).AddTicks(550),
+                            CreatedAt = new DateTime(2024, 9, 12, 22, 15, 37, 617, DateTimeKind.Local).AddTicks(5171),
                             Name = "Admin Adminov"
                         });
                 });

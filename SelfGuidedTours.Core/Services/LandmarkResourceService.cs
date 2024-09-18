@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Contracts.BlobStorage;
+using SelfGuidedTours.Core.Models.Dto;
 using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data.Enums;
 using SelfGuidedTours.Infrastructure.Data.Models;
@@ -17,56 +19,101 @@ namespace SelfGuidedTours.Core.Services
             this.blobService = blobService;
             this.repository = repository;
         }
-        public async Task CreateLandmarkResourcesAsync(ICollection<IFormFile> resources, Landmark landmark)
+
+        public async Task CreateLandmarkResourcesAsync(List<LandmarkResourceUpdateDTO> resourcesDto, Landmark landmark)
         {
             if (landmark is null) throw new ArgumentException(TourWithNoLandmarksErrorMessage);
-
             var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME");
-
             if (containerName is null) throw new Exception(ContainerNameErrorMessage);
 
-            //Think about validating if there are 0 resources, is that okay or not
-            foreach (var resource in resources)
+            foreach (var resourceDto in resourcesDto)
             {
-                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(resource.FileName)}";
-                var resourceUrl = await blobService.UploadFileAsync(containerName, resource, fileName);
+                string resourceUrl;
+
+                if (resourceDto.ResourceFile != null)
+                {
+                    var fileName = $"{Guid.NewGuid()}{Path.GetExtension(resourceDto.ResourceFile.FileName)}";
+                    resourceUrl = await blobService.UploadFileAsync(containerName, resourceDto.ResourceFile, fileName);
+                }
+                else if (!string.IsNullOrEmpty(resourceDto.ResourceUrl))
+                {
+                    resourceUrl = resourceDto.ResourceUrl;
+                }
+                else
+                {
+                    throw new ArgumentException("Resource must have either ResourceFile or ResourceUrl.");
+                }
 
                 var landmarkResource = new LandmarkResource
                 {
                     Url = resourceUrl,
-                    Type = GetResourceType(resource.ContentType),
+                    Type = resourceDto.Type,
                     Landmark = landmark
                 };
-
                 await repository.AddAsync(landmarkResource);
-
             }
         }
 
-        public async Task UpdateLandmarkResourcesAsync(ICollection<IFormFile> resources, Landmark landmark)
+        public async Task UpdateLandmarkResourcesAsync(List<LandmarkResourceUpdateDTO> resourcesDto, Landmark landmark)
         {
-            if (landmark is null) throw new ArgumentException(TourWithNoLandmarksErrorMessage);
+            var existingResources = await repository.All<LandmarkResource>()
+                                            .Where(lr => lr.LandmarkId == landmark.LandmarkId)
+                                            .ToListAsync();
 
-            var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME");
-
-            if (containerName is null) throw new Exception(ContainerNameErrorMessage);
-
-            //Think about validating if there are 0 resources, is that okay or not
-            foreach (var resource in resources)
+            foreach (var resourceDto in resourcesDto)
             {
-                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(resource.FileName)}";
-                var resourceUrl = await blobService.UploadFileAsync(containerName, resource, fileName);
+                var existingResource = existingResources.FirstOrDefault(r => r.LandmarkResourceId == resourceDto.LandmarkResourceId);
 
-                var landmarkResource = new LandmarkResource
+                if (existingResource != null)
                 {
-                    Url = resourceUrl,
-                    Type = GetResourceType(resource.ContentType),
-                    Landmark = landmark
-                };
+                    if (resourceDto.ResourceFile != null)
+                    {
+                        var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME")
+                                            ?? throw new ApplicationException(ContainerNameErrorMessage);
 
-                await repository.AddAsync(landmarkResource);
+                        await blobService.DeleteFileAsync(existingResource.Url, containerName);
 
+                        var fileName = $"{Guid.NewGuid()}{Path.GetExtension(resourceDto.ResourceFile.FileName)}";
+                        var newResourceUrl = await blobService.UploadFileAsync(containerName, resourceDto.ResourceFile, fileName);
+
+                        existingResource.Url = newResourceUrl;
+                    }
+                    else if (!string.IsNullOrEmpty(resourceDto.ResourceUrl))
+                    {
+                        existingResource.Url = resourceDto.ResourceUrl;
+                    }
+
+                    existingResource.Type = resourceDto.Type;
+
+                    existingResource.UpdatedAt = DateTime.Now;
+                }
+                else
+                {
+                    var newResource = new LandmarkResource
+                    {
+                        LandmarkId = landmark.LandmarkId,
+                        Url = resourceDto.ResourceFile != null ?
+                                await UploadNewResourceFile(resourceDto.ResourceFile) :
+                                resourceDto.ResourceUrl ?? throw new ArgumentNullException(nameof(resourceDto.ResourceUrl)),
+                        Type = resourceDto.Type,
+                        CreatedAt = DateTime.Now
+                    };
+
+                    await repository.AddAsync(newResource);
+                }
             }
+            await repository.SaveChangesAsync();
+        }
+
+        private async Task<string> UploadNewResourceFile(IFormFile resourceFile)
+        {
+            var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME")
+                                ?? throw new ApplicationException(ContainerNameErrorMessage);
+
+            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(resourceFile.FileName)}";
+            var resourceUrl = await blobService.UploadFileAsync(containerName, resourceFile, fileName);
+
+            return resourceUrl;
         }
 
         private ResourceType GetResourceType(string contentType)

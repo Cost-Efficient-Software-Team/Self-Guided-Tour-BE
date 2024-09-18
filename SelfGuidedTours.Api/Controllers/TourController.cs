@@ -61,7 +61,6 @@ namespace SelfGuidedTours.Api.Controllers
             return Ok(_response);
         }
 
-
         [HttpPut("update-tour/{id:int}")]
         [ProducesResponseType(typeof(ApiResponse), 200)]
         [ProducesResponseType(typeof(ApiResponse), 400)]

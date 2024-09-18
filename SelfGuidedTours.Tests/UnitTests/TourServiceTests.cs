@@ -149,7 +149,7 @@ namespace SelfGuidedTours.Tests.UnitTests
                         Longitude = 23.3186M,
                         City = "Sofia",
                         StopOrder = 1,
-                        Resources = new List<IFormFile>()
+                        Resources = new List<LandmarkResourceUpdateDTO>()
                     }
                 }
             };
@@ -331,7 +331,7 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             var updatedTour = await dbContext.Tours.FindAsync(1);
 
-            Assert.That(updatedTour.Title!, Is.EqualTo("Tour 1 Updated"));
+            Assert.That(updatedTour!.Title!, Is.EqualTo("Tour 1 Updated"));
             Assert.That(updatedTour.Summary, Is.EqualTo("Summary 1 Updated"));
             Assert.That(updatedTour.Price, Is.EqualTo(15.0m));
             Assert.That(updatedTour.Destination, Is.EqualTo("Destination 1 Updated"));
