@@ -17,6 +17,8 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         [MaxLength(BioMaxLength)]
         [Comment("Information about the current user.")]
         public string? Bio { get; set; }
+        [Comment("External users dont have a password, they are authenticated by a third party.")]
+        public bool HasPassword { get; set; } = true;
         public string? Credentials { get; set; }
         [Required]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
