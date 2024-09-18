@@ -50,5 +50,6 @@ namespace SelfGuidedTours.Api.Controllers
 
             return updatedProfile == null ? NotFound() : Ok(updatedProfile);
         }
+     
     }
 }

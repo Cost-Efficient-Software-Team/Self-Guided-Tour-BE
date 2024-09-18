@@ -36,6 +36,7 @@ namespace SelfGuidedTours.Core.Services
                 PhoneNumber = user.PhoneNumber,
                 About = user.Bio,
                 Email = user.Email!,
+                HasPassword = user.HasPassword,
             };
                 
             return userProfile;
