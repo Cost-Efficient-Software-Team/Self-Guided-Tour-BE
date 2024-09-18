@@ -9,5 +9,6 @@
         public string? PhoneNumber { get; set; }
         public string? About { get; set; }
         public string Email { get; set; } = string.Empty;
+        public bool HasPassword { get; set; }
     }
 }
