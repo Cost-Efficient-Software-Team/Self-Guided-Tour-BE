@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SelfGuidedTours.Core.Models.Dto
 {
@@ -13,8 +13,7 @@ namespace SelfGuidedTours.Core.Models.Dto
         [Column(TypeName = "decimal(10, 2)")]
         public decimal Longitude { get; set; }
 
-        [Required]
-        public string City { get; set; } = string.Empty;
+        public string? City { get; set; } = string.Empty;
 
         [Required]
         public string Country { get; set; } = string.Empty;

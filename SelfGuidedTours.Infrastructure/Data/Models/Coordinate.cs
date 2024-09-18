@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-
+using static SelfGuidedTours.Common.MessageConstants.ErrorMessages;
+using static SelfGuidedTours.Common.ValidationConstants.ValidationConstants.Landmark;
 namespace SelfGuidedTours.Infrastructure.Data.Models
 {
     public class Coordinate
@@ -16,7 +17,8 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         [Column(TypeName = "decimal(38, 20)")]
         public decimal Longitude { get; set; }
 
-        public string? City { get; set; } = string.Empty;
+        [StringLength(CityMaxLength, ErrorMessage = LengthErrorMessage)]
+        public string City { get; set; } = string.Empty;
 
         [Required]
         public string Country { get; set; } = string.Empty;

@@ -21,7 +21,7 @@ namespace SelfGuidedTours.Core.Models.Dto
         [Column(TypeName = "decimal(10, 6)")]
         public decimal Longitude { get; set; }
 
-        [StringLength(CityMaxLength, MinimumLength = CityMinLength, ErrorMessage = LengthErrorMessage)]
+        [StringLength(CityMaxLength, ErrorMessage = LengthErrorMessage)]
         public string City { get; set; } = string.Empty;
 
         [Required]
