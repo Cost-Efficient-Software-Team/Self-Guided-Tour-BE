@@ -55,7 +55,6 @@ namespace SelfGuidedTours.Core.Services
             var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME")
                                 ?? throw new ApplicationException(ContainerNameErrorMessage);
 
-            // Изтриване на ресурси, които не са в обновения списък
             var resourcesToDelete = existingResources
                 .Where(er => !resources.Any(r => r.ResourceId == er.LandmarkResourceId))
                 .ToList();
@@ -66,12 +65,10 @@ namespace SelfGuidedTours.Core.Services
                 repository.Delete(resourceToDelete);
             }
 
-            // Актуализиране на съществуващи ресурси или добавяне на нови
             foreach (var resourceDto in resources)
             {
                 if (resourceDto.ResourceId.HasValue)
                 {
-                    // Актуализиране на съществуващ ресурс
                     var existingResource = existingResources.FirstOrDefault(er => er.LandmarkResourceId == resourceDto.ResourceId.Value);
 
                     if (existingResource != null)
@@ -80,7 +77,6 @@ namespace SelfGuidedTours.Core.Services
                         existingResource.Type = (ResourceType)(resourceDto.ResourceType ?? (int)existingResource.Type);
                         existingResource.UpdatedAt = DateTime.Now;
 
-                        // Ако е предоставен нов файл, обновяваме го
                         if (resourceDto.ResourceFile != null)
                         {
                             await blobService.DeleteFileAsync(existingResource.Url, containerName);
@@ -95,7 +91,6 @@ namespace SelfGuidedTours.Core.Services
                 }
                 else
                 {
-                    // Добавяне на нов ресурс
                     if (resourceDto.ResourceFile != null)
                     {
                         var fileName = $"{Guid.NewGuid()}{Path.GetExtension(resourceDto.ResourceFile.FileName)}";
