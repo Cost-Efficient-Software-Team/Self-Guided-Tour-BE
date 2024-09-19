@@ -48,7 +48,6 @@ namespace SelfGuidedTours.Core.Services
             return landmarksToAdd;
         }
 
-
         public async Task<ICollection<Landmark>> UpdateLandmarksForTourAsync(ICollection<LandmarkUpdateTourDTO> landmarksDto, Tour tour)
         {
             if (landmarksDto.Count == 0)
@@ -64,7 +63,7 @@ namespace SelfGuidedTours.Core.Services
                     existingLandmark = await repository.All<Landmark>()
                         .Include(l => l.Coordinate)
                         .Include(l => l.Resources)
-                        .FirstOrDefaultAsync(l => l.LandmarkId == landmarkDto.LandmarkId.Value && l.TourId == tour.TourId);
+                        .FirstOrDefaultAsync(l => l.LandmarkId == landmarkDto.LandmarkId.Value && l.TourId == tour.TourId);////this is not correct query, i have a LandmarkId = 32 which has LandmarkResourceId = 36
                 }
 
                 if (existingLandmark != null)
@@ -101,12 +100,15 @@ namespace SelfGuidedTours.Core.Services
                     };
 
                     await repository.AddAsync(newLandmark);
-                    await resourceService.CreateLandmarkResourcesAsync(landmarkDto.Resources, newLandmark);
+                    // Използваме новия метод тук
+                    await resourceService.CreateLandmarkResourcesFromUpdateDtoAsync(landmarkDto.Resources, newLandmark);
                     landmarksToUpdate.Add(newLandmark);
                 }
             }
             await repository.SaveChangesAsync();
             return landmarksToUpdate;
         }
+
+
     }
 }

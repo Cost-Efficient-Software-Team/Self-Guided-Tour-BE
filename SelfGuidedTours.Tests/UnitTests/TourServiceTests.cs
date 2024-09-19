@@ -149,7 +149,7 @@ namespace SelfGuidedTours.Tests.UnitTests
                         Longitude = 23.3186M,
                         City = "Sofia",
                         StopOrder = 1,
-                        Resources = new List<LandmarkResourceUpdateDTO>()
+                        Resources = new List<IFormFile>()
                     }
                 }
             };
