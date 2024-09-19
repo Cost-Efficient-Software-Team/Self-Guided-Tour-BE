@@ -63,7 +63,7 @@ namespace SelfGuidedTours.Core.Services
                     existingLandmark = await repository.All<Landmark>()
                         .Include(l => l.Coordinate)
                         .Include(l => l.Resources)
-                        .FirstOrDefaultAsync(l => l.LandmarkId == landmarkDto.LandmarkId.Value && l.TourId == tour.TourId);////this is not correct query, i have a LandmarkId = 32 which has LandmarkResourceId = 36
+                        .FirstOrDefaultAsync(l => l.LandmarkId == landmarkDto.LandmarkId.Value && l.TourId == tour.TourId);
                 }
 
                 if (existingLandmark != null)
@@ -100,7 +100,6 @@ namespace SelfGuidedTours.Core.Services
                     };
 
                     await repository.AddAsync(newLandmark);
-                    // Използваме новия метод тук
                     await resourceService.CreateLandmarkResourcesFromUpdateDtoAsync(landmarkDto.Resources, newLandmark);
                     landmarksToUpdate.Add(newLandmark);
                 }
