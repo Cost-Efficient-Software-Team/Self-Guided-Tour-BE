@@ -6,6 +6,7 @@ using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Models.Dto;
 using SelfGuidedTours.Core.Models.RequestDto;
+using SelfGuidedTours.Core.Models.ResponseDto;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using System;
 using System.Net;
@@ -50,6 +51,16 @@ namespace SelfGuidedTours.Api.Controllers
 
             return updatedProfile == null ? NotFound() : Ok(updatedProfile);
         }
-     
+
+        [HttpGet]
+        [Route("my-tours")]
+        [ProducesResponseType(typeof(TourResponseDto), 200)]
+        [ProducesResponseType(typeof(ApiResponse), 404)]
+        public async Task<IActionResult> GetMyTours()
+        {
+            var tours = await _profileService.GetMyToursAsync(this.UserId);
+
+            return tours == null ? NotFound() : Ok(tours);
+        }
     }
 }

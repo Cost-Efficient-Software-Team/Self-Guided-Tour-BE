@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Contracts.BlobStorage;
 using SelfGuidedTours.Core.Models.Dto;
 using SelfGuidedTours.Core.Models.RequestDto;
+using SelfGuidedTours.Core.Models.ResponseDto;
 using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data.Models;
 
@@ -14,12 +16,14 @@ namespace SelfGuidedTours.Core.Services
         private readonly IRepository _repository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IBlobService blobSerivice;
+        private readonly ITourService tourService;
 
-        public ProfileService(IRepository repository, UserManager<ApplicationUser> userManager, IBlobService blobSerivice)
+        public ProfileService(IRepository repository, UserManager<ApplicationUser> userManager, IBlobService blobSerivice, ITourService tourService)
         {
             _repository = repository;
             _userManager = userManager;
             this.blobSerivice = blobSerivice;
+            this.tourService = tourService;
         }
 
         public async Task<UserProfileDto?> GetProfileAsync(string userId)
@@ -101,6 +105,19 @@ namespace SelfGuidedTours.Core.Services
             var profilePictureUrl = await blobSerivice.UploadFileAsync(containerName,profilePicture, fileName, true);
 
             return profilePictureUrl;
+        }
+
+        public async Task<List<TourResponseDto>> GetMyToursAsync(string userId)
+        {
+            var tours = await _repository.AllReadOnly<Tour>()
+                .Where(t=>t.CreatorId == userId)
+                .ToListAsync();
+
+            var tourResponse = tours
+                .Select(t => tourService.MapTourToTourResponseDto(t))
+                .ToList();
+
+            return tourResponse;
         }
     }
 }
