@@ -20,100 +20,140 @@ namespace SelfGuidedTours.Core.Services
             this.repository = repository;
         }
 
-        public async Task CreateLandmarkResourcesAsync(List<LandmarkResourceUpdateDTO> resourcesDto, Landmark landmark)
+        public async Task CreateLandmarkResourcesAsync(List<IFormFile> resources, Landmark landmark)
         {
             if (landmark is null) throw new ArgumentException(TourWithNoLandmarksErrorMessage);
+
             var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME");
+
             if (containerName is null) throw new Exception(ContainerNameErrorMessage);
 
-            foreach (var resourceDto in resourcesDto)
+            //Think about validating if there are 0 resources, is that okay or not
+            foreach (var resource in resources)
             {
-                string resourceUrl;
-
-                if (resourceDto.ResourceFile != null)
-                {
-                    var fileName = $"{Guid.NewGuid()}{Path.GetExtension(resourceDto.ResourceFile.FileName)}";
-                    resourceUrl = await blobService.UploadFileAsync(containerName, resourceDto.ResourceFile, fileName);
-                }
-                else if (!string.IsNullOrEmpty(resourceDto.ResourceUrl))
-                {
-                    resourceUrl = resourceDto.ResourceUrl;
-                }
-                else
-                {
-                    throw new ArgumentException("Resource must have either ResourceFile or ResourceUrl.");
-                }
+                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(resource.FileName)}";
+                var resourceUrl = await blobService.UploadFileAsync(containerName, resource, fileName);
 
                 var landmarkResource = new LandmarkResource
                 {
                     Url = resourceUrl,
-                    Type = resourceDto.Type,
+                    Type = GetResourceType(resource.ContentType),
                     Landmark = landmark
                 };
+
                 await repository.AddAsync(landmarkResource);
+
             }
         }
 
-        public async Task UpdateLandmarkResourcesAsync(List<LandmarkResourceUpdateDTO> resourcesDto, Landmark landmark)
+        public async Task UpdateLandmarkResourcesAsync(List<ResourceUpdateDTO> resources, Landmark landmark)
         {
             var existingResources = await repository.All<LandmarkResource>()
-                                            .Where(lr => lr.LandmarkId == landmark.LandmarkId)
-                                            .ToListAsync();
+                .Where(lr => lr.LandmarkId == landmark.LandmarkId)
+                .ToListAsync();
 
-            foreach (var resourceDto in resourcesDto)
-            {
-                var existingResource = existingResources.FirstOrDefault(r => r.LandmarkResourceId == resourceDto.LandmarkResourceId);
-
-                if (existingResource != null)
-                {
-                    if (resourceDto.ResourceFile != null)
-                    {
-                        var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME")
-                                            ?? throw new ApplicationException(ContainerNameErrorMessage);
-
-                        await blobService.DeleteFileAsync(existingResource.Url, containerName);
-
-                        var fileName = $"{Guid.NewGuid()}{Path.GetExtension(resourceDto.ResourceFile.FileName)}";
-                        var newResourceUrl = await blobService.UploadFileAsync(containerName, resourceDto.ResourceFile, fileName);
-
-                        existingResource.Url = newResourceUrl;
-                    }
-                    else if (!string.IsNullOrEmpty(resourceDto.ResourceUrl))
-                    {
-                        existingResource.Url = resourceDto.ResourceUrl;
-                    }
-
-                    existingResource.Type = resourceDto.Type;
-
-                    existingResource.UpdatedAt = DateTime.Now;
-                }
-                else
-                {
-                    var newResource = new LandmarkResource
-                    {
-                        LandmarkId = landmark.LandmarkId,
-                        Url = resourceDto.ResourceFile != null ?
-                                await UploadNewResourceFile(resourceDto.ResourceFile) :
-                                resourceDto.ResourceUrl ?? throw new ArgumentNullException(nameof(resourceDto.ResourceUrl)),
-                        Type = resourceDto.Type,
-                        CreatedAt = DateTime.Now
-                    };
-
-                    await repository.AddAsync(newResource);
-                }
-            }
-            await repository.SaveChangesAsync();
-        }
-
-        private async Task<string> UploadNewResourceFile(IFormFile resourceFile)
-        {
             var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME")
                                 ?? throw new ApplicationException(ContainerNameErrorMessage);
 
-            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(resourceFile.FileName)}";
-            var resourceUrl = await blobService.UploadFileAsync(containerName, resourceFile, fileName);
+            var resourcesToDelete = existingResources
+                .Where(er => !resources.Any(r => r.ResourceId == er.LandmarkResourceId))
+                .ToList();
 
-            return resourceUrl;
+            foreach (var resourceToDelete in resourcesToDelete)
+            {
+                await blobService.DeleteFileAsync(resourceToDelete.Url, containerName);
+                repository.Delete(resourceToDelete);
+            }
+
+            foreach (var resourceDto in resources)
+            {
+                if (resourceDto.ResourceId.HasValue)
+                {
+                    var existingResource = existingResources.FirstOrDefault(er => er.LandmarkResourceId == resourceDto.ResourceId.Value);
+
+                    if (existingResource != null)
+                    {
+                        existingResource.Url = resourceDto.ResourceUrl ?? existingResource.Url;
+                        existingResource.Type = (ResourceType)(resourceDto.ResourceType ?? (int)existingResource.Type);
+                        existingResource.UpdatedAt = DateTime.Now;
+
+                        if (resourceDto.ResourceFile != null)
+                        {
+                            await blobService.DeleteFileAsync(existingResource.Url, containerName);
+
+                            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(resourceDto.ResourceFile.FileName)}";
+                            var resourceUrl = await blobService.UploadFileAsync(containerName, resourceDto.ResourceFile, fileName);
+
+                            existingResource.Url = resourceUrl;
+                            existingResource.Type = GetResourceType(resourceDto.ResourceFile.ContentType);
+                        }
+                    }
+                }
+                else
+                {
+                    if (resourceDto.ResourceFile != null)
+                    {
+                        var fileName = $"{Guid.NewGuid()}{Path.GetExtension(resourceDto.ResourceFile.FileName)}";
+                        var resourceUrl = await blobService.UploadFileAsync(containerName, resourceDto.ResourceFile, fileName);
+
+                        var resourceType = GetResourceType(resourceDto.ResourceFile.ContentType);
+
+                        var newResource = new LandmarkResource
+                        {
+                            Url = resourceUrl,
+                            Type = resourceType,
+                            Landmark = landmark
+                        };
+                        await repository.AddAsync(newResource);
+                    }
+                    else if (!string.IsNullOrEmpty(resourceDto.ResourceUrl) && resourceDto.ResourceType.HasValue)
+                    {
+                        var newResource = new LandmarkResource
+                        {
+                            Url = resourceDto.ResourceUrl,
+                            Type = (ResourceType)resourceDto.ResourceType.Value,
+                            Landmark = landmark
+                        };
+                        await repository.AddAsync(newResource);
+                    }
+                }
+            }
+        }
+
+        public async Task CreateLandmarkResourcesFromUpdateDtoAsync(List<ResourceUpdateDTO> resourcesDto, Landmark landmark)
+        {
+            var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME");
+
+            if (containerName is null) throw new Exception(ContainerNameErrorMessage);
+
+            foreach (var resourceDto in resourcesDto)
+            {
+                if (resourceDto.ResourceFile != null)
+                {
+                    var fileName = $"{Guid.NewGuid()}{Path.GetExtension(resourceDto.ResourceFile.FileName)}";
+                    var resourceUrl = await blobService.UploadFileAsync(containerName, resourceDto.ResourceFile, fileName);
+
+                    var resourceType = GetResourceType(resourceDto.ResourceFile.ContentType);
+
+                    var newResource = new LandmarkResource
+                    {
+                        Url = resourceUrl,
+                        Type = resourceType,
+                        Landmark = landmark
+                    };
+                    await repository.AddAsync(newResource);
+                }
+                else if (!string.IsNullOrEmpty(resourceDto.ResourceUrl) && resourceDto.ResourceType.HasValue)
+                {
+                    var newResource = new LandmarkResource
+                    {
+                        Url = resourceDto.ResourceUrl,
+                        Type = (ResourceType)resourceDto.ResourceType.Value,
+                        Landmark = landmark
+                    };
+                    await repository.AddAsync(newResource);
+                }
+            }
         }
 
         private ResourceType GetResourceType(string contentType)
