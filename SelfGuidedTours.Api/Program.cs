@@ -1,14 +1,16 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi.Models;
 using SelfGuidedTours.Api.Extensions;
+using SelfGuidedTours.Api.Filters;
 using SelfGuidedTours.Api.Middlewares;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Services;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddCustomizedControllers(); // This replaces the AddControllers method, comes from ServiceCollectionExtensions.cs
+var mvcBuilder = builder.Services.AddCustomizedControllers();
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -18,7 +20,6 @@ builder.Services.AddApplicationIdentity(builder.Configuration);
 
 builder.Services.AddApplicationServices(builder.Configuration);
 
-// Register IReviewService and ReviewService
 builder.Services.AddScoped<IReviewService, ReviewService>();
 
 builder.Services.AddSwaggerGen(options =>
@@ -47,18 +48,20 @@ builder.Services.AddSwaggerGen(options =>
             new List<string>()
         }
     });
+
+    options.SchemaFilter<EnumSchemaFilter>();
 });
+
+builder.Services.AddTransient<ISchemaFilter, EnumSchemaFilter>();
 
 var app = builder.Build();
 
-// Apply swagger middleware on every environment
 app.UseSwagger();
 app.UseSwaggerUI();
 
-// Add custom middleware for exception handling to the pipeline
 app.UseMiddleware<ExceptionHandlerMiddleware>();
 
-app.UseCors("CorsPolicy"); // CorsPolicy
+app.UseCors("CorsPolicy");
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
