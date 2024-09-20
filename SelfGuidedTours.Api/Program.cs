@@ -10,7 +10,7 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-var mvcBuilder = builder.Services.AddCustomizedControllers();
+builder.Services.AddCustomizedControllers();
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -19,8 +19,6 @@ builder.Services.AddApplicationDbContext(builder.Configuration);
 builder.Services.AddApplicationIdentity(builder.Configuration);
 
 builder.Services.AddApplicationServices(builder.Configuration);
-
-builder.Services.AddScoped<IReviewService, ReviewService>();
 
 builder.Services.AddSwaggerGen(options =>
 {
@@ -52,7 +50,7 @@ builder.Services.AddSwaggerGen(options =>
     options.SchemaFilter<EnumSchemaFilter>();
 });
 
-builder.Services.AddTransient<ISchemaFilter, EnumSchemaFilter>();
+
 
 var app = builder.Build();
 

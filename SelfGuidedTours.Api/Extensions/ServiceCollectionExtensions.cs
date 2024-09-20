@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Azure;
 using Microsoft.IdentityModel.Tokens;
+using SelfGuidedTours.Api.Filters;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Contracts.BlobStorage;
 using SelfGuidedTours.Core.Models.ErrorResponse;
@@ -15,6 +16,7 @@ using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using Stripe;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -79,7 +81,7 @@ namespace SelfGuidedTours.Api.Extensions
             services.AddScoped<IBlobService, BlobService>();
             services.AddScoped<IAdminService, AdminService>();
             services.AddScoped<IReviewService, Core.Services.ReviewService>();
-
+            services.AddTransient<ISchemaFilter, EnumSchemaFilter>();
             // Token generators
             services.AddScoped<AccessTokenGenerator>();
             services.AddScoped<RefreshTokenGenerator>();
