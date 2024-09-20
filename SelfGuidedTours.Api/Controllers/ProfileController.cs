@@ -62,5 +62,15 @@ namespace SelfGuidedTours.Api.Controllers
 
             return tours == null ? NotFound() : Ok(tours);
         }
+
+        [HttpGet("bought-tours")]
+        [ProducesResponseType(typeof(TourResponseDto), 200)]
+        [ProducesResponseType(typeof(ApiResponse), 404)]
+        public async Task<IActionResult> GetBoughtTours()
+        {
+            var tours = await _profileService.GetBoughtToursAsync(this.UserId);
+
+            return tours == null ? NotFound() : Ok(tours);
+        }
     }
 }

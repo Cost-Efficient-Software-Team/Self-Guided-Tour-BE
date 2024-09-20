@@ -118,6 +118,15 @@ namespace SelfGuidedTours.Core.Services
                 .ToList();
 
             return tourResponse;
+        } 
+        public async Task<List<TourResponseDto>> GetBoughtToursAsync(string userId)
+        {
+            var tours = await _repository.AllReadOnly<UserTours>()
+                .Where(ut=>ut.UserId == userId)
+                .Select(t=> tourService.MapTourToTourResponseDto(t.Tour))
+                .ToListAsync();
+
+            return tours;
         }
     }
 }

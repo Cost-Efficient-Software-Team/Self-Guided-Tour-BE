@@ -12,6 +12,8 @@ namespace SelfGuidedTours.Core.Contracts
         Task<UserProfileDto?> UpdateProfileAsync(string userId, UpdateProfileRequestDto profile);
         Task CreateProfileAsync(UserProfile userProfile);
         Task<List<TourResponseDto>> GetMyToursAsync(string userId);
+        Task<List<TourResponseDto>> GetBoughtToursAsync(string userId);
+        
        
     }
 }
