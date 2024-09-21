@@ -129,6 +129,7 @@ namespace SelfGuidedTours.Core.Services
             {
                 TourId = tour.TourId,
                 CreatorId = tour.CreatorId,
+                CreatedAt = tour.CreatedAt.ToString("dd.MM.yyyy"),
                 ThumbnailImageUrl = tour.ThumbnailImageUrl,
                 Destination = tour.Destination,
                 Summary = tour.Summary,
