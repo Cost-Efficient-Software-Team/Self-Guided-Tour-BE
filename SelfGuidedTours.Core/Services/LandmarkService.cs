@@ -101,14 +101,12 @@ namespace SelfGuidedTours.Core.Services
                     };
 
                     await repository.AddAsync(newLandmark);
-                    await resourceService.CreateLandmarkResourcesFromUpdateDtoAsync(landmarkDto.Resources, newLandmark);
+                    await resourceService.CreateLandmarkResourcesAsync(landmarkDto.Resources, newLandmark);
                     landmarksToUpdate.Add(newLandmark);
                 }
             }
             await repository.SaveChangesAsync();
             return landmarksToUpdate;
         }
-
-
     }
 }

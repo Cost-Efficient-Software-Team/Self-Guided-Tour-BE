@@ -224,7 +224,6 @@ namespace SelfGuidedTours.Core.Services
             tour.Destination = model.Destination;
             tour.EstimatedDuration = model.EstimatedDuration;
             tour.TypeTour = model.TypeTour;
-            tour.UpdatedAt = DateTime.Now;
 
             if (model.ThumbnailImage != null)
             {
@@ -243,10 +242,19 @@ namespace SelfGuidedTours.Core.Services
 
             await repository.SaveChangesAsync();
 
+            // Презареждаме тура с включени забележителности и ресурси
+            tour = await repository.All<Tour>()
+                .Include(t => t.Landmarks)
+                .ThenInclude(l => l.Resources)
+                .Include(t => t.Landmarks)
+                .ThenInclude(l => l.Coordinate)
+                .FirstOrDefaultAsync(t => t.TourId == id);
+
             response.StatusCode = HttpStatusCode.OK;
             response.Result = MapTourToTourResponseDto(tour);
 
             return response;
         }
+
     }
 }
