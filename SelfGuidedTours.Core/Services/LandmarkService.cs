@@ -74,6 +74,7 @@ namespace SelfGuidedTours.Core.Services
                     existingLandmark.Coordinate.Latitude = landmarkDto.Latitude;
                     existingLandmark.Coordinate.Longitude = landmarkDto.Longitude;
                     existingLandmark.Coordinate.City = landmarkDto.City;
+                    existingLandmark.PlaceId = landmarkDto.PlaceId;
                     existingLandmark.UpdatedAt = DateTime.Now;
 
                     await resourceService.UpdateLandmarkResourcesAsync(landmarkDto.Resources, existingLandmark);
