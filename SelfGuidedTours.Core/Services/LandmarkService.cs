@@ -77,7 +77,10 @@ namespace SelfGuidedTours.Core.Services
                     existingLandmark.PlaceId = landmarkDto.PlaceId;
                     existingLandmark.UpdatedAt = DateTime.Now;
 
-                    await resourceService.UpdateLandmarkResourcesAsync(landmarkDto.Resources, existingLandmark);
+                    // Извличане на списъка с ресурси за изтриване от landmarkDto
+                    var resourcesToDelete = landmarkDto.ResourcesToDelete ?? new List<int>();
+
+                    await resourceService.UpdateLandmarkResourcesAsync(landmarkDto.Resources, resourcesToDelete, existingLandmark);
                     landmarksToUpdate.Add(existingLandmark);
                 }
                 else
@@ -108,5 +111,7 @@ namespace SelfGuidedTours.Core.Services
             await repository.SaveChangesAsync();
             return landmarksToUpdate;
         }
+
+
     }
 }

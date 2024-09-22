@@ -67,21 +67,17 @@ namespace SelfGuidedTours.Api.Controllers
         [ValidateModel]
         public async Task<IActionResult> UpdateTour(int id, [FromForm] TourUpdateDTO tourUpdateDTO)
         {
-            // ??????????? ????????? ?? Request.Form.Files
             var files = Request.Form.Files;
 
-            // ????????? ?????? ?? ????????? ?? ????????? ??? ??????????? ????????????????
             var landmarkResources = new Dictionary<int, List<IFormFile>>();
 
             foreach (var file in files)
             {
-                // ?????????? ThumbnailImage
                 if (file.Name == "ThumbnailImage")
                 {
                     continue;
                 }
 
-                // ?????? ??????? ??? ????? ???? "Landmarks[0].Resources[0]"
                 var match = System.Text.RegularExpressions.Regex.Match(file.Name, @"Landmarks\[(\d+)\]\.Resources\[\d+\]");
 
                 if (match.Success)
@@ -96,13 +92,19 @@ namespace SelfGuidedTours.Api.Controllers
                     landmarkResources[landmarkIndex].Add(file);
                 }
             }
-
-            // ????????? ????????? ??? ?????????????????? ? tourUpdateDTO.Landmarks
             for (int i = 0; i < tourUpdateDTO.Landmarks.Count; i++)
             {
                 if (landmarkResources.ContainsKey(i))
                 {
                     tourUpdateDTO.Landmarks.ElementAt(i).Resources = landmarkResources[i];
+                }
+
+                // ???????? ?? ????????? ?? ResourcesToDelete
+                var resourcesToDeleteKey = $"Landmarks[{i}].ResourcesToDelete";
+                var resourcesToDelete = Request.Form[resourcesToDeleteKey].ToList();
+                if (resourcesToDelete.Any())
+                {
+                    tourUpdateDTO.Landmarks.ElementAt(i).ResourcesToDelete = resourcesToDelete.Select(int.Parse).ToList();
                 }
             }
 

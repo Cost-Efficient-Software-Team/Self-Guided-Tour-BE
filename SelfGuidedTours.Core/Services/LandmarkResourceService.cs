@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Contracts.BlobStorage;
-using SelfGuidedTours.Core.Models.Dto;
 using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data.Enums;
 using SelfGuidedTours.Infrastructure.Data.Models;
@@ -46,22 +45,25 @@ namespace SelfGuidedTours.Core.Services
             }
         }
 
-        public async Task UpdateLandmarkResourcesAsync(List<IFormFile> resources, Landmark landmark)
+        public async Task UpdateLandmarkResourcesAsync(List<IFormFile> resources, List<int> resourcesToDelete, Landmark landmark)
         {
             var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME")
                                 ?? throw new ApplicationException(ContainerNameErrorMessage);
 
-            // Първо изтриваме съществуващите ресурси
-            var existingResources = await repository.All<LandmarkResource>()
-                .Where(r => r.LandmarkId == landmark.LandmarkId)
-                .ToListAsync();
-
-            foreach (var existingResource in existingResources)
+            // Изтриваме само посочените ресурси
+            if (resourcesToDelete != null && resourcesToDelete.Any())
             {
-                // Изтриваме файла от Blob Storage
-                await blobService.DeleteFileAsync(existingResource.Url, containerName);
-                // Премахваме ресурса от базата данни
-                repository.Delete(existingResource);
+                var resourcesToRemove = await repository.All<LandmarkResource>()
+                    .Where(r => r.LandmarkId == landmark.LandmarkId && resourcesToDelete.Contains(r.LandmarkResourceId))
+                    .ToListAsync();
+
+                foreach (var resource in resourcesToRemove)
+                {
+                    // Изтриваме файла от Blob Storage
+                    await blobService.DeleteFileAsync(resource.Url, containerName);
+                    // Премахваме ресурса от базата данни
+                    repository.Delete(resource);
+                }
             }
 
             // Добавяме новите ресурси
@@ -79,54 +81,6 @@ namespace SelfGuidedTours.Core.Services
                     LandmarkId = landmark.LandmarkId
                 };
                 await repository.AddAsync(newResource);
-            }
-        }
-
-
-
-
-        public async Task CreateLandmarkResourcesFromUpdateDtoAsync(List<ResourceUpdateDTO> resourcesDto, Landmark landmark)
-        {
-            //Here look what im getting:
-            //ResourceId - 10
-            //ResourceType - null
-            //ResourceUrl - null
-
-            //ResourceId- null
-            //ResourceType - null
-            //ResourceUrl - null
-
-            var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME");
-
-            if (containerName is null) throw new Exception(ContainerNameErrorMessage);
-
-            foreach (var resourceDto in resourcesDto)
-            {
-                if (resourceDto.ResourceFile != null)
-                {
-                    var fileName = $"{Guid.NewGuid()}{Path.GetExtension(resourceDto.ResourceFile.FileName)}";
-                    var resourceUrl = await blobService.UploadFileAsync(containerName, resourceDto.ResourceFile, fileName);
-
-                    var resourceType = GetResourceType(resourceDto.ResourceFile.ContentType);
-
-                    var newResource = new LandmarkResource
-                    {
-                        Url = resourceUrl,
-                        Type = resourceType,
-                        Landmark = landmark
-                    };
-                    await repository.AddAsync(newResource);
-                }
-                else if (!string.IsNullOrEmpty(resourceDto.ResourceUrl) && resourceDto.ResourceType.HasValue)
-                {
-                    var newResource = new LandmarkResource
-                    {
-                        Url = resourceDto.ResourceUrl,
-                        Type = (ResourceType)resourceDto.ResourceType.Value,
-                        Landmark = landmark
-                    };
-                    await repository.AddAsync(newResource);
-                }
             }
         }
 

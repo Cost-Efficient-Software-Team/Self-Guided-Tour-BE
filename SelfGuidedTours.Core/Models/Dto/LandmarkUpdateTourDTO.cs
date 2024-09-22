@@ -39,5 +39,7 @@ namespace SelfGuidedTours.Core.Models.Dto
         public string PlaceId { get; set; } = null!;
 
         public List<IFormFile> Resources { get; set; }
+
+        public List<int> ResourcesToDelete { get; set; } = new List<int>();
     }
 }
