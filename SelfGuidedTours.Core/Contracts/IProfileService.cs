@@ -13,6 +13,8 @@ namespace SelfGuidedTours.Core.Contracts
         Task CreateProfileAsync(UserProfile userProfile);
         Task<List<TourResponseDto>> GetMyToursAsync(string userId);
         Task<List<TourResponseDto>> GetBoughtToursAsync(string userId);
+
+        Task<List<UserTransactionsResponseDto>> GetUserTransactionsAsync(string userId);
         
        
     }

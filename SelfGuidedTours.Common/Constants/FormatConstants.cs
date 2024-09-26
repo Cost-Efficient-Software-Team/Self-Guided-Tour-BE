@@ -9,5 +9,6 @@ namespace SelfGuidedTours.Common.Constants
     public static class FormatConstants
     {
         public const string DateFormat = "dd/MM/yyyy";
+        public const string TransactionDateFormat = "dd.MM.yyyy";
     }
 }

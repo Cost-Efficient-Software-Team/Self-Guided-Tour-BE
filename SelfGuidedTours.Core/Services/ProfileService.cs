@@ -7,8 +7,9 @@ using SelfGuidedTours.Core.Models.Dto;
 using SelfGuidedTours.Core.Models.RequestDto;
 using SelfGuidedTours.Core.Models.ResponseDto;
 using SelfGuidedTours.Infrastructure.Common;
+using SelfGuidedTours.Infrastructure.Data.Enums;
 using SelfGuidedTours.Infrastructure.Data.Models;
-
+using static SelfGuidedTours.Common.Constants.FormatConstants;
 namespace SelfGuidedTours.Core.Services
 {
     public class ProfileService : IProfileService
@@ -61,6 +62,8 @@ namespace SelfGuidedTours.Core.Services
             user.Bio = profile?.About ?? user.Bio;
             user.Email = profile?.Email ?? user.Email;
             user.UserName = profile?.Email ?? user.Email;
+            user.NormalizedEmail = profile?.Email?.ToUpper() ?? user.Email!.ToUpper();
+            user.NormalizedUserName = profile?.Email?.ToUpper() ?? user.Email!.ToUpper();
 
             await _repository.UpdateAsync(user);
             await _repository.SaveChangesAsync();
@@ -127,6 +130,22 @@ namespace SelfGuidedTours.Core.Services
                 .ToListAsync();
 
             return tours;
+        }
+
+        public async Task<List<UserTransactionsResponseDto>> GetUserTransactionsAsync(string userId)
+        {
+            var transactions = await _repository
+                                        .AllReadOnly<Payment>()
+                                        .Where(p => p.Status == PaymentStatus.Succeeded && p.UserId == userId)
+                                        .Select(tr => new UserTransactionsResponseDto
+                                        {
+                                            TourTitle = tr.Tour.Title,
+                                            Date = tr.PaymentDate.ToString(TransactionDateFormat),
+                                            Price = tr.Amount,
+                                        })
+                                        .ToListAsync();
+             return transactions;
+
         }
     }
 }
