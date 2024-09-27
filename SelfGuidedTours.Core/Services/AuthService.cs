@@ -183,7 +183,8 @@ namespace SelfGuidedTours.Core.Services
                     Name = googleUser.Name,
                     EmailConfirmed = true,
                     NormalizedEmail = googleUser.Email.ToUpper(),
-                    NormalizedUserName = googleUser.Email.ToUpper()
+                    NormalizedUserName = googleUser.Email.ToUpper(),
+                    HasPassword = false
                 };
                 var userRole = AssignUserRole(user.Id);
 

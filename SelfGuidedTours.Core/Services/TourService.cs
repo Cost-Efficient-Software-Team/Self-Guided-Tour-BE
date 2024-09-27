@@ -129,6 +129,7 @@ namespace SelfGuidedTours.Core.Services
             {
                 TourId = tour.TourId,
                 CreatorId = tour.CreatorId,
+                CreatedAt = tour.CreatedAt.ToString("dd.MM.yyyy"),
                 ThumbnailImageUrl = tour.ThumbnailImageUrl,
                 Destination = tour.Destination,
                 Summary = tour.Summary,
@@ -224,6 +225,7 @@ namespace SelfGuidedTours.Core.Services
             tour.Destination = model.Destination;
             tour.EstimatedDuration = model.EstimatedDuration;
             tour.TypeTour = model.TypeTour;
+            tour.UpdatedAt = DateTime.Now;
 
             if (model.ThumbnailImage != null)
             {
