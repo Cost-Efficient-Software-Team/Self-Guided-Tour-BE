@@ -21,14 +21,12 @@ namespace SelfGuidedTours.Core.Services
         private readonly IRepository _repository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IBlobService blobSerivice;
-        private readonly ITourService tourService;
 
-        public ProfileService(IRepository repository, UserManager<ApplicationUser> userManager, IBlobService blobSerivice, ITourService tourService)
+        public ProfileService(IRepository repository, UserManager<ApplicationUser> userManager, IBlobService blobSerivice)
         {
             _repository = repository;
             _userManager = userManager;
             this.blobSerivice = blobSerivice;
-            this.tourService = tourService;
         }
 
         public async Task<UserProfileDto?> GetProfileAsync(string userId)
