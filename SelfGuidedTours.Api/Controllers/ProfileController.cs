@@ -5,6 +5,8 @@ using SelfGuidedTours.Api.CustomActionFilters;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Models.Dto;
+using SelfGuidedTours.Core.Models.RequestDto;
+using SelfGuidedTours.Core.Models.ResponseDto;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using System;
 using System.Net;
@@ -15,7 +17,7 @@ namespace SelfGuidedTours.Api.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class ProfileController : ControllerBase
+    public class ProfileController : BaseController
     {
         private readonly IProfileService _profileService;
         private readonly UserManager<ApplicationUser> _userManager;
@@ -28,68 +30,57 @@ namespace SelfGuidedTours.Api.Controllers
             _response = new ApiResponse();
         }
 
-        [HttpGet("{userId}")]
+        [HttpGet]
         [ProducesResponseType(typeof(UserProfileDto), 200)]
         [ProducesResponseType(typeof(ApiResponse), 404)]
-        public async Task<IActionResult> GetProfile(Guid userId)
+        public async Task<IActionResult> GetProfile()
         {
-            var profile = await _profileService.GetProfileAsync(userId);
-            if (profile == null)
-            {
-                _response.StatusCode = HttpStatusCode.NotFound;
-                _response.ErrorMessages.Add("Profile not found");
-                return NotFound(_response);
-            }
-            _response.Result = profile;
-            _response.StatusCode = HttpStatusCode.OK;
-            return Ok(_response);
+            var profile = await _profileService.GetProfileAsync(this.UserId);
+
+            return profile == null ? NotFound() : Ok(profile);
+
         }
 
-        [HttpPut("{userId}")]
+        [HttpPatch]
         [ProducesResponseType(typeof(UserProfile), 200)]
         [ProducesResponseType(typeof(ApiResponse), 400)]
         [ValidateModel]
-        public async Task<IActionResult> UpdateProfile(Guid userId, [FromBody] UserProfile profile)
+        public async Task<IActionResult> UpdateProfile([FromForm] UpdateProfileRequestDto profile)
         {
-            if (!ModelState.IsValid)
-            {
-                _response.StatusCode = HttpStatusCode.BadRequest;
-                _response.ErrorMessages.Add("Invalid data");
-                return BadRequest(_response);
-            }
+           var updatedProfile = await _profileService.UpdateProfileAsync(this.UserId, profile);
 
-            var existingUser = await _userManager.FindByIdAsync(userId.ToString());
-            if (existingUser == null)
-            {
-                _response.StatusCode = HttpStatusCode.NotFound;
-                _response.ErrorMessages.Add("User not found");
-                return NotFound(_response);
-            }
+            return updatedProfile == null ? NotFound() : Ok(updatedProfile);
+        }
 
-            existingUser.Email = profile.Email;
-            existingUser.UserName = profile.Email;  
-            existingUser.NormalizedEmail = profile.Email.ToUpper();
-            existingUser.NormalizedUserName = profile.Email.ToUpper();
-            existingUser.Name = profile.Name; 
+        [HttpGet]
+        [Route("my-tours")]
+        [ProducesResponseType(typeof(TourResponseDto), 200)]
+        [ProducesResponseType(typeof(ApiResponse), 404)]
+        public async Task<IActionResult> GetMyTours([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
+            var tours = await _profileService.GetMyToursAsync(this.UserId, page, pageSize);
 
-            var updateResult = await _userManager.UpdateAsync(existingUser);
-            if (!updateResult.Succeeded)
-            {
-                _response.StatusCode = HttpStatusCode.BadRequest;
-                _response.ErrorMessages.AddRange(updateResult.Errors.Select(e => e.Description));
-                return BadRequest(_response);
-            }
+            return tours == null ? NotFound() : Ok(tours);
+        }
 
-            var updatedProfile = await _profileService.UpdateProfileAsync(userId, profile);
-            if (updatedProfile == null)
-            {
-                _response.StatusCode = HttpStatusCode.NotFound;
-                _response.ErrorMessages.Add("Profile not found");
-                return NotFound(_response);
-            }
-            _response.Result = updatedProfile;
-            _response.StatusCode = HttpStatusCode.OK;
-            return Ok(_response);
+        [HttpGet("bought-tours")]
+        [ProducesResponseType(typeof(TourResponseDto), 200)]
+        [ProducesResponseType(typeof(ApiResponse), 404)]
+        public async Task<IActionResult> GetBoughtTours([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
+            var tours = await _profileService.GetBoughtToursAsync(this.UserId, page, pageSize);
+
+            return tours == null ? NotFound() : Ok(tours);
+        }
+        
+        [HttpGet("transactions")]
+        [ProducesResponseType(typeof(UserTransactionsResponseDto), 200)]
+        [ProducesResponseType(typeof(ApiResponse), 404)]
+        public async Task<IActionResult> GetUserTransactions([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
+            var transactions = await _profileService.GetUserTransactionsAsync(this.UserId,page,pageSize);
+
+            return transactions == null ? NotFound() : Ok(transactions);
         }
     }
 }
