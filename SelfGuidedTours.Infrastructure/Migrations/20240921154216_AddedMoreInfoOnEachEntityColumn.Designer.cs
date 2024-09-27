@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SelfGuidedTours.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SelfGuidedTours.Infrastructure.Data;
 namespace SelfGuidedTours.Infrastructure.Migrations
 {
     [DbContext(typeof(SelfGuidedToursDbContext))]
-    partial class SelfGuidedToursDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240921154216_AddedMoreInfoOnEachEntityColumn")]
+    partial class AddedMoreInfoOnEachEntityColumn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -711,11 +714,6 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                 {
                     b.HasBaseType("Microsoft.AspNetCore.Identity.IdentityUser");
 
-                    b.Property<string>("Bio")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasComment("Information about the current user.");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2")
                         .HasComment("Application User's Profile Created At");
@@ -724,25 +722,10 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasComment("Application User's Credentials");
 
-                    b.Property<string>("FirstName")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<bool>("HasPassword")
-                        .HasColumnType("bit")
-                        .HasComment("External users dont have a password, they are authenticated by a third party.");
-
-                    b.Property<string>("LastName")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasComment("Application User's Name");
-
-                    b.Property<string>("ProfilePictureUrl")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("StripeCustomerId")
                         .HasColumnType("nvarchar(max)")
@@ -769,10 +752,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "be57d168-b9b8-4112-a286-b8aa795f3978",
                             TwoFactorEnabled = false,
-
-                            CreatedAt = new DateTime(2024, 9, 18, 5, 30, 12, 337, DateTimeKind.Local).AddTicks(550),
-                            HasPassword = true,
-
+                            CreatedAt = new DateTime(2024, 9, 21, 18, 42, 16, 138, DateTimeKind.Local).AddTicks(7920),
                             Name = "Admin Adminov"
                         });
                 });

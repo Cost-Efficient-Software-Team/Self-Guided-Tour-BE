@@ -225,6 +225,7 @@ namespace SelfGuidedTours.Core.Services
             tour.Destination = model.Destination;
             tour.EstimatedDuration = model.EstimatedDuration;
             tour.TypeTour = model.TypeTour;
+            tour.UpdatedAt = DateTime.Now;
 
             if (model.ThumbnailImage != null)
             {
