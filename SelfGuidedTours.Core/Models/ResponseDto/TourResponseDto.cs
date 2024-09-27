@@ -10,7 +10,6 @@
         public string Destination { get; set; } = null!;
         public string ThumbnailImageUrl { get; set; } = null!;
         public int EstimatedDuration { get; set; }
-        public string CreatorName { get; set; } = null!;
         public string CreatedAt { get; set; } = null!;
         public string Status { get; set; } = null!;
         public string TourType { get; set; } = null!;

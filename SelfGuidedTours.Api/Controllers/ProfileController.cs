@@ -56,9 +56,9 @@ namespace SelfGuidedTours.Api.Controllers
         [Route("my-tours")]
         [ProducesResponseType(typeof(TourResponseDto), 200)]
         [ProducesResponseType(typeof(ApiResponse), 404)]
-        public async Task<IActionResult> GetMyTours()
+        public async Task<IActionResult> GetMyTours([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var tours = await _profileService.GetMyToursAsync(this.UserId);
+            var tours = await _profileService.GetMyToursAsync(this.UserId, page, pageSize);
 
             return tours == null ? NotFound() : Ok(tours);
         }
@@ -66,9 +66,9 @@ namespace SelfGuidedTours.Api.Controllers
         [HttpGet("bought-tours")]
         [ProducesResponseType(typeof(TourResponseDto), 200)]
         [ProducesResponseType(typeof(ApiResponse), 404)]
-        public async Task<IActionResult> GetBoughtTours()
+        public async Task<IActionResult> GetBoughtTours([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var tours = await _profileService.GetBoughtToursAsync(this.UserId);
+            var tours = await _profileService.GetBoughtToursAsync(this.UserId, page, pageSize);
 
             return tours == null ? NotFound() : Ok(tours);
         }
@@ -76,9 +76,9 @@ namespace SelfGuidedTours.Api.Controllers
         [HttpGet("transactions")]
         [ProducesResponseType(typeof(UserTransactionsResponseDto), 200)]
         [ProducesResponseType(typeof(ApiResponse), 404)]
-        public async Task<IActionResult> GetUserTransactions()
+        public async Task<IActionResult> GetUserTransactions([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var transactions = await _profileService.GetUserTransactionsAsync(this.UserId);
+            var transactions = await _profileService.GetUserTransactionsAsync(this.UserId,page,pageSize);
 
             return transactions == null ? NotFound() : Ok(transactions);
         }
