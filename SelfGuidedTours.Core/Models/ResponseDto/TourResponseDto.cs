@@ -13,6 +13,7 @@
         public string CreatedAt { get; set; } = null!;
         public string Status { get; set; } = null!;
         public string TourType { get; set; } = null!;
+        public decimal AverageRating { get; set; }
 
         public ICollection<LandmarkResponseDto> Landmarks { get; set; } = new List<LandmarkResponseDto>();
     }

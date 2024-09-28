@@ -27,7 +27,7 @@ namespace SelfGuidedTours.Core.Services
             this.landmarkService = landmarkService;
         }
 
-        public async Task<Tour> CreateAsync(TourCreateDTO model, string creatorId)
+        public async Task<Tour> CreateTourAsync(TourCreateDTO model, string creatorId)
         {
             if (model == null) throw new ArgumentException();
 
@@ -53,59 +53,47 @@ namespace SelfGuidedTours.Core.Services
             };
 
             await repository.AddAsync(tourToAdd);
-
             await landmarkService.CreateLandmarksForTourAsync(model.Landmarks, tourToAdd);
-
             await repository.SaveChangesAsync();
 
             response.StatusCode = HttpStatusCode.Created;
-
             return tourToAdd;
         }
 
-        public async Task<ApiResponse> DeleteTourAsync(int id)
+        public async Task<ApiResponse> UpdateTourAsync(int id, TourUpdateDTO model)
         {
-            var response = new ApiResponse();
+            var tour = await repository.GetByIdAsync<Tour>(id)
+                       ?? throw new KeyNotFoundException(TourNotFoundErrorMessage);
 
-            var tour = await repository.GetByIdAsync<Tour>(id);
-            if (tour == null)
+            tour.Title = model.Title;
+            tour.Summary = model.Summary;
+            tour.Price = model.Price;
+            tour.Destination = model.Destination;
+            tour.EstimatedDuration = model.EstimatedDuration;
+            tour.TypeTour = model.TypeTour;
+            tour.UpdatedAt = DateTime.Now;
+
+            if (model.ThumbnailImage != null)
             {
-                response.StatusCode = HttpStatusCode.NotFound;
-                response.IsSuccess = false;
-                return response;
+                var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME")
+                                    ?? throw new ApplicationException(ContainerNameErrorMessage);
+
+                await blobService.DeleteFileAsync(tour.ThumbnailImageUrl, containerName);
+
+                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(model.ThumbnailImage.FileName)}";
+                var thumbnailUrl = await blobService.UploadFileAsync(containerName, model.ThumbnailImage, fileName, true);
+
+                tour.ThumbnailImageUrl = thumbnailUrl;
             }
 
-            var landmarks = await repository.All<Landmark>().Where(l => l.TourId == id).ToListAsync();
-
-            var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME") ??
-                         throw new ApplicationException(ContainerNameErrorMessage);
-
-            await blobService.DeleteFileAsync(tour.ThumbnailImageUrl, containerName);
-
-            foreach (var landmark in landmarks)
-            {
-                var resources = await repository.All<LandmarkResource>().Where(r => r.LandmarkId == landmark.LandmarkId).ToListAsync();
-                foreach (var resource in resources)
-                {
-                    await blobService.DeleteFileAsync(resource.Url, containerName);
-                    repository.Delete(resource);
-                }
-
-                var coordinates = await repository.All<Coordinate>().Where(r => r.CoordinateId == landmark.CoordinateId).ToListAsync();
-                foreach (var coordinate in coordinates)
-                {
-                    repository.Delete(coordinate);
-                }
-            }
-
-            await repository.DeleteAllAsync(landmarks);
-
-            repository.Delete(tour);
+            await landmarkService.UpdateLandmarksForTourAsync(model.Landmarks, tour);
             await repository.SaveChangesAsync();
 
-            response.StatusCode = HttpStatusCode.NoContent;
+            response.StatusCode = HttpStatusCode.OK;
+            response.Result = MapTourToTourResponseDto(tour);
             return response;
         }
+
         public async Task<Tour?> GetTourByIdAsync(int id)
         {
             var tour = await repository.AllReadOnly<Tour>()
@@ -119,44 +107,7 @@ namespace SelfGuidedTours.Core.Services
             {
                 throw new KeyNotFoundException(TourNotFoundErrorMessage);
             }
-
             return tour;
-        }
-
-        public TourResponseDto MapTourToTourResponseDto(Tour tour)
-        {
-            var tourResponse = new TourResponseDto
-            {
-                TourId = tour.TourId,
-                CreatorId = tour.CreatorId,
-                CreatedAt = tour.CreatedAt.ToString("dd.MM.yyyy"),
-                ThumbnailImageUrl = tour.ThumbnailImageUrl,
-                Destination = tour.Destination,
-                Summary = tour.Summary,
-                EstimatedDuration = tour.EstimatedDuration,
-                Price = tour.Price,
-                Status = tour.Status == Status.UnderReview ? "Under Review" : tour.Status.ToString(),
-                Title = tour.Title,
-                TourType = tour.TypeTour.ToString(),
-                Landmarks = tour.Landmarks.Select(l => new LandmarkResponseDto
-                {
-                    LandmarkId = l.LandmarkId,
-                    LocationName = l.LocationName,
-                    Description = l.Description,
-                    StopOrder = l.StopOrder,
-                    City = l.Coordinate.City,
-                    Latitude = l.Coordinate.Latitude,
-                    Longitude = l.Coordinate.Longitude,
-                    PlaceId = l.PlaceId,
-                    Resources = l.Resources.Select(r => new ResourceResponseDto
-                    {
-                        ResourceId = r.LandmarkResourceId,
-                        ResourceUrl = r.Url,
-                        ResourceType = r.Type.ToString()
-                    }).ToList()
-                }).ToList()
-            };
-            return tourResponse;
         }
 
         public async Task<(List<Tour> Tours, int TotalPages)> GetFilteredTours(string searchTerm, string sortBy, int pageNumber = 1, int pageSize = 1000)
@@ -214,40 +165,84 @@ namespace SelfGuidedTours.Core.Services
             return (tours, totalPages);
         }
 
-        public async Task<ApiResponse> UpdateTourAsync(int id, TourUpdateDTO model)
+        public async Task<ApiResponse> DeleteTourAsync(int id)
         {
-            var tour = await repository.GetByIdAsync<Tour>(id)
-                       ?? throw new KeyNotFoundException(TourNotFoundErrorMessage);
+            var response = new ApiResponse();
 
-            tour.Title = model.Title;
-            tour.Summary = model.Summary;
-            tour.Price = model.Price;
-            tour.Destination = model.Destination;
-            tour.EstimatedDuration = model.EstimatedDuration;
-            tour.TypeTour = model.TypeTour;
-            tour.UpdatedAt = DateTime.Now;
-
-            if (model.ThumbnailImage != null)
+            var tour = await repository.GetByIdAsync<Tour>(id);
+            if (tour == null)
             {
-                var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME")
-                                    ?? throw new ApplicationException(ContainerNameErrorMessage);
-
-                await blobService.DeleteFileAsync(tour.ThumbnailImageUrl, containerName);
-
-                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(model.ThumbnailImage.FileName)}";
-                var thumbnailUrl = await blobService.UploadFileAsync(containerName, model.ThumbnailImage, fileName, true);
-
-                tour.ThumbnailImageUrl = thumbnailUrl;
+                response.StatusCode = HttpStatusCode.NotFound;
+                response.IsSuccess = false;
+                return response;
             }
 
-            await landmarkService.UpdateLandmarksForTourAsync(model.Landmarks, tour);
+            var landmarks = await repository.All<Landmark>().Where(l => l.TourId == id).ToListAsync();
 
+            var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME") ??
+                                throw new ApplicationException(ContainerNameErrorMessage);
+
+            await blobService.DeleteFileAsync(tour.ThumbnailImageUrl, containerName);
+
+            foreach (var landmark in landmarks)
+            {
+                var resources = await repository.All<LandmarkResource>().Where(r => r.LandmarkId == landmark.LandmarkId).ToListAsync();
+                foreach (var resource in resources)
+                {
+                    await blobService.DeleteFileAsync(resource.Url, containerName);
+                    repository.Delete(resource);
+                }
+
+                var coordinates = await repository.All<Coordinate>().Where(r => r.CoordinateId == landmark.CoordinateId).ToListAsync();
+                foreach (var coordinate in coordinates)
+                {
+                    repository.Delete(coordinate);
+                }
+            }
+
+            await repository.DeleteAllAsync(landmarks);
+            repository.Delete(tour);
             await repository.SaveChangesAsync();
 
-            response.StatusCode = HttpStatusCode.OK;
-            response.Result = MapTourToTourResponseDto(tour);
-
+            response.StatusCode = HttpStatusCode.NoContent;
             return response;
+        }
+
+        public TourResponseDto MapTourToTourResponseDto(Tour tour)
+        {
+            var tourResponse = new TourResponseDto
+            {
+                TourId = tour.TourId,
+                CreatorId = tour.CreatorId,
+                CreatedAt = tour.CreatedAt.ToString("dd.MM.yyyy"),
+                ThumbnailImageUrl = tour.ThumbnailImageUrl,
+                Destination = tour.Destination,
+                Summary = tour.Summary,
+                EstimatedDuration = tour.EstimatedDuration,
+                Price = tour.Price,
+                Status = tour.Status == Status.UnderReview ? "Under Review" : tour.Status.ToString(),
+                Title = tour.Title,
+                TourType = tour.TypeTour.ToString(),
+                AverageRating = tour.AverageRating,
+                Landmarks = tour.Landmarks.Select(l => new LandmarkResponseDto
+                {
+                    LandmarkId = l.LandmarkId,
+                    LocationName = l.LocationName,
+                    Description = l.Description,
+                    StopOrder = l.StopOrder,
+                    City = l.Coordinate.City,
+                    Latitude = l.Coordinate.Latitude,
+                    Longitude = l.Coordinate.Longitude,
+                    PlaceId = l.PlaceId,
+                    Resources = l.Resources.Select(r => new ResourceResponseDto
+                    {
+                        ResourceId = r.LandmarkResourceId,
+                        ResourceUrl = r.Url,
+                        ResourceType = r.Type.ToString()
+                    }).ToList()
+                }).ToList()
+            };
+            return tourResponse;
         }
     }
 }
