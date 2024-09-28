@@ -27,7 +27,7 @@ namespace SelfGuidedTours.Core.Services
             this.landmarkService = landmarkService;
         }
 
-        public async Task<Tour> CreateAsync(TourCreateDTO model, string creatorId)
+        public async Task<Tour> CreateTourAsync(TourCreateDTO model, string creatorId)
         {
             if (model == null) throw new ArgumentException();
 
