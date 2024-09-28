@@ -8,7 +8,7 @@ namespace SelfGuidedTours.Core.Models.Dto
     {
         public LandmarkUpdateTourDTO()
         {
-            Resources = new List<ResourceUpdateDTO>();
+            Resources = new List<LandmarkResourceUpdateDTO>();
         }
 
         public int? LandmarkId { get; set; }
@@ -37,6 +37,6 @@ namespace SelfGuidedTours.Core.Models.Dto
         [Required]
         public string PlaceId { get; set; } = null!;
 
-        public List<ResourceUpdateDTO> Resources { get; set; }
+        public List<LandmarkResourceUpdateDTO> Resources { get; set; }
     }
 }

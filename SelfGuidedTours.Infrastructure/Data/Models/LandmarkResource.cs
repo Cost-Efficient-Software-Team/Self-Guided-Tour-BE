@@ -35,9 +35,9 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         /// Landmark's Resource's Type
         /// </summary>
         [Required]
-        [EnumDataType(typeof(ResourceType))]
+        [EnumDataType(typeof(LandmarkResourceType))]
         [Comment("Landmark's Resource's Type")]
-        public ResourceType Type { get; set; }
+        public LandmarkResourceType Type { get; set; }
 
         /// <summary>
         /// Landmark's Resource's Url

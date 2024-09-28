@@ -2,7 +2,7 @@
 
 namespace SelfGuidedTours.Core.Models.Dto
 {
-    public class ResourceUpdateDTO
+    public class LandmarkResourceUpdateDTO
     {
         public int? ResourceId { get; set; }
         public string? ResourceUrl { get; set; }

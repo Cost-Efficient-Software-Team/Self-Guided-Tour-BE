@@ -46,7 +46,7 @@ namespace SelfGuidedTours.Core.Services
             }
         }
 
-        public async Task UpdateLandmarkResourcesAsync(List<ResourceUpdateDTO> resources, Landmark landmark)
+        public async Task UpdateLandmarkResourcesAsync(List<LandmarkResourceUpdateDTO> resources, Landmark landmark)
         {
             var existingResources = await repository.All<LandmarkResource>()
                 .Where(lr => lr.LandmarkId == landmark.LandmarkId)
@@ -74,7 +74,7 @@ namespace SelfGuidedTours.Core.Services
                     if (existingResource != null)
                     {
                         existingResource.Url = resourceDto.ResourceUrl ?? existingResource.Url;
-                        existingResource.Type = (ResourceType)(resourceDto.ResourceType ?? (int)existingResource.Type);
+                        existingResource.Type = (LandmarkResourceType)(resourceDto.ResourceType ?? (int)existingResource.Type);
                         existingResource.UpdatedAt = DateTime.Now;
 
                         if (resourceDto.ResourceFile != null)
@@ -111,7 +111,7 @@ namespace SelfGuidedTours.Core.Services
                         var newResource = new LandmarkResource
                         {
                             Url = resourceDto.ResourceUrl,
-                            Type = (ResourceType)resourceDto.ResourceType.Value,
+                            Type = (LandmarkResourceType)resourceDto.ResourceType.Value,
                             Landmark = landmark
                         };
                         await repository.AddAsync(newResource);
@@ -120,7 +120,7 @@ namespace SelfGuidedTours.Core.Services
             }
         }
 
-        public async Task CreateLandmarkResourcesFromUpdateDtoAsync(List<ResourceUpdateDTO> resourcesDto, Landmark landmark)
+        public async Task CreateLandmarkResourcesFromUpdateDtoAsync(List<LandmarkResourceUpdateDTO> resourcesDto, Landmark landmark)
         {
             var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME");
 
@@ -148,7 +148,7 @@ namespace SelfGuidedTours.Core.Services
                     var newResource = new LandmarkResource
                     {
                         Url = resourceDto.ResourceUrl,
-                        Type = (ResourceType)resourceDto.ResourceType.Value,
+                        Type = (LandmarkResourceType)resourceDto.ResourceType.Value,
                         Landmark = landmark
                     };
                     await repository.AddAsync(newResource);
@@ -156,17 +156,17 @@ namespace SelfGuidedTours.Core.Services
             }
         }
 
-        private ResourceType GetResourceType(string contentType)
+        private LandmarkResourceType GetResourceType(string contentType)
         {
             return contentType switch
             {
-                "image/jpeg" => ResourceType.Image,
-                "image/png" => ResourceType.Image,
-                "video/mp4" => ResourceType.Video,
-                "audio/mpeg" => ResourceType.Audio,
-                "text/plain" => ResourceType.Text,
-                "application/pdf" => ResourceType.Text,
-                _ => ResourceType.Unknown
+                "image/jpeg" => LandmarkResourceType.Image,
+                "image/png" => LandmarkResourceType.Image,
+                "video/mp4" => LandmarkResourceType.Video,
+                "audio/mpeg" => LandmarkResourceType.Audio,
+                "text/plain" => LandmarkResourceType.Text,
+                "application/pdf" => LandmarkResourceType.Text,
+                _ => LandmarkResourceType.Unknown
             };
         }
     }
