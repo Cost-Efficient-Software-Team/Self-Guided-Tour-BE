@@ -71,7 +71,7 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         /// <summary>
         /// Tour's Average Rating
         /// </summary>
-        [Column(TypeName = "decimal(3, 2)")]
+        [Column(TypeName = "decimal(2, 1)")]
         [Comment("Tour's Average Rating")]
         public decimal AverageRating { get; set; }
 
@@ -102,7 +102,7 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         [Required]
         [Comment("Tour's Type")]
         public TypeTour TypeTour { get; set; } = TypeTour.Walking;
-        
+
         /// <summary>
         /// Tour Updated At
         /// </summary>
