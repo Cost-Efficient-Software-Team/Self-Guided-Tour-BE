@@ -156,6 +156,19 @@ namespace SelfGuidedTours.Core.Services
             }
         }
 
+        public async Task DeleteLandmarkResourcesAsync(ICollection<LandmarkResource> resources)
+        {
+            var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME")
+                                ?? throw new ApplicationException(ContainerNameErrorMessage);
+
+            foreach (var resource in resources)
+            {
+                await blobService.DeleteFileAsync(resource.Url, containerName);
+                repository.Delete(resource);
+            }
+        }
+
+
         private LandmarkResourceType GetResourceType(string contentType)
         {
             return contentType switch

@@ -9,5 +9,7 @@ namespace SelfGuidedTours.Core.Contracts
         Task CreateLandmarkResourcesAsync(List<IFormFile> resources, Landmark landmark);
         Task UpdateLandmarkResourcesAsync(List<LandmarkResourceUpdateDTO> resources, Landmark landmark);
         Task CreateLandmarkResourcesFromUpdateDtoAsync(List<LandmarkResourceUpdateDTO> resourcesDto, Landmark landmark);
+        Task DeleteLandmarkResourcesAsync(ICollection<LandmarkResource> resources);
+
     }
 }

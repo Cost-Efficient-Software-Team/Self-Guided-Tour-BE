@@ -53,6 +53,29 @@ namespace SelfGuidedTours.Core.Services
             if (landmarksDto.Count == 0)
                 throw new ArgumentException(TourWithNoLandmarksErrorMessage);
 
+            var existingLandmarks = await repository.All<Landmark>()
+                .Include(l => l.Coordinate)
+                .Include(l => l.Resources)
+                .Where(l => l.TourId == tour.TourId)
+                .ToListAsync();
+
+            // Delete landmarks that are no longer in the updated list
+            var landmarksToDelete = existingLandmarks
+                .Where(el => !landmarksDto.Any(ldto => ldto.LandmarkId == el.LandmarkId))
+                .ToList();
+
+            foreach (var landmarkToDelete in landmarksToDelete)
+            {
+                // Delete associated resources
+                await resourceService.DeleteLandmarkResourcesAsync(landmarkToDelete.Resources);
+
+                // Delete coordinate
+                repository.Delete(landmarkToDelete.Coordinate);
+
+                // Delete landmark
+                repository.Delete(landmarkToDelete);
+            }
+
             var landmarksToUpdate = new List<Landmark>();
 
             foreach (var landmarkDto in landmarksDto)
@@ -60,10 +83,7 @@ namespace SelfGuidedTours.Core.Services
                 Landmark? existingLandmark = null;
                 if (landmarkDto.LandmarkId.HasValue)
                 {
-                    existingLandmark = await repository.All<Landmark>()
-                        .Include(l => l.Coordinate)
-                        .Include(l => l.Resources)
-                        .FirstOrDefaultAsync(l => l.LandmarkId == landmarkDto.LandmarkId.Value && l.TourId == tour.TourId);
+                    existingLandmark = existingLandmarks.FirstOrDefault(l => l.LandmarkId == landmarkDto.LandmarkId.Value);
                 }
 
                 if (existingLandmark != null)
@@ -74,6 +94,7 @@ namespace SelfGuidedTours.Core.Services
                     existingLandmark.Coordinate.Latitude = landmarkDto.Latitude;
                     existingLandmark.Coordinate.Longitude = landmarkDto.Longitude;
                     existingLandmark.Coordinate.City = landmarkDto.City;
+                    existingLandmark.PlaceId = landmarkDto.PlaceId;
                     existingLandmark.UpdatedAt = DateTime.Now;
 
                     await resourceService.UpdateLandmarkResourcesAsync(landmarkDto.Resources, existingLandmark);
