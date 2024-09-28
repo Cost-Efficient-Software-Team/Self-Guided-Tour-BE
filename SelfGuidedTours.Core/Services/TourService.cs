@@ -223,6 +223,7 @@ namespace SelfGuidedTours.Core.Services
                 Status = tour.Status == Status.UnderReview ? "Under Review" : tour.Status.ToString(),
                 Title = tour.Title,
                 TourType = tour.TypeTour.ToString(),
+                AverageRating = tour.AverageRating,
                 Landmarks = tour.Landmarks.Select(l => new LandmarkResponseDto
                 {
                     LandmarkId = l.LandmarkId,
