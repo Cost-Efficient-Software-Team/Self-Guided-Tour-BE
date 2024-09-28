@@ -160,7 +160,7 @@ namespace SelfGuidedTours.Tests.UnitTests
             landmarkServiceMock.Setup(l => l.CreateLandmarksForTourAsync(It.IsAny<ICollection<LandmarkCreateTourDTO>>(), It.IsAny<Tour>()))
                 .ReturnsAsync(new List<Landmark>());
 
-            var newTour = await tourService.CreateAsync(tourCreateDto, "creator3");
+            var newTour = await tourService.CreateTourAsync(tourCreateDto, "creator3");
 
             var result = await dbContext.Tours.FindAsync(newTour.TourId);
 
@@ -677,7 +677,7 @@ namespace SelfGuidedTours.Tests.UnitTests
             TourCreateDTO tourCreateDto = null!;
 
             // Act
-            var ex = Assert.ThrowsAsync<ArgumentException>(() => tourService.CreateAsync(tourCreateDto, "creator3"));
+            var ex = Assert.ThrowsAsync<ArgumentException>(() => tourService.CreateTourAsync(tourCreateDto, "creator3"));
 
             // Assert
             Assert.That(ex.Message, Is.EqualTo("Value does not fall within the expected range."));

@@ -35,7 +35,7 @@ namespace SelfGuidedTours.Api.Controllers
 
             try
             {
-                var review = await _reviewService.CreateAsync(reviewCreateDTO, userId, tourId);
+                var review = await _reviewService.CreateReviewAsync(reviewCreateDTO, userId, tourId);
                 _response.Result = review;
                 _response.StatusCode = HttpStatusCode.Created;
                 return CreatedAtAction(nameof(GetReview), new { id = review.ReviewId }, _response);

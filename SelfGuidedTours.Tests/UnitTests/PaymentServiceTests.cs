@@ -47,7 +47,7 @@ namespace SelfGuidedTours.Tests.UnitTests
             var mockedStripeClient = new Mock<IStripeClient>();
             var mockedPaymentIntentService = new Mock<PaymentIntentService>();
             var mockedCustomerService = new Mock<CustomerService>(MockBehavior.Strict);
-            // Mock CreateAsync method to always return a customer
+            // Mock CreateTourAsync method to always return a customer
             mockedCustomerService.Setup(x => x.CreateAsync(It.IsAny<CustomerCreateOptions>(),null,It.IsAny<CancellationToken>())).ReturnsAsync(testCustomer);
             mockedPaymentIntentService.Setup(service => service.CreateAsync(It.IsAny<PaymentIntentCreateOptions>(), null, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new PaymentIntent() { Id = "pi_test123" });
