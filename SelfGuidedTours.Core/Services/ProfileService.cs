@@ -197,7 +197,8 @@ namespace SelfGuidedTours.Core.Services
                 Result = new
                 {
                     Data = await (results.Paginate(page, pageSize).ToListAsync()),
-                    TotalPages = totalPages
+                    TotalPages = totalPages,
+                    TotalResults = totalItems
                 }
             };
 
