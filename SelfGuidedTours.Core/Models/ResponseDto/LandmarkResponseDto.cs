@@ -12,7 +12,7 @@
         public int StopOrder { get; set; }
         public decimal Latitude { get; set; }
         public decimal Longitude { get; set; }
-        public ICollection<ResourceResponseDto> Resources { get; set; } = new HashSet<ResourceResponseDto>();
+        public ICollection<LandmarkResourceResponseDto> Resources { get; set; } = new HashSet<LandmarkResourceResponseDto>();
         public string PlaceId { get; set; } = null!;
     }
 }

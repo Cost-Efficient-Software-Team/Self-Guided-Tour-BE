@@ -1,6 +1,6 @@
 ﻿namespace SelfGuidedTours.Infrastructure.Data.Enums
 {
-    public enum ResourceType
+    public enum LandmarkResourceType
     {
         Image,
         Video,
