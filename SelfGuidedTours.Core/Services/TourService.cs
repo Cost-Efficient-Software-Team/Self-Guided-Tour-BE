@@ -234,7 +234,7 @@ namespace SelfGuidedTours.Core.Services
                     Latitude = l.Coordinate.Latitude,
                     Longitude = l.Coordinate.Longitude,
                     PlaceId = l.PlaceId,
-                    Resources = l.Resources.Select(r => new ResourceResponseDto
+                    Resources = l.Resources.Select(r => new LandmarkResourceResponseDto
                     {
                         ResourceId = r.LandmarkResourceId,
                         ResourceUrl = r.Url,

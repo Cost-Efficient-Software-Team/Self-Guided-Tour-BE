@@ -77,7 +77,7 @@ namespace SelfGuidedTours.Tests.UnitTests
                                 {
                                     LandmarkResourceId = 1,
                                     Url = "http://example.com/resource1",
-                                    Type = ResourceType.Image
+                                    Type = LandmarkResourceType.Image
                                 }
                             }
                         }
@@ -201,7 +201,7 @@ namespace SelfGuidedTours.Tests.UnitTests
             {
                 LandmarkId = landmark.LandmarkId,
                 Url = "http://example.com/resource1",
-                Type = ResourceType.Image
+                Type = LandmarkResourceType.Image
             };
 
             await repository.AddAsync(landmarkResource);
@@ -259,7 +259,7 @@ namespace SelfGuidedTours.Tests.UnitTests
                             {
                                 LandmarkResourceId = 1,
                                 Url = "http://example.com/resource1",
-                                Type = ResourceType.Image
+                                Type = LandmarkResourceType.Image
                             }
                         }
                     }
