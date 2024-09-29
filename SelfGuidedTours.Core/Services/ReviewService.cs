@@ -94,24 +94,56 @@ namespace SelfGuidedTours.Core.Services
             return response;
         }
 
-        public async Task<List<Review>> GetReviewsByTourIdAsync(int tourId)
+        public async Task<ReviewDTO?> GetReviewByIdAsync(int id)
         {
-            return await repository.All<Review>()
-                .Where(r => r.TourId == tourId)
-                .ToListAsync();
-        }
-
-        public async Task<Review?> GetReviewByIdAsync(int id)
-        {
-            var review = await repository.GetByIdAsync<Review>(id);
+            var review = await repository.All<Review>()
+                .Include(r => r.User)
+                .FirstOrDefaultAsync(r => r.ReviewId == id);
 
             if (review == null)
             {
                 throw new KeyNotFoundException("Review not found.");
             }
 
-            return review;
+            var reviewDTO = new ReviewDTO
+            {
+                ReviewId = review.ReviewId,
+                UserId = review.UserId,
+                UserName = review.User.NormalizedUserName,
+                UserImg = review.User.ProfilePictureUrl,
+                TourId = review.TourId,
+                Rating = review.Rating,
+                Comment = review.Comment,
+                ReviewDate = review.ReviewDate,
+                UpdatedAt = review.UpdatedAt
+            };
+
+            return reviewDTO;
         }
+
+        public async Task<List<ReviewDTO>> GetReviewsByTourIdAsync(int tourId)
+        {
+            var reviews = await repository.All<Review>()
+                .Where(r => r.TourId == tourId)
+                .Include(r => r.User)
+                .ToListAsync();
+
+            var reviewDTOs = reviews.Select(review => new ReviewDTO
+            {
+                ReviewId = review.ReviewId,
+                UserId = review.UserId,
+                UserName = review.User.NormalizedUserName,
+                UserImg = review.User.ProfilePictureUrl,
+                TourId = review.TourId,
+                Rating = review.Rating,
+                Comment = review.Comment,
+                ReviewDate = review.ReviewDate,
+                UpdatedAt = review.UpdatedAt
+            }).ToList();
+
+            return reviewDTOs;
+        }
+
 
         public async Task<ApiResponse> DeleteReviewAsync(int id)
         {
