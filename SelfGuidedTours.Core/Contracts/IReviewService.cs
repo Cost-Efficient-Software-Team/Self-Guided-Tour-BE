@@ -7,8 +7,8 @@ namespace SelfGuidedTours.Core.Contracts
     public interface IReviewService
     {
         Task<Review> CreateReviewAsync(ReviewCreateDTO model, string userId, int tourId);
-        Task<Review?> GetReviewByIdAsync(int id);
-        Task<List<Review>> GetReviewsByTourIdAsync(int tourId);
+        Task<ReviewDTO?> GetReviewByIdAsync(int id);
+        Task<List<ReviewDTO>> GetReviewsByTourIdAsync(int tourId);
         Task<ApiResponse> UpdateReviewAsync(int id, ReviewUpdateDTO model);
         Task<ApiResponse> DeleteReviewAsync(int id);
     }
