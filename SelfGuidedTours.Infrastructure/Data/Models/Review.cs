@@ -19,13 +19,13 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         /// Review's User's Identifier
         /// </summary>
         [Required]
-        [ForeignKey(nameof(UserId))]
         [Comment("Review's User's Identifier")]
         public string UserId { get; set; } = null!;
 
         /// <summary>
         /// Reference to Review's User
         /// </summary>
+        [ForeignKey("UserId")]
         [Comment("Reference to User")]
         public ApplicationUser User { get; set; } = null!;
 

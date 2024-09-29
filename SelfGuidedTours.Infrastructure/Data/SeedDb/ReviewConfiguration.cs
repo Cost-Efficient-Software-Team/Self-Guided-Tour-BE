@@ -1,11 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SelfGuidedTours.Infrastructure.Data.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SelfGuidedTours.Infrastructure.Data.SeedDb
 {
@@ -19,6 +14,11 @@ namespace SelfGuidedTours.Infrastructure.Data.SeedDb
                 .HasForeignKey(r => r.TourId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            builder
+                .HasOne(r => r.User)
+                .WithMany(u => u.Reviews)
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
