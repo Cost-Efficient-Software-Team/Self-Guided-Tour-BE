@@ -6,12 +6,13 @@ using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Models.Auth;
 using SelfGuidedTours.Core.Models.Auth.ResetPassword;
 using SelfGuidedTours.Core.Models.ExternalLogin;
+using SelfGuidedTours.Core.Models.RequestDto;
 
 namespace SelfGuidedTours.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController : ControllerBase
+    public class AuthController : BaseController
     {
         private readonly IAuthService authService;
         private readonly ILogger<AuthController> logger;
@@ -210,6 +211,17 @@ namespace SelfGuidedTours.Api.Controllers
             return BadRequest(new { message = "Email confirmation failed.", errors });
         }
 
+        [HttpPost("create-password")]
+        [ProducesResponseType(typeof(string), 200)]
+        [ProducesResponseType(typeof(string), 400)]
+        [ProducesResponseType(typeof(string), 401)]
+        [ValidateModel]
+        public async Task<IActionResult> CreatePassword([FromBody] CreatePasswordRequestDto model)
+        {
+            var response = await authService.CreatePasswordAsync(this.UserId, model.Password);
+
+            return Ok(response);
+        }
 
 
     }
