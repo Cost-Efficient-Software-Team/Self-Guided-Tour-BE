@@ -252,6 +252,7 @@ namespace SelfGuidedTours.Core.Services
 
             user.PasswordHash = hasher.HashPassword(user, model.NewPassword);
 
+            await repository.UpdateAsync(user);
             await repository.SaveChangesAsync();
 
             var response = new ApiResponse
@@ -340,10 +341,17 @@ namespace SelfGuidedTours.Core.Services
             var user = await GetByIdAsync(userId)
                 ?? throw new UnauthorizedAccessException("User not found");
 
+            if (user.HasPassword)
+            {
+                throw new UnauthorizedAccessException("User already has a password!");
+            }
+
             user.PasswordHash = new PasswordHasher<ApplicationUser>().HashPassword(user,password);
             user.HasPassword = true;
 
+            await repository.UpdateAsync(user);
             await repository.SaveChangesAsync();
+
             var response = new ApiResponse
             {
                 StatusCode = HttpStatusCode.OK,

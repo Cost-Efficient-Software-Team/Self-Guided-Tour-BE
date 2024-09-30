@@ -2,6 +2,7 @@
 using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Models.Auth;
 using SelfGuidedTours.Core.Models.ExternalLogin;
+using SelfGuidedTours.Core.Models.RequestDto;
 using SelfGuidedTours.Infrastructure.Data.Models;
 
 namespace SelfGuidedTours.Core.Contracts
@@ -18,5 +19,6 @@ namespace SelfGuidedTours.Core.Contracts
         Task<IdentityResult> ResetPasswordAsync(string email, string token, string newPassword);
         Task<ApplicationUser?> GetByEmailAsync(string email);
         Task<IdentityResult> ConfirmEmailAsync(string userId, string token);
+        Task<ApiResponse> CreatePasswordAsync(string userId, string password);
     }
 }
