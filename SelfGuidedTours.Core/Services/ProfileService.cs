@@ -6,6 +6,7 @@ using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Contracts.BlobStorage;
 using SelfGuidedTours.Core.Extensions;
 using SelfGuidedTours.Core.Models;
+using SelfGuidedTours.Core.Models.Auth;
 using SelfGuidedTours.Core.Models.Dto;
 using SelfGuidedTours.Core.Models.RequestDto;
 using SelfGuidedTours.Core.Models.ResponseDto;
@@ -44,6 +45,7 @@ namespace SelfGuidedTours.Core.Services
                 About = user.Bio,
                 Email = user.Email!,
                 HasPassword = user.HasPassword,
+                IsExternalUser = user.IsExternalUser
             };
 
             return userProfile;
@@ -54,6 +56,23 @@ namespace SelfGuidedTours.Core.Services
         {
             var user = await _userManager.FindByIdAsync(userId)
                   ?? throw new InvalidOperationException("User not found");
+            if (profile.Email is not null && user.Email != profile.Email)
+            {
+                var existingUser = await _userManager.FindByEmailAsync(profile.Email);
+                if (existingUser != null && existingUser.Id != user.Id)
+                {
+                    throw new InvalidOperationException("Email already in use");
+                }
+            }
+
+            if (!user.IsExternalUser)
+            {
+                user.Email = profile?.Email ?? user.Email;
+                user.UserName = profile?.Email ?? user.Email;
+                user.NormalizedEmail = profile?.Email?.ToUpper() ?? user.Email!.ToUpper();
+                user.NormalizedUserName = profile?.Email?.ToUpper() ?? user.Email!.ToUpper();
+
+            }
             //If there is a profile picture, upload it to blob storage and get the URL
             string? profilePictureUrl = await HandleProfilePictureAsync(profile?.ProfilePicture, user);
             //Update the user's profile
@@ -62,10 +81,7 @@ namespace SelfGuidedTours.Core.Services
             user.ProfilePictureUrl = profilePictureUrl ?? user.ProfilePictureUrl;
             user.PhoneNumber = profile?.PhoneNumber ?? user.PhoneNumber;
             user.Bio = profile?.About ?? user.Bio;
-            user.Email = profile?.Email ?? user.Email;
-            user.UserName = profile?.Email ?? user.Email;
-            user.NormalizedEmail = profile?.Email?.ToUpper() ?? user.Email!.ToUpper();
-            user.NormalizedUserName = profile?.Email?.ToUpper() ?? user.Email!.ToUpper();
+         
 
             await _repository.UpdateAsync(user);
             await _repository.SaveChangesAsync();
@@ -205,6 +221,38 @@ namespace SelfGuidedTours.Core.Services
             return response;
         }
 
-        
+        //public async Task<ApiResponse> ChangePasswordAsync(string userId, CreateOrChangePasswordRequestDto changePasswordRequest)
+        //{
+        //    var user = await _userManager.FindByIdAsync(userId)
+        //        ?? throw new InvalidOperationException("User not found");
+
+        //    // If the user does not have a password, create one
+        //    if (!user.HasPassword)
+        //    {
+        //        await authService.CreatePasswordAsync(userId,changePasswordRequest.NewPassword);
+        //        return new ApiResponse
+        //        {
+        //            StatusCode = HttpStatusCode.OK,
+        //            IsSuccess = true,
+        //            Result = "Password created successfully"
+        //        };
+        //    }   
+
+        //    var changePasswordModel = new ChangePasswordModel
+        //    {
+        //        UserId = userId,
+        //        CurrentPassword = changePasswordRequest.CurrentPassword!,
+        //        NewPassword = changePasswordRequest.NewPassword
+        //    };
+
+        //    await authService.ChangePasswordAsync(changePasswordModel);
+          
+        //    return new ApiResponse
+        //    {
+        //        StatusCode = HttpStatusCode.OK,
+        //        IsSuccess = true,
+        //        Result = "Password changed successfully"
+        //    };
+        //}
     }
 }
