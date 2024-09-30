@@ -109,7 +109,7 @@ namespace SelfGuidedTours.Core.Services
             {
                 ReviewId = review.ReviewId,
                 UserId = review.UserId,
-                UserName = review.User.NormalizedUserName,
+                UserName = review.User.Name,
                 UserImg = review.User.ProfilePictureUrl,
                 TourId = review.TourId,
                 Rating = review.Rating,
@@ -132,7 +132,7 @@ namespace SelfGuidedTours.Core.Services
             {
                 ReviewId = review.ReviewId,
                 UserId = review.UserId,
-                UserName = review.User.NormalizedUserName,
+                UserName = review.User.Name,
                 UserImg = review.User.ProfilePictureUrl,
                 TourId = review.TourId,
                 Rating = review.Rating,
