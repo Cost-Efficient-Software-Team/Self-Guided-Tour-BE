@@ -14,9 +14,9 @@ using SelfGuidedTours.Core.Services.TokenValidators;
 using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data;
 using SelfGuidedTours.Infrastructure.Data.Models;
+using Stripe;
 using System.Text;
 using System.Text.Json.Serialization;
-using Stripe;
 
 namespace SelfGuidedTours.Api.Extensions
 {
@@ -61,6 +61,8 @@ namespace SelfGuidedTours.Api.Extensions
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
         {
             // Inject services here
+            services.AddHttpContextAccessor();
+
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IRefreshTokenService, RefreshTokenService>();

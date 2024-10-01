@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Contracts.BlobStorage;
 using SelfGuidedTours.Core.Models;
@@ -18,13 +19,19 @@ namespace SelfGuidedTours.Core.Services
         private readonly ApiResponse response;
         private readonly IBlobService blobService;
         private readonly ILandmarkService landmarkService;
+        private readonly IHttpContextAccessor httpContextAccessor; // Добавено
 
-        public TourService(IRepository repository, IBlobService blobService, ILandmarkService landmarkService)
+        public TourService(
+            IRepository repository,
+            IBlobService blobService,
+            ILandmarkService landmarkService,
+            IHttpContextAccessor httpContextAccessor) // Добавено
         {
             this.repository = repository;
             this.blobService = blobService;
             response = new ApiResponse();
             this.landmarkService = landmarkService;
+            this.httpContextAccessor = httpContextAccessor; // Инициализирано
         }
 
         public async Task<Tour> CreateTourAsync(TourCreateDTO model, string creatorId)
@@ -108,12 +115,16 @@ namespace SelfGuidedTours.Core.Services
                 throw new KeyNotFoundException(TourNotFoundErrorMessage);
             }
 
-            if (tour.Status != Status.Approved)
+            var user = httpContextAccessor.HttpContext?.User;
+
+            if (tour.Status != Status.Approved && (user == null || !user.IsInRole("admin")))
             {
-                throw new UnauthorizedAccessException("This tour not approved and cannot be accessed.");
+                throw new UnauthorizedAccessException("This tour is not approved and cannot be accessed.");
             }
+
             return tour;
         }
+
 
         public async Task<(List<Tour> Tours, int TotalPages)> GetFilteredTours(string searchTerm, string sortBy, int pageNumber = 1, int pageSize = 1000)
         {
