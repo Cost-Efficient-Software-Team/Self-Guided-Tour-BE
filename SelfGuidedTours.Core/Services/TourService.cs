@@ -72,7 +72,7 @@ namespace SelfGuidedTours.Core.Services
             tour.EstimatedDuration = model.EstimatedDuration;
             tour.TypeTour = model.TypeTour;
             tour.UpdatedAt = DateTime.Now;
-
+            tour.Status = Status.UnderReview;
             if (model.ThumbnailImage != null)
             {
                 var containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME")
