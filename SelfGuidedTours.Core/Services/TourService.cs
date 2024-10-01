@@ -110,7 +110,7 @@ namespace SelfGuidedTours.Core.Services
 
             if (tour.Status != Status.Approved)
             {
-                throw new UnauthorizedAccessException("This tour is under review and cannot be accessed.");
+                throw new UnauthorizedAccessException("This tour not approved and cannot be accessed.");
             }
             return tour;
         }
