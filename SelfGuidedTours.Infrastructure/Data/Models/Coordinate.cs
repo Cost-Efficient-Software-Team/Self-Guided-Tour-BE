@@ -35,7 +35,7 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         /// </summary>
         [StringLength(CityMaxLength, ErrorMessage = LengthErrorMessage)]
         [Comment("Coordinate's City")]
-        public string City { get; set; } = string.Empty;
+        public string? City { get; set; }
 
         /// <summary>
         /// Coordinate's Country

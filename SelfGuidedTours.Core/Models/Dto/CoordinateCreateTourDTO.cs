@@ -13,7 +13,7 @@ namespace SelfGuidedTours.Core.Models.Dto
         [Column(TypeName = "decimal(10, 2)")]
         public decimal Longitude { get; set; }
 
-        public string? City { get; set; } = string.Empty;
+        public string? City { get; set; }
 
         [Required]
         public string Country { get; set; } = string.Empty;

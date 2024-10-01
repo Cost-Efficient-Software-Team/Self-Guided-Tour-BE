@@ -27,7 +27,7 @@ namespace SelfGuidedTours.Core.Services
                 {
                     Latitude = landmarkDto.Latitude,
                     Longitude = landmarkDto.Longitude,
-                    City = landmarkDto.City
+                    City = string.IsNullOrWhiteSpace(landmarkDto.City) ? null : landmarkDto.City
                 };
                 await repository.AddAsync(coordinate);
 
