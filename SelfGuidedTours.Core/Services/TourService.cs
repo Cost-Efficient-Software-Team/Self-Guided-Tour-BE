@@ -117,14 +117,10 @@ namespace SelfGuidedTours.Core.Services
 
             var user = httpContextAccessor.HttpContext?.User;
 
-            if ((user != null && !user.IsInRole("admin")))
+            if (tour.Status != Status.Approved && (user == null || !user.IsInRole("Admin")))
             {
-                if (tour.Status != Status.Approved)
-                {
-                    throw new UnauthorizedAccessException("This tour is not approved and cannot be accessed.");
-                }
+                throw new UnauthorizedAccessException("This tour is not approved and cannot be accessed.");
             }
-
 
             return tour;
         }
