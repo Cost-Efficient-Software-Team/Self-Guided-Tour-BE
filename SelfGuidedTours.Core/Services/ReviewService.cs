@@ -19,7 +19,7 @@ namespace SelfGuidedTours.Core.Services
             response = new ApiResponse();
         }
 
-        public async Task<Review> CreateAsync(ReviewCreateDTO model, string userId, int tourId)
+        public async Task<Review> CreateReviewAsync(ReviewCreateDTO model, string userId, int tourId)
         {
             if (model == null) throw new ArgumentException("Model cannot be null");
             var user = await repository.GetByIdAsync<ApplicationUser>(userId);
@@ -45,7 +45,7 @@ namespace SelfGuidedTours.Core.Services
                     .Where(r => r.TourId == tourId)
                     .AverageAsync(r => (decimal)r.Rating);
 
-                tour.AverageRating = Math.Round(averageRating, 2);
+                tour.AverageRating = Math.Round(averageRating, 1);
                 await repository.SaveChangesAsync();
 
                 response.StatusCode = HttpStatusCode.Created;
@@ -71,44 +71,6 @@ namespace SelfGuidedTours.Core.Services
             }
         }
 
-
-        public async Task<ApiResponse> DeleteReviewAsync(int id)
-        {
-            var review = await repository.GetByIdAsync<Review>(id);
-            if (review == null)
-            {
-                response.StatusCode = HttpStatusCode.NotFound;
-                response.IsSuccess = false;
-                response.ErrorMessages.Add("Review not found.");
-                return response;
-            }
-
-            repository.Delete(review);
-            await repository.SaveChangesAsync();
-
-            response.StatusCode = HttpStatusCode.NoContent;
-            return response;
-        }
-
-        public async Task<Review?> GetReviewByIdAsync(int id)
-        {
-            var review = await repository.GetByIdAsync<Review>(id);
-
-            if (review == null)
-            {
-                throw new KeyNotFoundException("Review not found.");
-            }
-
-            return review;
-        }
-
-        public async Task<List<Review>> GetReviewsByTourIdAsync(int tourId)
-        {
-            return await repository.All<Review>()
-                .Where(r => r.TourId == tourId)
-                .ToListAsync();
-        }
-
         public async Task<ApiResponse> UpdateReviewAsync(int id, ReviewUpdateDTO model)
         {
             var review = await repository.GetByIdAsync<Review>(id);
@@ -129,6 +91,75 @@ namespace SelfGuidedTours.Core.Services
             response.StatusCode = HttpStatusCode.OK;
             response.Result = review;
 
+            return response;
+        }
+
+        public async Task<ReviewDTO?> GetReviewByIdAsync(int id)
+        {
+            var review = await repository.All<Review>()
+                .Include(r => r.User)
+                .FirstOrDefaultAsync(r => r.ReviewId == id);
+
+            if (review == null)
+            {
+                throw new KeyNotFoundException("Review not found.");
+            }
+
+            var reviewDTO = new ReviewDTO
+            {
+                ReviewId = review.ReviewId,
+                UserId = review.UserId,
+                UserName = review.User.Name,
+                UserImg = review.User.ProfilePictureUrl,
+                TourId = review.TourId,
+                Rating = review.Rating,
+                Comment = review.Comment,
+                ReviewDate = review.ReviewDate,
+                UpdatedAt = review.UpdatedAt
+            };
+
+            return reviewDTO;
+        }
+
+        public async Task<List<ReviewDTO>> GetReviewsByTourIdAsync(int tourId)
+        {
+            var reviews = await repository.All<Review>()
+                .Where(r => r.TourId == tourId)
+                .Include(r => r.User)
+                .ToListAsync();
+
+            var reviewDTOs = reviews.Select(review => new ReviewDTO
+            {
+                ReviewId = review.ReviewId,
+                UserId = review.UserId,
+                UserName = review.User.Name,
+                UserImg = review.User.ProfilePictureUrl,
+                TourId = review.TourId,
+                Rating = review.Rating,
+                Comment = review.Comment,
+                ReviewDate = review.ReviewDate,
+                UpdatedAt = review.UpdatedAt
+            }).ToList();
+
+            return reviewDTOs;
+        }
+
+
+        public async Task<ApiResponse> DeleteReviewAsync(int id)
+        {
+            var review = await repository.GetByIdAsync<Review>(id);
+            if (review == null)
+            {
+                response.StatusCode = HttpStatusCode.NotFound;
+                response.IsSuccess = false;
+                response.ErrorMessages.Add("Review not found.");
+                return response;
+            }
+
+            repository.Delete(review);
+            await repository.SaveChangesAsync();
+
+            response.StatusCode = HttpStatusCode.NoContent;
             return response;
         }
     }

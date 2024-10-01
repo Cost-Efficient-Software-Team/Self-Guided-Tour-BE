@@ -21,12 +21,13 @@ namespace SelfGuidedTours.Tests.UnitTests
         private ITourService tourService;
         private Mock<IBlobService> blobServiceMock;
         private Mock<ILandmarkService> landmarkServiceMock;
+        private Mock<IHttpContextAccessor> httpContextAccessorMock; // Added declaration
         [SetUp]
         public async Task SetupAsync()
         {
             var dbContextOptions = new DbContextOptionsBuilder<SelfGuidedToursDbContext>()
-                        .UseInMemoryDatabase("SelfGuidedToursInMemoryDb" + Guid.NewGuid().ToString())
-                        .Options;
+                .UseInMemoryDatabase("SelfGuidedToursInMemoryDb" + Guid.NewGuid().ToString())
+                .Options;
 
             dbContext = new SelfGuidedToursDbContext(dbContextOptions);
 
@@ -34,11 +35,14 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             blobServiceMock = new Mock<IBlobService>();
             blobServiceMock.Setup(b => b.UploadFileAsync(It.IsAny<string>(), It.IsAny<IFormFile>(), It.IsAny<string>(), It.IsAny<bool>()))
-                           .ReturnsAsync("mockFile.test");
+                .ReturnsAsync("mockFile.test");
 
             landmarkServiceMock = new Mock<ILandmarkService>();
 
-            tourService = new TourService(repository, blobServiceMock.Object, landmarkServiceMock.Object);
+            httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+            httpContextAccessorMock.Setup(x => x.HttpContext).Returns(new DefaultHttpContext());
+
+            tourService = new TourService(repository, blobServiceMock.Object, landmarkServiceMock.Object, httpContextAccessorMock.Object);
 
             var tours = new List<Tour>
             {
@@ -77,7 +81,7 @@ namespace SelfGuidedTours.Tests.UnitTests
                                 {
                                     LandmarkResourceId = 1,
                                     Url = "http://example.com/resource1",
-                                    Type = ResourceType.Image
+                                    Type = LandmarkResourceType.Image
                                 }
                             }
                         }
@@ -160,7 +164,7 @@ namespace SelfGuidedTours.Tests.UnitTests
             landmarkServiceMock.Setup(l => l.CreateLandmarksForTourAsync(It.IsAny<ICollection<LandmarkCreateTourDTO>>(), It.IsAny<Tour>()))
                 .ReturnsAsync(new List<Landmark>());
 
-            var newTour = await tourService.CreateAsync(tourCreateDto, "creator3");
+            var newTour = await tourService.CreateTourAsync(tourCreateDto, "creator3");
 
             var result = await dbContext.Tours.FindAsync(newTour.TourId);
 
@@ -201,7 +205,7 @@ namespace SelfGuidedTours.Tests.UnitTests
             {
                 LandmarkId = landmark.LandmarkId,
                 Url = "http://example.com/resource1",
-                Type = ResourceType.Image
+                Type = LandmarkResourceType.Image
             };
 
             await repository.AddAsync(landmarkResource);
@@ -259,7 +263,7 @@ namespace SelfGuidedTours.Tests.UnitTests
                             {
                                 LandmarkResourceId = 1,
                                 Url = "http://example.com/resource1",
-                                Type = ResourceType.Image
+                                Type = LandmarkResourceType.Image
                             }
                         }
                     }
@@ -677,7 +681,7 @@ namespace SelfGuidedTours.Tests.UnitTests
             TourCreateDTO tourCreateDto = null!;
 
             // Act
-            var ex = Assert.ThrowsAsync<ArgumentException>(() => tourService.CreateAsync(tourCreateDto, "creator3"));
+            var ex = Assert.ThrowsAsync<ArgumentException>(() => tourService.CreateTourAsync(tourCreateDto, "creator3"));
 
             // Assert
             Assert.That(ex.Message, Is.EqualTo("Value does not fall within the expected range."));

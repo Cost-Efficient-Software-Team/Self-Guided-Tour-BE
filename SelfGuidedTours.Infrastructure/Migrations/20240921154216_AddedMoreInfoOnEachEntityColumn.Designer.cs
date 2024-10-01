@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SelfGuidedTours.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SelfGuidedTours.Infrastructure.Data;
 namespace SelfGuidedTours.Infrastructure.Migrations
 {
     [DbContext(typeof(SelfGuidedToursDbContext))]
-    partial class SelfGuidedToursDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240921154216_AddedMoreInfoOnEachEntityColumn")]
+    partial class AddedMoreInfoOnEachEntityColumn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -262,6 +265,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CoordinateId"));
 
                     b.Property<string>("City")
+                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)")
                         .HasComment("Coordinate's City");
@@ -514,7 +518,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TourId"));
 
                     b.Property<decimal>("AverageRating")
-                        .HasColumnType("decimal(2, 1)")
+                        .HasColumnType("decimal(3, 2)")
                         .HasComment("Tour's Average Rating");
 
                     b.Property<DateTime>("CreatedAt")
@@ -710,11 +714,6 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                 {
                     b.HasBaseType("Microsoft.AspNetCore.Identity.IdentityUser");
 
-                    b.Property<string>("Bio")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasComment("Information about the current user.");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2")
                         .HasComment("Application User's Profile Created At");
@@ -723,25 +722,10 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasComment("Application User's Credentials");
 
-                    b.Property<string>("FirstName")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<bool>("HasPassword")
-                        .HasColumnType("bit")
-                        .HasComment("External users dont have a password, they are authenticated by a third party.");
-
-                    b.Property<string>("LastName")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasComment("Application User's Name");
-
-                    b.Property<string>("ProfilePictureUrl")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("StripeCustomerId")
                         .HasColumnType("nvarchar(max)")
@@ -758,18 +742,17 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         {
                             Id = "27d78708-8671-4b05-bd5e-17aa91392224",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "58df4f2e-596c-4d93-b31b-2919617c4b0c",
+                            ConcurrencyStamp = "eb65f6c4-a6f6-45c5-9ed9-5f83db148b5d",
                             Email = "admin@selfguidedtours.bg",
                             EmailConfirmed = false,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@SELFGUIDEDTOURS.BG",
                             NormalizedUserName = "ADMIN ADMINOV",
-                            PasswordHash = "AQAAAAIAAYagAAAAEBFCFNyehSt7EivgYLcB062HusliTjfD1p4Qht+FFocOn0Wgxl5Cxts44H3UIyzdNQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEGIrzSfGmoR0WeCm6CU8mW9PMsg2kuR4ZOKmjeQIN119ib+QFjcf7ka0buwad5voMw==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "dabcaba9-d3f5-4adb-b6be-2d5638557dae",
+                            SecurityStamp = "be57d168-b9b8-4112-a286-b8aa795f3978",
                             TwoFactorEnabled = false,
-                            CreatedAt = new DateTime(2024, 10, 1, 10, 24, 46, 975, DateTimeKind.Local).AddTicks(7285),
-                            HasPassword = true,
+                            CreatedAt = new DateTime(2024, 9, 21, 18, 42, 16, 138, DateTimeKind.Local).AddTicks(7920),
                             Name = "Admin Adminov"
                         });
                 });
@@ -896,7 +879,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                     b.HasOne("SelfGuidedTours.Infrastructure.Data.Models.ApplicationUser", "User")
                         .WithMany("Reviews")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Tour");

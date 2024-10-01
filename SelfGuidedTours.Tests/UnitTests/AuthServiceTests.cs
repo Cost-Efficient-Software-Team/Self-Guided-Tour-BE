@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using SelfGuidedTours.Core.Contracts;
+using SelfGuidedTours.Core.Contracts.BlobStorage;
 using SelfGuidedTours.Core.CustomExceptions;
 using SelfGuidedTours.Core.Models.Auth;
 using SelfGuidedTours.Core.Services;
@@ -127,8 +128,8 @@ namespace SelfGuidedTours.Tests.UnitTests
             refreshTokenValidator = new RefreshTokenValidator();
             refreshTokenService = new RefreshTokenService(repository);
             logger = new Logger<AuthService>(loggerFactory);
-
-            profileService = new ProfileService(repository, mockUserManager.Object);
+            var mockedBloblService = new Mock<IBlobService>();
+            profileService = new ProfileService(repository, mockUserManager.Object,mockedBloblService.Object);
 
             // AuthService initialized
             service = new AuthService(repository, accessTokenGenerator,

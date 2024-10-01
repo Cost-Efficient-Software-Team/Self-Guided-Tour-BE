@@ -1,6 +1,12 @@
-﻿namespace SelfGuidedTours.Core.Models.ResponseDto
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace SelfGuidedTours.Core.Models.ResponseDto
 {
-    public class TourResponseDto
+    public class ProfileToursResponseDto
     {
         public int TourId { get; set; }
         public string CreatorId { get; set; } = null!;
@@ -10,11 +16,8 @@
         public string Destination { get; set; } = null!;
         public string ThumbnailImageUrl { get; set; } = null!;
         public int EstimatedDuration { get; set; }
+        public string CreatorName { get; set; } = null!;
         public string CreatedAt { get; set; } = null!;
         public string Status { get; set; } = null!;
-        public string TourType { get; set; } = null!;
-        public decimal AverageRating { get; set; }
-
-        public ICollection<LandmarkResponseDto> Landmarks { get; set; } = new List<LandmarkResponseDto>();
     }
 }

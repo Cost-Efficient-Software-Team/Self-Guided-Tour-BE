@@ -1,12 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SelfGuidedTours.Api.CustomActionFilters;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Models.Dto.Review;
 using SelfGuidedTours.Core.Models.ErrorResponse;
-using SelfGuidedTours.Infrastructure.Data.Models;
 using System.Net;
 
 namespace SelfGuidedTours.Api.Controllers
@@ -35,7 +33,7 @@ namespace SelfGuidedTours.Api.Controllers
 
             try
             {
-                var review = await _reviewService.CreateAsync(reviewCreateDTO, userId, tourId);
+                var review = await _reviewService.CreateReviewAsync(reviewCreateDTO, userId, tourId);
                 _response.Result = review;
                 _response.StatusCode = HttpStatusCode.Created;
                 return CreatedAtAction(nameof(GetReview), new { id = review.ReviewId }, _response);
@@ -52,6 +50,7 @@ namespace SelfGuidedTours.Api.Controllers
         }
 
         [HttpGet("{id:int}", Name = "get-review")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetReview(int id)
         {
             var review = await _reviewService.GetReviewByIdAsync(id);
@@ -63,6 +62,7 @@ namespace SelfGuidedTours.Api.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAllReviews([FromQuery] int tourId)
         {
             var reviews = await _reviewService.GetReviewsByTourIdAsync(tourId);

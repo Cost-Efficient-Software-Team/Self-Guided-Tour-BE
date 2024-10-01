@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SelfGuidedTours.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SelfGuidedTours.Infrastructure.Data;
 namespace SelfGuidedTours.Infrastructure.Migrations
 {
     [DbContext(typeof(SelfGuidedToursDbContext))]
-    partial class SelfGuidedToursDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240915162204_Add HasPassword field to ApplicationUser")]
+    partial class AddHasPasswordfieldtoApplicationUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -256,36 +259,28 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                 {
                     b.Property<int>("CoordinateId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasComment("Coordinate's Identifier");
+                        .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CoordinateId"));
 
                     b.Property<string>("City")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasComment("Coordinate's City");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Country")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasComment("Coordinate's Country");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2")
-                        .HasComment("Coordinate Created At");
+                        .HasColumnType("datetime2");
 
                     b.Property<decimal>("Latitude")
-                        .HasColumnType("decimal(38, 20)")
-                        .HasComment("Coordinate's Latitude");
+                        .HasColumnType("decimal(10, 2)");
 
                     b.Property<decimal>("Longitude")
-                        .HasColumnType("decimal(38, 20)")
-                        .HasComment("Coordinate's Longitude");
+                        .HasColumnType("decimal(10, 2)");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2")
-                        .HasComment("Coordinate Updated At");
+                        .HasColumnType("datetime2");
 
                     b.HasKey("CoordinateId");
 
@@ -296,46 +291,33 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                 {
                     b.Property<int>("LandmarkId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasComment("Landmark's Identifier");
+                        .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LandmarkId"));
 
                     b.Property<int>("CoordinateId")
-                        .HasColumnType("int")
-                        .HasComment("Landmark's Coordinate Identifier");
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2")
-                        .HasComment("Landmark Created At");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
                         .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasComment("Landmark's Description");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("LocationName")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasComment("Landmark's Location Name");
-
-                    b.Property<string>("PlaceId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasComment("Landmark's Place Identifier");
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("StopOrder")
-                        .HasColumnType("int")
-                        .HasComment("Landmark's Stop Order");
+                        .HasColumnType("int");
 
                     b.Property<int>("TourId")
-                        .HasColumnType("int")
-                        .HasComment("Landmark's Tour's Identifier");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2")
-                        .HasComment("Landmark Update At");
+                        .HasColumnType("datetime2");
 
                     b.HasKey("LandmarkId");
 
@@ -350,32 +332,26 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                 {
                     b.Property<int>("LandmarkResourceId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasComment("Landmark' Resource's Identifier");
+                        .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LandmarkResourceId"));
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2")
-                        .HasComment("Landmark's Resource Created At");
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("LandmarkId")
-                        .HasColumnType("int")
-                        .HasComment("Landmark's Identifier");
+                        .HasColumnType("int");
 
                     b.Property<int>("Type")
-                        .HasColumnType("int")
-                        .HasComment("Landmark's Resource's Type");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2")
-                        .HasComment("Landmark's Resource Updated At");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Url")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasComment("Landmark's Resource's Url");
+                        .HasColumnType("nvarchar(500)");
 
                     b.HasKey("LandmarkResourceId");
 
@@ -388,40 +364,32 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                 {
                     b.Property<int>("PaymentId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasComment("Payment's Identifier");
+                        .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PaymentId"));
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(38, 20)")
-                        .HasComment("Payment's Amount");
+                        .HasColumnType("decimal(10, 2)");
 
                     b.Property<DateTime>("PaymentDate")
-                        .HasColumnType("datetime2")
-                        .HasComment("Payment's Date");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("PaymentIntentId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasComment("Payment's Intent Identifier");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Status")
-                        .HasColumnType("int")
-                        .HasComment("Payment's Status");
+                        .HasColumnType("int");
 
                     b.Property<int>("TourId")
-                        .HasColumnType("int")
-                        .HasComment("Payment's Tour's Identifier");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2")
-                        .HasComment("Payment Updated At");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)")
-                        .HasComment("Payment's User's Identifier");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("PaymentId");
 
@@ -436,22 +404,18 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasComment("Refresh Token's Identifier");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2")
-                        .HasComment("Refresh Token Created At");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Token")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasComment("Token Secret");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)")
-                        .HasComment("Refresh Token's User's Identifier");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
@@ -464,36 +428,29 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                 {
                     b.Property<int>("ReviewId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasComment("Review's Identifier");
+                        .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReviewId"));
 
                     b.Property<string>("Comment")
                         .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasComment("Review's Comment");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int>("Rating")
-                        .HasColumnType("int")
-                        .HasComment("Review's Rating");
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("ReviewDate")
-                        .HasColumnType("datetime2")
-                        .HasComment("Review's Date");
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("TourId")
-                        .HasColumnType("int")
-                        .HasComment("Review's Tour's Identifier");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2")
-                        .HasComment("Review Updated At");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)")
-                        .HasComment("Review's User's Identifier");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("ReviewId");
 
@@ -508,37 +465,31 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                 {
                     b.Property<int>("TourId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasComment("Tour's Identifier");
+                        .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TourId"));
 
                     b.Property<decimal>("AverageRating")
-                        .HasColumnType("decimal(2, 1)")
-                        .HasComment("Tour's Average Rating");
+                        .HasColumnType("decimal(3, 2)");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2")
-                        .HasComment("Tour Created At");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatorId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)")
-                        .HasComment("Tour's Creator's Identifier");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Destination")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasComment("Tour's Destination");
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("EstimatedDuration")
                         .HasColumnType("int")
                         .HasComment("Estimated duration in minutes");
 
                     b.Property<decimal?>("Price")
-                        .HasColumnType("decimal(38, 20)")
-                        .HasComment("Tour's Price");
+                        .HasColumnType("decimal(10, 2)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int")
@@ -547,28 +498,23 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                     b.Property<string>("Summary")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasComment("Tour's Summary");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("ThumbnailImageUrl")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasComment("Tour's Thumbnail Image Url");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasComment("Tour's Title");
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("TypeTour")
-                        .HasColumnType("int")
-                        .HasComment("Tour's Type");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2")
-                        .HasComment("Tour Updated At");
+                        .HasColumnType("datetime2");
 
                     b.HasKey("TourId");
 
@@ -581,31 +527,25 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                 {
                     b.Property<int>("TransactionId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasComment("Transaction's Identifier");
+                        .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TransactionId"));
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(38, 20)")
-                        .HasComment("Transaction's Amount");
+                        .HasColumnType("decimal(10, 2)");
 
                     b.Property<DateTime>("TransactionDate")
-                        .HasColumnType("datetime2")
-                        .HasComment("Transaction's Date");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("TransactionType")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasComment("Transaction's Type");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2")
-                        .HasComment("Transaction Updated At");
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("WalletId")
-                        .HasColumnType("int")
-                        .HasComment("Transaction's Wallet's Identifier");
+                        .HasColumnType("int");
 
                     b.HasKey("TransactionId");
 
@@ -618,19 +558,16 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                 {
                     b.Property<Guid>("UserId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasComment("User's Identifier");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasComment("User's Email");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasComment("User's Name");
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("UserId");
 
@@ -641,27 +578,22 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                 {
                     b.Property<int>("UserTourId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasComment("UserTour's Identifier");
+                        .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserTourId"));
 
                     b.Property<DateTime>("PurchaseDate")
-                        .HasColumnType("datetime2")
-                        .HasComment("UserTours's Purchase Date");
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("TourId")
-                        .HasColumnType("int")
-                        .HasComment("Tour's Identifier");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2")
-                        .HasComment("UserTours Updated At");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)")
-                        .HasComment("User's Identifier");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("UserTourId");
 
@@ -676,27 +608,22 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                 {
                     b.Property<int>("WalletId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasComment("Wallet's Identifier");
+                        .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("WalletId"));
 
                     b.Property<decimal>("Balance")
-                        .HasColumnType("decimal(38, 20)")
-                        .HasComment("Wallet's Balance");
+                        .HasColumnType("decimal(10, 2)");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2")
-                        .HasComment("Wallet Created At");
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2")
-                        .HasComment("Wallet's Updated At");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)")
-                        .HasComment("Wallet's User's Identifier");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("WalletId");
 
@@ -716,12 +643,10 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         .HasComment("Information about the current user.");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2")
-                        .HasComment("Application User's Profile Created At");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Credentials")
-                        .HasColumnType("nvarchar(max)")
-                        .HasComment("Application User's Credentials");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FirstName")
                         .HasMaxLength(50)
@@ -737,8 +662,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasComment("Application User's Name");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ProfilePictureUrl")
                         .HasColumnType("nvarchar(max)");
@@ -748,8 +672,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         .HasComment("Id of the stripe customer associated with the user. Created when the user makes a payment.");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2")
-                        .HasComment("Application User's Profile Updated At");
+                        .HasColumnType("datetime2");
 
                     b.HasDiscriminator().HasValue("ApplicationUser");
 
@@ -758,17 +681,17 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         {
                             Id = "27d78708-8671-4b05-bd5e-17aa91392224",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "58df4f2e-596c-4d93-b31b-2919617c4b0c",
+                            ConcurrencyStamp = "3803732e-b4ee-44ee-8977-2469e762cf4a",
                             Email = "admin@selfguidedtours.bg",
                             EmailConfirmed = false,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@SELFGUIDEDTOURS.BG",
                             NormalizedUserName = "ADMIN ADMINOV",
-                            PasswordHash = "AQAAAAIAAYagAAAAEBFCFNyehSt7EivgYLcB062HusliTjfD1p4Qht+FFocOn0Wgxl5Cxts44H3UIyzdNQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEOSgybIfPWbYX6n5PmK1d0/X2qKuJA7YPKzRBEreb9cGztO0qt8SNDo9zq9jxNtwRg==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "dabcaba9-d3f5-4adb-b6be-2d5638557dae",
+                            SecurityStamp = "23552ffa-dc7d-446e-934c-beb84508ba34",
                             TwoFactorEnabled = false,
-                            CreatedAt = new DateTime(2024, 10, 1, 10, 24, 46, 975, DateTimeKind.Local).AddTicks(7285),
+                            CreatedAt = new DateTime(2024, 9, 15, 19, 22, 3, 419, DateTimeKind.Local).AddTicks(8405),
                             HasPassword = true,
                             Name = "Admin Adminov"
                         });
@@ -896,7 +819,7 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                     b.HasOne("SelfGuidedTours.Infrastructure.Data.Models.ApplicationUser", "User")
                         .WithMany("Reviews")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Tour");
