@@ -17,7 +17,8 @@
       "launchUrl": "swagger",
       "applicationUrl": "http://localhost:5166",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "BASE_URL": "https://self-guided-tour-fe.vercel.app"
       }
     },
     "https": {
@@ -43,7 +44,8 @@
         "STRIPE_ENDPOINT_SECRET": "whsec_5ba0ef09a5db82d10ae6ff74f43",
         "GenericEmailTemplate": "https://selfguidedstorage.blob.core.windows.net/email-templates/GenericEmailTemplate.html",
         "ConfirmationEmailTemplate": "https://selfguidedstorage.blob.core.windows.net/email-templates/ConfirmationEmailTemplate.html",
-        "PasswordResetEmailTemplate": "https://selfguidedstorage.blob.core.windows.net/email-templates/PasswordResetEmailTemplate.html"
+        "PasswordResetEmailTemplate": "https://selfguidedstorage.blob.core.windows.net/email-templates/PasswordResetEmailTemplate.html",
+        "BASE_URL": "https://self-guided-tour-fe.vercel.app"
       }
     },
     "IIS Express": {

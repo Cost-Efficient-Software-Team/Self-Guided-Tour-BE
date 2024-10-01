@@ -37,7 +37,12 @@ namespace SelfGuidedTours.Api.Controllers
 
             if (result != null)
             {
-                var baseUrl = "https://self-guided-tour-fe.vercel.app";
+                var baseUrl = Environment.GetEnvironmentVariable("BASE_URL");
+                if (string.IsNullOrEmpty(baseUrl))
+                {
+                    return StatusCode(500, "Base URL is not configured.");
+                }
+
                 var confirmationLink = $"{baseUrl}/api/Auth/confirm-email?userId={result.UserId}&token={Uri.EscapeDataString(result.EmailConfirmationToken)}";
 
                 await emailService.SendEmailConfirmationAsync(result.Email, confirmationLink);
