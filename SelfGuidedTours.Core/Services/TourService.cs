@@ -107,6 +107,11 @@ namespace SelfGuidedTours.Core.Services
             {
                 throw new KeyNotFoundException(TourNotFoundErrorMessage);
             }
+
+            if (tour.Status != Status.Approved)
+            {
+                throw new UnauthorizedAccessException("This tour not approved and cannot be accessed.");
+            }
             return tour;
         }
 
