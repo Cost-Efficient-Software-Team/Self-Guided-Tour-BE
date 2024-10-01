@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Azure;
 using Microsoft.IdentityModel.Tokens;
+using SelfGuidedTours.Api.Filters;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Contracts.BlobStorage;
 using SelfGuidedTours.Core.Models.ErrorResponse;
@@ -15,6 +16,7 @@ using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data;
 using SelfGuidedTours.Infrastructure.Data.Models;
 using Stripe;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -22,40 +24,46 @@ namespace SelfGuidedTours.Api.Extensions
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddCustomizedControllers(this IServiceCollection services)
+        /// <summary>
+        /// Configures and adds controllers with custom settings.
+        /// </summary>
+        /// <param name="services">The service collection.</param>
+        /// <returns>IMvcBuilder for further configuration.</returns>
+        public static IMvcBuilder AddCustomizedControllers(this IServiceCollection services)
         {
-            services.AddControllers()
-             .AddJsonOptions(options =>
-             {
-                 options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-             })
-             .ConfigureApiBehaviorOptions(options =>  // Customize the response for invalid model state, by overriding the default behavior
-             {
-                 options.InvalidModelStateResponseFactory = ContextBoundObject =>
-                 {
-                     var errors = ContextBoundObject.ModelState
-                         .Where(e => e.Value?.Errors.Count > 0)
-                         .ToDictionary(
-                             kvp => kvp.Key,
-                             kvp => kvp.Value?.Errors[0].ErrorMessage
-                           );
-                     var errorResponse = new ErrorDetails
-                     {
-                         ErrorId = Guid.NewGuid(),
-                         StatusCode = StatusCodes.Status400BadRequest,
-                         Message = "One or more validation errors occurred",
-                         Errors = errors,
-                         Type = "https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.1"
-                     };
+            return services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    // Ignore cyclic references to prevent serialization issues
+                    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+                    // Add converter to serialize enums as strings
+                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                })
+                .ConfigureApiBehaviorOptions(options =>  // Customize the response for invalid model state
+                {
+                    options.InvalidModelStateResponseFactory = context =>
+                    {
+                        var errors = context.ModelState
+                            .Where(e => e.Value?.Errors.Count > 0)
+                            .ToDictionary(
+                                kvp => kvp.Key,
+                                kvp => kvp.Value?.Errors[0].ErrorMessage
+                              );
+                        var errorResponse = new ErrorDetails
+                        {
+                            ErrorId = Guid.NewGuid(),
+                            StatusCode = StatusCodes.Status400BadRequest,
+                            Message = "One or more validation errors occurred",
+                            Errors = errors,
+                            Type = "https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.1"
+                        };
 
-                     return new BadRequestObjectResult(errorResponse)
-                     {
-                         ContentTypes = { "application/json" },
-                     };
-                 };
-             });
-
-            return services;
+                        return new BadRequestObjectResult(errorResponse)
+                        {
+                            ContentTypes = { "application/json" },
+                        };
+                    };
+                });
         }
 
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
@@ -74,17 +82,17 @@ namespace SelfGuidedTours.Api.Extensions
             services.AddScoped<IPaymentService, PaymentService>();
             services.AddScoped<IBlobService, BlobService>();
             services.AddScoped<IAdminService, AdminService>();
-            services.AddScoped<IReviewService, Core.Services.ReviewService>(); // Add this line
-
+            services.AddScoped<IReviewService, Core.Services.ReviewService>();
+            services.AddTransient<ISchemaFilter, EnumSchemaFilter>();
             // Token generators
             services.AddScoped<AccessTokenGenerator>();
             services.AddScoped<RefreshTokenGenerator>();
             services.AddScoped<TokenGenerator>();
             services.AddScoped<RefreshTokenValidator>();
 
-            services.AddCors(Options =>
+            services.AddCors(options =>
             {
-                Options.AddPolicy("CorsPolicy", builder =>
+                options.AddPolicy("CorsPolicy", builder =>
                 {
                     builder
                     .AllowAnyOrigin()
@@ -92,6 +100,7 @@ namespace SelfGuidedTours.Api.Extensions
                     .AllowAnyHeader();
                 });
             });
+
             // Setup Stripe
             var stripeKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY")
                         ?? config.GetValue<string>("StripeSettings:SecretKey")
@@ -144,8 +153,7 @@ namespace SelfGuidedTours.Api.Extensions
                 .AddEntityFrameworkStores<SelfGuidedToursDbContext>()
                 .AddDefaultTokenProviders();
 
-            //Password requirements
-
+            // Password requirements
             services.Configure<IdentityOptions>(options =>
             {
                 options.Password.RequireDigit = true;
@@ -185,6 +193,5 @@ namespace SelfGuidedTours.Api.Extensions
 
             return services;
         }
-
     }
 }
