@@ -37,13 +37,17 @@ namespace SelfGuidedTours.Api.Controllers
 
             if (result != null)
             {
-                var confirmationLink = Url.Action("ConfirmEmail", "Auth", new { userId = result.UserId, token = result.EmailConfirmationToken }, Request.Scheme);
-                await emailService.SendEmailConfirmationAsync(result.Email, confirmationLink!);
+                var baseUrl = "https://self-guided-tour-fe.vercel.app";
+                var confirmationLink = $"{baseUrl}/api/Auth/confirm-email?userId={result.UserId}&token={Uri.EscapeDataString(result.EmailConfirmationToken)}";
+
+                await emailService.SendEmailConfirmationAsync(result.Email, confirmationLink);
+
                 return Ok(new { message = "Registration successful! Please check your email to confirm your registration.", userId = result.UserId, token = result.EmailConfirmationToken });
             }
 
             return BadRequest("Registration failed.");
         }
+
 
 
         [HttpPost("login")]
