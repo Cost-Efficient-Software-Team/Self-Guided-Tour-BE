@@ -215,6 +215,7 @@ namespace SelfGuidedTours.Api.Controllers
         [ProducesResponseType(typeof(string), 200)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 401)]
+        [Authorize]
         [ValidateModel]
         public async Task<IActionResult> CreatePassword([FromBody] CreatePasswordRequestDto model)
         {
