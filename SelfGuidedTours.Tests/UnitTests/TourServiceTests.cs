@@ -21,12 +21,13 @@ namespace SelfGuidedTours.Tests.UnitTests
         private ITourService tourService;
         private Mock<IBlobService> blobServiceMock;
         private Mock<ILandmarkService> landmarkServiceMock;
+        private Mock<IHttpContextAccessor> httpContextAccessorMock; // Added declaration
         [SetUp]
         public async Task SetupAsync()
         {
             var dbContextOptions = new DbContextOptionsBuilder<SelfGuidedToursDbContext>()
-                        .UseInMemoryDatabase("SelfGuidedToursInMemoryDb" + Guid.NewGuid().ToString())
-                        .Options;
+                .UseInMemoryDatabase("SelfGuidedToursInMemoryDb" + Guid.NewGuid().ToString())
+                .Options;
 
             dbContext = new SelfGuidedToursDbContext(dbContextOptions);
 
@@ -34,11 +35,14 @@ namespace SelfGuidedTours.Tests.UnitTests
 
             blobServiceMock = new Mock<IBlobService>();
             blobServiceMock.Setup(b => b.UploadFileAsync(It.IsAny<string>(), It.IsAny<IFormFile>(), It.IsAny<string>(), It.IsAny<bool>()))
-                           .ReturnsAsync("mockFile.test");
+                .ReturnsAsync("mockFile.test");
 
             landmarkServiceMock = new Mock<ILandmarkService>();
 
-            tourService = new TourService(repository, blobServiceMock.Object, landmarkServiceMock.Object);
+            httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+            httpContextAccessorMock.Setup(x => x.HttpContext).Returns(new DefaultHttpContext());
+
+            tourService = new TourService(repository, blobServiceMock.Object, landmarkServiceMock.Object, httpContextAccessorMock.Object);
 
             var tours = new List<Tour>
             {
