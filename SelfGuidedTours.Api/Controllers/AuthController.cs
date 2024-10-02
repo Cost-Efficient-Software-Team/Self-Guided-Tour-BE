@@ -67,10 +67,11 @@ namespace SelfGuidedTours.Api.Controllers
 
             if (response.AccessToken == null)
             {
-                logger.LogWarning("Unauthorized access attempt with email: {Email}", model.Email);
+                logger.LogWarning("Unauthorized login attempt with email: {Email}", model.Email);
                 return Unauthorized(response.ResponseMessage);
             }
 
+            logger.LogInformation("User {Email} has successfully logged in.", model.Email);
             return Ok(response);
         }
 
@@ -150,22 +151,23 @@ namespace SelfGuidedTours.Api.Controllers
 
             var user = await authService.GetByEmailAsync(model.Email);
             if (user == null)
+            {
+                logger.LogWarning("Password reset attempt for non-existent user: {Email}", model.Email);
                 return BadRequest("User not found.");
+            }
 
             var token = await authService.GeneratePasswordResetTokenAsync(user);
-
             var baseUrl = Environment.GetEnvironmentVariable("BASE_URL");
+
             if (string.IsNullOrEmpty(baseUrl))
             {
                 logger.LogError("BASE_URL is not configured.");
                 return StatusCode(500, "Base URL is not configured.");
             }
 
-            logger.LogInformation($"BASE_URL: {baseUrl}");
-
             var resetLink = $"{baseUrl}/reset-password?token={Uri.EscapeDataString(token)}";
-            logger.LogInformation($"Reset link: {resetLink}");
-            //remove logger later
+            logger.LogInformation("Password reset link for user {Email}: {ResetLink}", model.Email, resetLink);
+
             var emailDto = new SendEmailDto
             {
                 To = model.Email,
@@ -177,9 +179,6 @@ namespace SelfGuidedTours.Api.Controllers
 
             return Ok("Password reset link has been sent to your email.");
         }
-
-
-
 
         [HttpPost("reset-password")]
         [ProducesResponseType(typeof(string), 200)]
