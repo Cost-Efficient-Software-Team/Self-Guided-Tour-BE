@@ -153,7 +153,14 @@ namespace SelfGuidedTours.Api.Controllers
                 return BadRequest("User not found.");
 
             var token = await authService.GeneratePasswordResetTokenAsync(user);
-            var resetLink = Url.Action("ResetPassword", "Auth", new { token }, Request.Scheme);
+
+            var baseUrl = Environment.GetEnvironmentVariable("BASE_URL");
+            if (string.IsNullOrEmpty(baseUrl))
+            {
+                return StatusCode(500, "Base URL is not configured.");
+            }
+
+            var resetLink = $"{baseUrl}/api/Auth/ResetPassword?token={Uri.EscapeDataString(token)}";
 
             var emailDto = new SendEmailDto
             {
@@ -218,8 +225,5 @@ namespace SelfGuidedTours.Api.Controllers
             logger.LogError($"Email confirmation failed. Errors: {errors}");
             return BadRequest(new { message = "Email confirmation failed.", errors });
         }
-
-
-
     }
 }
