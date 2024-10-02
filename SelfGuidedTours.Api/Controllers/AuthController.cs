@@ -157,11 +157,15 @@ namespace SelfGuidedTours.Api.Controllers
             var baseUrl = Environment.GetEnvironmentVariable("BASE_URL");
             if (string.IsNullOrEmpty(baseUrl))
             {
+                logger.LogError("BASE_URL is not configured.");
                 return StatusCode(500, "Base URL is not configured.");
             }
 
-            var resetLink = $"{baseUrl}/api/Auth/ResetPassword?token={Uri.EscapeDataString(token)}";
+            logger.LogInformation($"BASE_URL: {baseUrl}");
 
+            var resetLink = $"{baseUrl}/reset-password?token={Uri.EscapeDataString(token)}";
+            logger.LogInformation($"Reset link: {resetLink}");
+            //remove logger later
             var emailDto = new SendEmailDto
             {
                 To = model.Email,
@@ -173,6 +177,8 @@ namespace SelfGuidedTours.Api.Controllers
 
             return Ok("Password reset link has been sent to your email.");
         }
+
+
 
 
         [HttpPost("reset-password")]
