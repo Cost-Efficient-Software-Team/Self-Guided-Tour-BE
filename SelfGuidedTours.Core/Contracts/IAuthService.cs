@@ -15,9 +15,10 @@ namespace SelfGuidedTours.Core.Contracts
         Task<AuthenticateResponse> GoogleSignInAsync(GoogleUserDto googleUser);
         Task<ApiResponse> ChangePasswordAsync(ChangePasswordModel model);
         Task<string> GeneratePasswordResetTokenAsync(ApplicationUser user);
-        Task<IdentityResult> ResetPasswordAsync(string email, string token, string newPassword);
         Task<ApplicationUser?> GetByEmailAsync(string email);
         Task<IdentityResult> ConfirmEmailAsync(string userId, string token);
+        Task<ApplicationUser?> GetByIdAsync(string userId);
         Task<bool> VerifyPasswordResetTokenAsync(ApplicationUser user, string token);
+        Task<IdentityResult> ResetPasswordAsync(string token, string newPassword);
     }
 }
