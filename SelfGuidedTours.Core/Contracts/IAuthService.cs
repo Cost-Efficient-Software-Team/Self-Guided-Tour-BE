@@ -19,6 +19,6 @@ namespace SelfGuidedTours.Core.Contracts
         Task<IdentityResult> ConfirmEmailAsync(string userId, string token);
         Task<ApplicationUser?> GetByIdAsync(string userId);
         Task<bool> VerifyPasswordResetTokenAsync(ApplicationUser user, string token);
-        Task<IdentityResult> ResetPasswordAsync(ApplicationUser user, string token, string newPassword);
+        Task<IdentityResult> ResetPasswordAsync(string token, string newPassword);
     }
 }

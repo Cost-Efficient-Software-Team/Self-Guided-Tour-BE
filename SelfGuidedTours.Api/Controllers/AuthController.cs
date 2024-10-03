@@ -197,33 +197,15 @@ namespace SelfGuidedTours.Api.Controllers
                 return BadRequest("Token is required.");
             }
 
-            // ?????????? ?? ???????????? ?????
-            var decodedToken = Base64UrlEncoder.Decode(model.Token);
-            var parts = decodedToken.Split(':');
-
-            if (parts.Length != 2)
-            {
-                return BadRequest("Invalid token.");
-            }
-
-            var userId = parts[0];
-            var resetToken = parts[1];
-
-            // ???????? ?? ??????????? ?? userId
-            var user = await authService.GetByIdAsync(userId);
-            if (user == null)
-            {
-                return BadRequest("Invalid user.");
-            }
-
-            // ????? ?? ????????
-            var result = await authService.ResetPasswordAsync(user, resetToken, model.Password);
+            var result = await authService.ResetPasswordAsync(model.Token, model.Password);
             if (!result.Succeeded)
             {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                logger.LogWarning($"Password reset failed: {errors}");
                 return BadRequest($"Password reset failed: {errors}");
             }
 
+            logger.LogInformation("Password has been reset successfully.");
             return Ok("Password has been reset.");
         }
         [HttpGet("reset-password")]
