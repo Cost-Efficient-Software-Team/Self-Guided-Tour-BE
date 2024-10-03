@@ -53,7 +53,7 @@ namespace SelfGuidedTours.Core.Services
                 .FirstOrDefaultAsync(au => au.Email == email);
         }
 
-        private async Task<ApplicationUser?> GetByIdAsync(string userId)
+        public async Task<ApplicationUser?> GetByIdAsync(string userId)
         {
             return await repository.AllReadOnly<ApplicationUser>()
                 .FirstOrDefaultAsync(au => au.Id == userId);
@@ -275,23 +275,25 @@ namespace SelfGuidedTours.Core.Services
             return token;
         }
 
-        public async Task<IdentityResult> ResetPasswordAsync(string email, string token, string newPassword)
+        public async Task<IdentityResult> ResetPasswordAsync(ApplicationUser user, string token, string newPassword)
         {
-            var user = await userManager.FindByEmailAsync(email);
-            if (user == null)
-            {
-                return IdentityResult.Failed(new IdentityError { Description = "Invalid email." });
-            }
-
+            // ???? ????? ???????????, ?? ? ????? ?? ?? ?????? ?? ?????
             logger.LogInformation($"User found: {user.Email}");
 
-            var isTokenValid = await userManager.VerifyUserTokenAsync(user, userManager.Options.Tokens.PasswordResetTokenProvider, "ResetPassword", token);
+            // ???????? ?? ??????????? ?? ??????
+            var isTokenValid = await userManager.VerifyUserTokenAsync(
+                user,
+                userManager.Options.Tokens.PasswordResetTokenProvider,
+                "ResetPassword",
+                token
+            );
             if (!isTokenValid)
             {
                 logger.LogWarning($"Invalid token for user: {user.Email}");
                 return IdentityResult.Failed(new IdentityError { Description = "Invalid token." });
             }
 
+            // ????? ?? ????????
             var result = await userManager.ResetPasswordAsync(user, token, newPassword);
             if (!result.Succeeded)
             {
