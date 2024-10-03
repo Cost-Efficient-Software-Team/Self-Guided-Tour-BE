@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.CustomExceptions;
 using SelfGuidedTours.Core.Models;
@@ -53,7 +54,7 @@ namespace SelfGuidedTours.Core.Services
                 .FirstOrDefaultAsync(au => au.Email == email);
         }
 
-        private async Task<ApplicationUser?> GetByIdAsync(string userId)
+        public async Task<ApplicationUser?> GetByIdAsync(string userId)
         {
             return await repository.AllReadOnly<ApplicationUser>()
                 .FirstOrDefaultAsync(au => au.Id == userId);
@@ -275,35 +276,51 @@ namespace SelfGuidedTours.Core.Services
             return token;
         }
 
-        public async Task<IdentityResult> ResetPasswordAsync(string email, string token, string newPassword)
+        public async Task<IdentityResult> ResetPasswordAsync(string token, string newPassword)
         {
-            var user = await userManager.FindByEmailAsync(email);
-            if (user == null)
-            {
-                return IdentityResult.Failed(new IdentityError { Description = "Invalid email." });
-            }
+            var decodedToken = Base64UrlEncoder.Decode(token);
+            var parts = decodedToken.Split(':');
 
-            logger.LogInformation($"User found: {user.Email}");
-
-            var isTokenValid = await userManager.VerifyUserTokenAsync(user, userManager.Options.Tokens.PasswordResetTokenProvider, "ResetPassword", token);
-            if (!isTokenValid)
+            if (parts.Length != 2)
             {
-                logger.LogWarning($"Invalid token for user: {user.Email}");
+                logger.LogWarning("Invalid token format.");
                 return IdentityResult.Failed(new IdentityError { Description = "Invalid token." });
             }
 
-            var result = await userManager.ResetPasswordAsync(user, token, newPassword);
+            var userId = parts[0];
+            var resetToken = parts[1];
+
+            var user = await userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                logger.LogWarning("User not found.");
+                return IdentityResult.Failed(new IdentityError { Description = "User not found." });
+            }
+
+            var isTokenValid = await userManager.VerifyUserTokenAsync(
+                user,
+                userManager.Options.Tokens.PasswordResetTokenProvider,
+                "ResetPassword",
+                resetToken
+            );
+            if (!isTokenValid)
+            {
+                logger.LogWarning("Invalid or expired token.");
+                return IdentityResult.Failed(new IdentityError { Description = "Invalid or expired token." });
+            }
+
+            var result = await userManager.ResetPasswordAsync(user, resetToken, newPassword);
             if (!result.Succeeded)
             {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                logger.LogError($"Password reset failed for user: {user.Email}. Errors: {errors}");
+                logger.LogError($"Password reset failed: {errors}");
                 return IdentityResult.Failed(new IdentityError { Description = $"Password reset failed: {errors}" });
             }
 
-            logger.LogInformation($"Password reset succeeded for user: {user.Email}");
-
+            logger.LogInformation("Password has been reset successfully.");
             return result;
         }
+
 
         private async Task<string> GetUserRoleAsync(ApplicationUser user)
         {
