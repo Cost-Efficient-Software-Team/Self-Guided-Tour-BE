@@ -201,7 +201,7 @@ namespace SelfGuidedTours.Api.Controllers
             if (!result.Succeeded)
             {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                logger.LogWarning($"Password reset failed: {errors}");
+                logger.LogWarning("Password reset failed: {Errors}", errors);
                 return BadRequest($"Password reset failed: {errors}");
             }
 
