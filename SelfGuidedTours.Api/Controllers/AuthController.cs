@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using SelfGuidedTours.Api.CustomActionFilters;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Models;
@@ -68,10 +69,11 @@ namespace SelfGuidedTours.Api.Controllers
 
             if (response.AccessToken == null)
             {
-                logger.LogWarning("Unauthorized access attempt with email: {Email}", model.Email);
+                logger.LogWarning("Unauthorized login attempt with email: {Email}", model.Email);
                 return Unauthorized(response.ResponseMessage);
             }
 
+            logger.LogInformation("User {Email} has successfully logged in.", model.Email);
             return Ok(response);
         }
 
@@ -151,10 +153,25 @@ namespace SelfGuidedTours.Api.Controllers
 
             var user = await authService.GetByEmailAsync(model.Email);
             if (user == null)
+            {
+                logger.LogWarning("Password reset attempt for non-existent user: {Email}", model.Email);
                 return BadRequest("User not found.");
+            }
 
             var token = await authService.GeneratePasswordResetTokenAsync(user);
-            var resetLink = Url.Action("ResetPassword", "Auth", new { token }, Request.Scheme);
+
+            // Combine userId and token into one token using Base64 URL encoding
+            var combinedToken = Base64UrlEncoder.Encode($"{user.Id}:{token}");
+            var baseUrl = Environment.GetEnvironmentVariable("BASE_URL");
+
+            if (string.IsNullOrEmpty(baseUrl))
+            {
+                logger.LogError("BASE_URL is not configured.");
+                return StatusCode(500, "Base URL is not configured.");
+            }
+
+            var resetLink = $"{baseUrl}/reset-password?token={combinedToken}";
+            logger.LogInformation("Password reset link for user {Email}: {ResetLink}", model.Email, resetLink);
 
             var emailDto = new SendEmailDto
             {
@@ -168,7 +185,6 @@ namespace SelfGuidedTours.Api.Controllers
             return Ok("Password reset link has been sent to your email.");
         }
 
-
         [HttpPost("reset-password")]
         [ProducesResponseType(typeof(string), 200)]
         [ProducesResponseType(typeof(string), 400)]
@@ -177,22 +193,57 @@ namespace SelfGuidedTours.Api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var result = await authService.ResetPasswordAsync(model.Email, model.Token, model.Password);
+            if (string.IsNullOrEmpty(model.Token))
+            {
+                return BadRequest("Token is required.");
+            }
+
+            var result = await authService.ResetPasswordAsync(model.Token, model.Password);
             if (!result.Succeeded)
             {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                logger.LogWarning("Password reset failed: {Errors}", errors);
                 return BadRequest($"Password reset failed: {errors}");
             }
 
+            logger.LogInformation("Password has been reset successfully.");
             return Ok("Password has been reset.");
         }
-
         [HttpGet("reset-password")]
         [ProducesResponseType(typeof(string), 200)]
         [ProducesResponseType(typeof(string), 400)]
-        public IActionResult ResetPassword([FromQuery] string token)
+        public async Task<IActionResult> ResetPassword([FromQuery] string token)
         {
-            return Ok($"Token received: {token}");
+            if (string.IsNullOrEmpty(token))
+            {
+                return BadRequest("Token is required.");
+            }
+
+            // Decode the combined token using Base64 URL decoding
+            var decodedToken = Base64UrlEncoder.Decode(token);
+            var parts = decodedToken.Split(':');
+
+            if (parts.Length != 2)
+            {
+                return BadRequest("Invalid token.");
+            }
+
+            var userId = parts[0];
+            var resetToken = parts[1];
+
+            var user = await authService.GetByIdAsync(userId);
+            if (user == null)
+            {
+                return BadRequest("Invalid user.");
+            }
+
+            var isTokenValid = await authService.VerifyPasswordResetTokenAsync(user, resetToken);
+            if (!isTokenValid)
+            {
+                return BadRequest("Invalid or expired token.");
+            }
+
+            return Ok("Token is valid.");
         }
 
         [HttpGet("confirm-email")]
@@ -220,6 +271,7 @@ namespace SelfGuidedTours.Api.Controllers
             return BadRequest(new { message = "Email confirmation failed.", errors });
         }
 
+
         [HttpPost("create-password")]
         [ProducesResponseType(typeof(string), 200)]
         [ProducesResponseType(typeof(string), 400)]
@@ -232,6 +284,7 @@ namespace SelfGuidedTours.Api.Controllers
 
             return Ok(response);
         }
+
 
 
     }
