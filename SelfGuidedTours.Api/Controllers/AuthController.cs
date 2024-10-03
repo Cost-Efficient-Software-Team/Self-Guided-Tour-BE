@@ -197,13 +197,31 @@ namespace SelfGuidedTours.Api.Controllers
 
             return Ok("Password has been reset.");
         }
-
         [HttpGet("reset-password")]
         [ProducesResponseType(typeof(string), 200)]
         [ProducesResponseType(typeof(string), 400)]
-        public IActionResult ResetPassword([FromQuery] string token)
+        public async Task<IActionResult> ResetPassword([FromQuery] string email, [FromQuery] string token)
         {
-            return Ok($"Token received: {token}");
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(token))
+            {
+                return BadRequest("Email and token are required.");
+            }
+
+            var user = await authService.GetByEmailAsync(email);
+            if (user == null)
+            {
+                return BadRequest("Invalid email.");
+            }
+
+            var decodedToken = Uri.UnescapeDataString(token);
+
+            var isTokenValid = await authService.VerifyPasswordResetTokenAsync(user, decodedToken);
+            if (!isTokenValid)
+            {
+                return BadRequest("Invalid or expired token.");
+            }
+
+            return Ok("Token is valid.");
         }
 
         [HttpGet("confirm-email")]

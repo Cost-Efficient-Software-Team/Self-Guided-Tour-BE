@@ -65,7 +65,7 @@ namespace SelfGuidedTours.Core.Services
             var jwtSecurityToken = handler.ReadJwtToken(token);
 
             var tokenExp = jwtSecurityToken.Claims.First(claim => claim.Type.Equals("exp")).Value;
-            var ticsInMilliseconds = long.Parse(tokenExp) * 1000; // convert seconds to milliseconds, so it works with JS Date
+            var ticsInMilliseconds = long.Parse(tokenExp) * 1000;
 
             return ticsInMilliseconds;
         }
@@ -113,8 +113,8 @@ namespace SelfGuidedTours.Core.Services
             {
                 Email = model.Email,
                 NormalizedEmail = model.Email.ToUpper(),
-                UserName = model.Email, // needed for the reset pass
-                NormalizedUserName = model.Email.ToUpper(), // needed for the reset pass
+                UserName = model.Email,
+                NormalizedUserName = model.Email.ToUpper(),
                 Name = model.Name,
                 PasswordHash = hasher.HashPassword(null!, model.Password)
             };
@@ -234,7 +234,7 @@ namespace SelfGuidedTours.Core.Services
             return new IdentityUserRole<string>
             {
                 UserId = userId,
-                RoleId = "4f8554d2-cfaa-44b5-90ce-e883c804ae90" //User Role Id
+                RoleId = "4f8554d2-cfaa-44b5-90ce-e883c804ae90"
             };
         }
 
@@ -322,7 +322,6 @@ namespace SelfGuidedTours.Core.Services
 
         public async Task<IdentityResult> ConfirmEmailAsync(string userId, string token)
         {
-            // ???????? ?? ???????? ?????????
             logger.LogInformation($"ConfirmEmailAsync called with userId: {userId}, token: {token}");
 
             var user = await userManager.FindByIdAsync(userId);
@@ -341,5 +340,17 @@ namespace SelfGuidedTours.Core.Services
 
             return result;
         }
+
+        public async Task<bool> VerifyPasswordResetTokenAsync(ApplicationUser user, string token)
+        {
+            var isTokenValid = await userManager.VerifyUserTokenAsync(
+                user,
+                userManager.Options.Tokens.PasswordResetTokenProvider,
+                "ResetPassword",
+                token
+            );
+            return isTokenValid;
+        }
+
     }
 }
