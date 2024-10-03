@@ -313,7 +313,7 @@ namespace SelfGuidedTours.Core.Services
             if (!result.Succeeded)
             {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                logger.LogError($"Password reset failed: {errors}");
+                logger.LogWarning("Password reset failed: {Errors}", errors);
                 return IdentityResult.Failed(new IdentityError { Description = $"Password reset failed: {errors}" });
             }
 
