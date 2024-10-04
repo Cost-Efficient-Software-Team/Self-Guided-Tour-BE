@@ -1,3 +1,4 @@
+using Azure;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -7,6 +8,7 @@ using SelfGuidedTours.Core.CustomExceptions;
 using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Models.Auth;
 using SelfGuidedTours.Core.Models.ExternalLogin;
+using SelfGuidedTours.Core.Models.RequestDto;
 using SelfGuidedTours.Core.Services.TokenGenerators;
 using SelfGuidedTours.Core.Services.TokenValidators;
 using SelfGuidedTours.Infrastructure.Common;
@@ -23,7 +25,6 @@ namespace SelfGuidedTours.Core.Services
         private readonly RefreshTokenGenerator refreshTokenGenerator;
         private readonly RefreshTokenValidator refreshTokenValidator;
         private readonly IRefreshTokenService refreshTokenService;
-        private readonly IProfileService profileService;
         private readonly UserManager<ApplicationUser> userManager;
         private readonly ILogger<AuthService> logger;
 
@@ -43,7 +44,6 @@ namespace SelfGuidedTours.Core.Services
             this.refreshTokenGenerator = refreshTokenGenerator;
             this.refreshTokenValidator = refreshTokenValidator;
             this.refreshTokenService = refreshTokenService;
-            this.profileService = profileService;
             this.userManager = userManager;
             this.logger = logger;
         }
@@ -92,7 +92,8 @@ namespace SelfGuidedTours.Core.Services
                 ResponseMessage = responseMessage,
                 AccessTokenExpiration = GetTokenExpirationTime(accessToken),
                 Email = user.Email!,
-                UserId = user.Id
+                UserId = user.Id,
+                UserRole = role
             };
         }
 
@@ -125,15 +126,6 @@ namespace SelfGuidedTours.Core.Services
             await repository.AddAsync(user);
             await repository.AddAsync(userRole);
             await repository.SaveChangesAsync();
-
-            var userProfile = new UserProfile
-            {
-                UserId = Guid.Parse(user.Id),
-                Name = model.Name,
-                Email = model.Email
-            };
-
-            await profileService.CreateProfileAsync(userProfile);
 
             var emailConfirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(user);
 
@@ -185,8 +177,10 @@ namespace SelfGuidedTours.Core.Services
                     EmailConfirmed = true,
                     NormalizedEmail = googleUser.Email.ToUpper(),
                     NormalizedUserName = googleUser.Email.ToUpper(),
-                    HasPassword = false
+                    HasPassword = false,
+                    IsExternalUser = true
                 };
+
                 var userRole = AssignUserRole(user.Id);
 
                 await repository.AddAsync(userRole);
@@ -260,6 +254,7 @@ namespace SelfGuidedTours.Core.Services
 
             user.PasswordHash = hasher.HashPassword(user, model.NewPassword);
 
+            await repository.UpdateAsync(user);
             await repository.SaveChangesAsync();
 
             var response = new ApiResponse
@@ -358,6 +353,34 @@ namespace SelfGuidedTours.Core.Services
             return result;
         }
 
+
+        public async Task<ApiResponse> CreatePasswordAsync(string userId, string password)
+        {
+            var user = await GetByIdAsync(userId)
+                ?? throw new UnauthorizedAccessException("User not found");
+
+            if (user.HasPassword)
+            {
+                throw new UnauthorizedAccessException("User already has a password!");
+            }
+
+            user.PasswordHash = new PasswordHasher<ApplicationUser>().HashPassword(user,password);
+            user.HasPassword = true;
+
+            await repository.UpdateAsync(user);
+            await repository.SaveChangesAsync();
+
+            var response = new ApiResponse
+            {
+                StatusCode = HttpStatusCode.OK,
+                Result = "Password created successfully!"
+            };
+
+            return response;
+
+
+        }
+
         public async Task<bool> VerifyPasswordResetTokenAsync(ApplicationUser user, string token)
         {
             var isTokenValid = await userManager.VerifyUserTokenAsync(
@@ -368,6 +391,7 @@ namespace SelfGuidedTours.Core.Services
             );
             return isTokenValid;
         }
+
 
     }
 }

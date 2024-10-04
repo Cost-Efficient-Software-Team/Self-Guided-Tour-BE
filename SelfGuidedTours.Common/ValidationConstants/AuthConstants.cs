@@ -15,7 +15,8 @@
 
             public const string EmailRegex = @"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,})+)$";
 
-            public const string PasswordRegex = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{6,}$";
+            public const string PasswordRegex = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#]).{6,}$"
+;
 
         }
     }

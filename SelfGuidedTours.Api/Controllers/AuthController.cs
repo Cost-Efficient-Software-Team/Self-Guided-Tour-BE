@@ -7,12 +7,13 @@ using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Models.Auth;
 using SelfGuidedTours.Core.Models.Auth.ResetPassword;
 using SelfGuidedTours.Core.Models.ExternalLogin;
+using SelfGuidedTours.Core.Models.RequestDto;
 
 namespace SelfGuidedTours.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController : ControllerBase
+    public class AuthController : BaseController
     {
         private readonly IAuthService authService;
         private readonly ILogger<AuthController> logger;
@@ -38,17 +39,10 @@ namespace SelfGuidedTours.Api.Controllers
 
             if (result != null)
             {
-                var baseUrl = Environment.GetEnvironmentVariable("BASE_URL");
-                if (string.IsNullOrEmpty(baseUrl))
-                {
-                    return StatusCode(500, "Base URL is not configured.");
-                }
-
-                var confirmationLink = $"{baseUrl}/api/Auth/confirm-email?userId={result.UserId}&token={Uri.EscapeDataString(result.EmailConfirmationToken)}";
-
-                await emailService.SendEmailConfirmationAsync(result.Email, confirmationLink);
-
-                return Ok(new { message = "Registration successful! Please check your email to confirm your registration.", userId = result.UserId, token = result.EmailConfirmationToken });
+                //var confirmationLink = Url.Action("ConfirmEmail", "Auth", new { userId = result.UserId, token = result.EmailConfirmationToken }, Request.Scheme);
+               // await emailService.SendEmailConfirmationAsync(result.Email, confirmationLink!);
+               // return Ok(new { message = "Registration successful! Please check your email to confirm your registration.", userId = result.UserId, token = result.EmailConfirmationToken });
+                return Ok(result);
             }
 
             return BadRequest("Registration failed.");
@@ -269,5 +263,22 @@ namespace SelfGuidedTours.Api.Controllers
             logger.LogError($"Email confirmation failed. Errors: {errors}");
             return BadRequest(new { message = "Email confirmation failed.", errors });
         }
+
+
+        [HttpPost("create-password")]
+        [ProducesResponseType(typeof(string), 200)]
+        [ProducesResponseType(typeof(string), 400)]
+        [ProducesResponseType(typeof(string), 401)]
+        [Authorize]
+        [ValidateModel]
+        public async Task<IActionResult> CreatePassword([FromBody] CreatePasswordRequestDto model)
+        {
+            var response = await authService.CreatePasswordAsync(this.UserId, model.Password);
+
+            return Ok(response);
+        }
+
+
+
     }
 }
