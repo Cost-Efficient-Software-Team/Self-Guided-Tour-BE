@@ -37,9 +37,10 @@ namespace SelfGuidedTours.Api.Controllers
 
             if (result != null)
             {
-                var confirmationLink = Url.Action("ConfirmEmail", "Auth", new { userId = result.UserId, token = result.EmailConfirmationToken }, Request.Scheme);
-                await emailService.SendEmailConfirmationAsync(result.Email, confirmationLink!);
-                return Ok(new { message = "Registration successful! Please check your email to confirm your registration.", userId = result.UserId, token = result.EmailConfirmationToken });
+                //var confirmationLink = Url.Action("ConfirmEmail", "Auth", new { userId = result.UserId, token = result.EmailConfirmationToken }, Request.Scheme);
+               // await emailService.SendEmailConfirmationAsync(result.Email, confirmationLink!);
+               // return Ok(new { message = "Registration successful! Please check your email to confirm your registration.", userId = result.UserId, token = result.EmailConfirmationToken });
+                return Ok(result);
             }
 
             return BadRequest("Registration failed.");

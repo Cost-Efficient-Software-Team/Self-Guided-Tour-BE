@@ -91,7 +91,8 @@ namespace SelfGuidedTours.Core.Services
                 ResponseMessage = responseMessage,
                 AccessTokenExpiration = GetTokenExpirationTime(accessToken),
                 Email = user.Email!,
-                UserId = user.Id
+                UserId = user.Id,
+                UserRole = role
             };
         }
 
