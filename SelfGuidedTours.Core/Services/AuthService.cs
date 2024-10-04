@@ -1,11 +1,14 @@
+using Azure;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.CustomExceptions;
 using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Models.Auth;
 using SelfGuidedTours.Core.Models.ExternalLogin;
+using SelfGuidedTours.Core.Models.RequestDto;
 using SelfGuidedTours.Core.Services.TokenGenerators;
 using SelfGuidedTours.Core.Services.TokenValidators;
 using SelfGuidedTours.Infrastructure.Common;
@@ -22,7 +25,6 @@ namespace SelfGuidedTours.Core.Services
         private readonly RefreshTokenGenerator refreshTokenGenerator;
         private readonly RefreshTokenValidator refreshTokenValidator;
         private readonly IRefreshTokenService refreshTokenService;
-        private readonly IProfileService profileService;
         private readonly UserManager<ApplicationUser> userManager;
         private readonly ILogger<AuthService> logger;
 
@@ -42,7 +44,6 @@ namespace SelfGuidedTours.Core.Services
             this.refreshTokenGenerator = refreshTokenGenerator;
             this.refreshTokenValidator = refreshTokenValidator;
             this.refreshTokenService = refreshTokenService;
-            this.profileService = profileService;
             this.userManager = userManager;
             this.logger = logger;
         }
@@ -53,7 +54,7 @@ namespace SelfGuidedTours.Core.Services
                 .FirstOrDefaultAsync(au => au.Email == email);
         }
 
-        private async Task<ApplicationUser?> GetByIdAsync(string userId)
+        public async Task<ApplicationUser?> GetByIdAsync(string userId)
         {
             return await repository.AllReadOnly<ApplicationUser>()
                 .FirstOrDefaultAsync(au => au.Id == userId);
@@ -65,7 +66,7 @@ namespace SelfGuidedTours.Core.Services
             var jwtSecurityToken = handler.ReadJwtToken(token);
 
             var tokenExp = jwtSecurityToken.Claims.First(claim => claim.Type.Equals("exp")).Value;
-            var ticsInMilliseconds = long.Parse(tokenExp) * 1000; // convert seconds to milliseconds, so it works with JS Date
+            var ticsInMilliseconds = long.Parse(tokenExp) * 1000;
 
             return ticsInMilliseconds;
         }
@@ -114,8 +115,8 @@ namespace SelfGuidedTours.Core.Services
             {
                 Email = model.Email,
                 NormalizedEmail = model.Email.ToUpper(),
-                UserName = model.Email, // needed for the reset pass
-                NormalizedUserName = model.Email.ToUpper(), // needed for the reset pass
+                UserName = model.Email,
+                NormalizedUserName = model.Email.ToUpper(),
                 Name = model.Name,
                 PasswordHash = hasher.HashPassword(null!, model.Password)
             };
@@ -125,15 +126,6 @@ namespace SelfGuidedTours.Core.Services
             await repository.AddAsync(user);
             await repository.AddAsync(userRole);
             await repository.SaveChangesAsync();
-
-            var userProfile = new UserProfile
-            {
-                UserId = Guid.Parse(user.Id),
-                Name = model.Name,
-                Email = model.Email
-            };
-
-            await profileService.CreateProfileAsync(userProfile);
 
             var emailConfirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(user);
 
@@ -185,8 +177,10 @@ namespace SelfGuidedTours.Core.Services
                     EmailConfirmed = true,
                     NormalizedEmail = googleUser.Email.ToUpper(),
                     NormalizedUserName = googleUser.Email.ToUpper(),
-                    HasPassword = false
+                    HasPassword = false,
+                    IsExternalUser = true
                 };
+
                 var userRole = AssignUserRole(user.Id);
 
                 await repository.AddAsync(userRole);
@@ -235,7 +229,7 @@ namespace SelfGuidedTours.Core.Services
             return new IdentityUserRole<string>
             {
                 UserId = userId,
-                RoleId = "4f8554d2-cfaa-44b5-90ce-e883c804ae90" //User Role Id
+                RoleId = "4f8554d2-cfaa-44b5-90ce-e883c804ae90"
             };
         }
 
@@ -260,6 +254,7 @@ namespace SelfGuidedTours.Core.Services
 
             user.PasswordHash = hasher.HashPassword(user, model.NewPassword);
 
+            await repository.UpdateAsync(user);
             await repository.SaveChangesAsync();
 
             var response = new ApiResponse
@@ -276,35 +271,51 @@ namespace SelfGuidedTours.Core.Services
             return token;
         }
 
-        public async Task<IdentityResult> ResetPasswordAsync(string email, string token, string newPassword)
+        public async Task<IdentityResult> ResetPasswordAsync(string token, string newPassword)
         {
-            var user = await userManager.FindByEmailAsync(email);
-            if (user == null)
-            {
-                return IdentityResult.Failed(new IdentityError { Description = "Invalid email." });
-            }
+            var decodedToken = Base64UrlEncoder.Decode(token);
+            var parts = decodedToken.Split(':');
 
-            logger.LogInformation($"User found: {user.Email}");
-
-            var isTokenValid = await userManager.VerifyUserTokenAsync(user, userManager.Options.Tokens.PasswordResetTokenProvider, "ResetPassword", token);
-            if (!isTokenValid)
+            if (parts.Length != 2)
             {
-                logger.LogWarning($"Invalid token for user: {user.Email}");
+                logger.LogWarning("Invalid token format.");
                 return IdentityResult.Failed(new IdentityError { Description = "Invalid token." });
             }
 
-            var result = await userManager.ResetPasswordAsync(user, token, newPassword);
+            var userId = parts[0];
+            var resetToken = parts[1];
+
+            var user = await userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                logger.LogWarning("User not found.");
+                return IdentityResult.Failed(new IdentityError { Description = "User not found." });
+            }
+
+            var isTokenValid = await userManager.VerifyUserTokenAsync(
+                user,
+                userManager.Options.Tokens.PasswordResetTokenProvider,
+                "ResetPassword",
+                resetToken
+            );
+            if (!isTokenValid)
+            {
+                logger.LogWarning("Invalid or expired token.");
+                return IdentityResult.Failed(new IdentityError { Description = "Invalid or expired token." });
+            }
+
+            var result = await userManager.ResetPasswordAsync(user, resetToken, newPassword);
             if (!result.Succeeded)
             {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                logger.LogError($"Password reset failed for user: {user.Email}. Errors: {errors}");
+                logger.LogWarning("Password reset failed: {Errors}", errors);
                 return IdentityResult.Failed(new IdentityError { Description = $"Password reset failed: {errors}" });
             }
 
-            logger.LogInformation($"Password reset succeeded for user: {user.Email}");
-
+            logger.LogInformation("Password has been reset successfully.");
             return result;
         }
+
 
         private async Task<string> GetUserRoleAsync(ApplicationUser user)
         {
@@ -323,7 +334,6 @@ namespace SelfGuidedTours.Core.Services
 
         public async Task<IdentityResult> ConfirmEmailAsync(string userId, string token)
         {
-            // ???????? ?? ???????? ?????????
             logger.LogInformation($"ConfirmEmailAsync called with userId: {userId}, token: {token}");
 
             var user = await userManager.FindByIdAsync(userId);
@@ -342,5 +352,46 @@ namespace SelfGuidedTours.Core.Services
 
             return result;
         }
+
+
+        public async Task<ApiResponse> CreatePasswordAsync(string userId, string password)
+        {
+            var user = await GetByIdAsync(userId)
+                ?? throw new UnauthorizedAccessException("User not found");
+
+            if (user.HasPassword)
+            {
+                throw new UnauthorizedAccessException("User already has a password!");
+            }
+
+            user.PasswordHash = new PasswordHasher<ApplicationUser>().HashPassword(user,password);
+            user.HasPassword = true;
+
+            await repository.UpdateAsync(user);
+            await repository.SaveChangesAsync();
+
+            var response = new ApiResponse
+            {
+                StatusCode = HttpStatusCode.OK,
+                Result = "Password created successfully!"
+            };
+
+            return response;
+
+
+        }
+
+        public async Task<bool> VerifyPasswordResetTokenAsync(ApplicationUser user, string token)
+        {
+            var isTokenValid = await userManager.VerifyUserTokenAsync(
+                user,
+                userManager.Options.Tokens.PasswordResetTokenProvider,
+                "ResetPassword",
+                token
+            );
+            return isTokenValid;
+        }
+
+
     }
 }

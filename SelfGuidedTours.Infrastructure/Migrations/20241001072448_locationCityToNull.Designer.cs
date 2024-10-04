@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SelfGuidedTours.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SelfGuidedTours.Infrastructure.Data;
 namespace SelfGuidedTours.Infrastructure.Migrations
 {
     [DbContext(typeof(SelfGuidedToursDbContext))]
-    partial class SelfGuidedToursDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241001072448_locationCityToNull")]
+    partial class locationCityToNull
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -731,9 +734,6 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         .HasColumnType("bit")
                         .HasComment("External users dont have a password, they are authenticated by a third party.");
 
-                    b.Property<bool>("IsExternalUser")
-                        .HasColumnType("bit");
-
                     b.Property<string>("LastName")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
@@ -761,23 +761,18 @@ namespace SelfGuidedTours.Infrastructure.Migrations
                         {
                             Id = "27d78708-8671-4b05-bd5e-17aa91392224",
                             AccessFailedCount = 0,
-
-                            ConcurrencyStamp = "a9918312-f57c-483f-b8a1-653f57a98af9",
-
+                            ConcurrencyStamp = "58df4f2e-596c-4d93-b31b-2919617c4b0c",
                             Email = "admin@selfguidedtours.bg",
                             EmailConfirmed = false,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@SELFGUIDEDTOURS.BG",
                             NormalizedUserName = "ADMIN ADMINOV",
-
-                            PasswordHash = "AQAAAAIAAYagAAAAEDf2njz0BwoHWDu+EztO/9DyF0efY0/SapHFkIfHsafq7rYb03iAwgonC8sYEuZOaw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEBFCFNyehSt7EivgYLcB062HusliTjfD1p4Qht+FFocOn0Wgxl5Cxts44H3UIyzdNQ==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "e99b0f0f-feaf-48c3-bfcb-2d5e5f5a3edb",
+                            SecurityStamp = "dabcaba9-d3f5-4adb-b6be-2d5638557dae",
                             TwoFactorEnabled = false,
-                            CreatedAt = new DateTime(2024, 9, 29, 18, 2, 53, 93, DateTimeKind.Local).AddTicks(1201),
-
+                            CreatedAt = new DateTime(2024, 10, 1, 10, 24, 46, 975, DateTimeKind.Local).AddTicks(7285),
                             HasPassword = true,
-                            IsExternalUser = false,
                             Name = "Admin Adminov"
                         });
                 });

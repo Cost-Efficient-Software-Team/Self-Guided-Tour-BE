@@ -28,6 +28,7 @@ namespace SelfGuidedTours.Infrastructure.Data.Models
         public string? Bio { get; set; }
         [Comment("External users dont have a password, they are authenticated by a third party.")]
         public bool HasPassword { get; set; } = true;
+        public bool IsExternalUser { get; set; } = false;
 
 
         /// <summary>
