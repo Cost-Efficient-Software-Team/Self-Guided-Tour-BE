@@ -15,7 +15,9 @@ namespace SelfGuidedTours.Core.Contracts
         Task<ApiResponse> GetMyToursAsync(string userId, int page, int pageSize);
         Task<ApiResponse> GetBoughtToursAsync(string userId, int page, int pageSize);
         Task<ApiResponse> GetUserTransactionsAsync(string userId, int page, int pageSize);
-       // Task<ApiResponse> ChangePasswordAsync(string userId, CreateOrChangePasswordRequestDto changePasswordRequest);
+        // Task<ApiResponse> ChangePasswordAsync(string userId, CreateOrChangePasswordRequestDto changePasswordRequest);
+
+        Task<ApiResponse> DeleteTourAsync(int tourId, string userId);
 
     }
 }

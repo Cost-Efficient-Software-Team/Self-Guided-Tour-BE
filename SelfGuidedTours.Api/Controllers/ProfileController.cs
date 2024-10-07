@@ -5,12 +5,10 @@ using SelfGuidedTours.Api.CustomActionFilters;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Models;
 using SelfGuidedTours.Core.Models.Dto;
+using SelfGuidedTours.Core.Models.ErrorResponse;
 using SelfGuidedTours.Core.Models.RequestDto;
 using SelfGuidedTours.Core.Models.ResponseDto;
 using SelfGuidedTours.Infrastructure.Data.Models;
-using System;
-using System.Net;
-using System.Threading.Tasks;
 
 namespace SelfGuidedTours.Api.Controllers
 {
@@ -83,6 +81,16 @@ namespace SelfGuidedTours.Api.Controllers
             return transactions == null ? NotFound() : Ok(transactions);
         }
 
-        
+        [HttpPatch("delete-my-tour/{id:int}", Name = "delete-my-tour")]
+        [ProducesResponseType(typeof(ApiResponse), 200)]
+        [ProducesResponseType(typeof(ErrorDetails), 400)]
+        [ProducesResponseType(typeof(ErrorDetails), 404)]
+        [ProducesResponseType(401)]
+        public async Task<IActionResult> DeleteTour([FromRoute] int id)
+        {
+            var result = await _profileService.DeleteTourAsync(id, this.UserId);
+
+            return StatusCode((int)result.StatusCode, result);
+        }
     }
 }
