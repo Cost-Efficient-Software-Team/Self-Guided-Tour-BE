@@ -1,20 +1,21 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Azure;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using SelfGuidedTours.Core.Contracts;
 using SelfGuidedTours.Core.Contracts.BlobStorage;
 using SelfGuidedTours.Core.Extensions;
 using SelfGuidedTours.Core.Models;
-using SelfGuidedTours.Core.Models.Auth;
 using SelfGuidedTours.Core.Models.Dto;
 using SelfGuidedTours.Core.Models.RequestDto;
 using SelfGuidedTours.Core.Models.ResponseDto;
 using SelfGuidedTours.Infrastructure.Common;
 using SelfGuidedTours.Infrastructure.Data.Enums;
 using SelfGuidedTours.Infrastructure.Data.Models;
+using Stripe;
 using System.Net;
 using static SelfGuidedTours.Common.Constants.FormatConstants;
+using static SelfGuidedTours.Common.MessageConstants.ErrorMessages;
 namespace SelfGuidedTours.Core.Services
 {
     public class ProfileService : IProfileService
@@ -28,7 +29,7 @@ namespace SelfGuidedTours.Core.Services
             _repository = repository;
             _userManager = userManager;
             this.blobSerivice = blobSerivice;
-        }
+    }
 
         public async Task<UserProfileDto?> GetProfileAsync(string userId)
         {
@@ -131,7 +132,7 @@ namespace SelfGuidedTours.Core.Services
         public async Task<ApiResponse> GetMyToursAsync(string userId, int page = 1, int pageSize = 10)
         {
             var tours = _repository.AllReadOnly<Tour>()
-                .Where(t => t.CreatorId == userId)
+                .Where(t => t.CreatorId == userId && t.Status != Status.Deleted)
                 .Select(t => new ProfileToursResponseDto
                  {
                      TourId = t.TourId,
@@ -145,7 +146,6 @@ namespace SelfGuidedTours.Core.Services
                      Status = t.Status == Status.UnderReview ? "Under Review" : t.Status.ToString(),
                      Title = t.Title,
                  });
-
 
             var response = await GetResponseAsync(tours, pageSize, page);
             
@@ -221,6 +221,61 @@ namespace SelfGuidedTours.Core.Services
             return response;
         }
 
+        public async Task<ApiResponse> DeleteTourAsync(int tourId, string userId)
+        {
+            ApiResponse response = new();
+
+            var tour = await _repository.All<Tour>()
+                .Where(t => t.CreatorId == userId && t.TourId == tourId)
+                .FirstOrDefaultAsync() ?? throw new KeyNotFoundException(TourNotFoundErrorMessage);
+
+            if (tour.Status == Status.Declined) throw new InvalidOperationException(TourAlreadyRejectedErrorMessage);
+
+            tour.Status = Status.Deleted;
+            await _repository.SaveChangesAsync();
+
+            response.StatusCode = HttpStatusCode.OK;
+            response.Result = MapTourToTourResponseDto(tour);
+            return response;
+        }
+
+        private TourResponseDto MapTourToTourResponseDto(Tour tour)
+        {
+            var tourResponse = new TourResponseDto
+            {
+                TourId = tour.TourId,
+                CreatorId = tour.CreatorId,
+                CreatedAt = tour.CreatedAt.ToString("dd.MM.yyyy"),
+                ThumbnailImageUrl = tour.ThumbnailImageUrl,
+                Destination = tour.Destination,
+                Summary = tour.Summary,
+                EstimatedDuration = tour.EstimatedDuration,
+                Price = tour.Price,
+                Status = tour.Status == Status.UnderReview ? "Under Review" : tour.Status.ToString(),
+                Title = tour.Title,
+                TourType = tour.TypeTour.ToString(),
+                AverageRating = tour.AverageRating,
+                Landmarks = tour.Landmarks.Select(l => new LandmarkResponseDto
+                {
+                    LandmarkId = l.LandmarkId,
+                    LocationName = l.LocationName,
+                    Description = l.Description,
+                    StopOrder = l.StopOrder,
+                    City = l.Coordinate.City,
+                    Latitude = l.Coordinate.Latitude,
+                    Longitude = l.Coordinate.Longitude,
+                    PlaceId = l.PlaceId,
+                    Resources = l.Resources.Select(r => new LandmarkResourceResponseDto
+                    {
+                        ResourceId = r.LandmarkResourceId,
+                        ResourceUrl = r.Url,
+                        ResourceType = r.Type.ToString()
+                    }).ToList()
+                }).ToList()
+            };
+            return tourResponse;
+        }
+
         //public async Task<ApiResponse> ChangePasswordAsync(string userId, CreateOrChangePasswordRequestDto changePasswordRequest)
         //{
         //    var user = await _userManager.FindByIdAsync(userId)
@@ -246,7 +301,7 @@ namespace SelfGuidedTours.Core.Services
         //    };
 
         //    await authService.ChangePasswordAsync(changePasswordModel);
-          
+
         //    return new ApiResponse
         //    {
         //        StatusCode = HttpStatusCode.OK,
