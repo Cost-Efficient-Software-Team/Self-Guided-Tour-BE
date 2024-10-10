@@ -240,30 +240,39 @@ namespace SelfGuidedTours.Core.Services
                 throw new ArgumentException("New password can't be the same as the current one!");
             }
 
+            // Fetch the user from the database
             var user = await GetByIdAsync(model.UserId);
 
-            if (user is null) throw new UnauthorizedAccessException("User not found");
+            if (user == null)
+                throw new UnauthorizedAccessException("User not found");
 
-            if (user.PasswordHash is null) throw new UnauthorizedAccessException("User has no assigned password!");
+            if (user.PasswordHash == null)
+                throw new UnauthorizedAccessException("User has no assigned password!");
 
             var hasher = new PasswordHasher<ApplicationUser>();
 
-            var result = hasher.VerifyHashedPassword(user, user.PasswordHash, model.CurrentPassword);
+            // Verify the current password
+            var verificationResult = hasher.VerifyHashedPassword(user, user.PasswordHash, model.CurrentPassword);
 
-            if (result != PasswordVerificationResult.Success) throw new UnauthorizedAccessException("Invalid password");
+            if (verificationResult != PasswordVerificationResult.Success)
+                throw new UnauthorizedAccessException("Invalid password");
 
+            // Hash the new password
             user.PasswordHash = hasher.HashPassword(user, model.NewPassword);
 
             await repository.UpdateAsync(user);
+
+            // Save changes
             await repository.SaveChangesAsync();
 
-            var response = new ApiResponse
+            return new ApiResponse
             {
                 StatusCode = HttpStatusCode.OK,
                 Result = "Password changed successfully!"
             };
-            return response;
         }
+
+
 
         public async Task<string> GeneratePasswordResetTokenAsync(ApplicationUser user)
         {

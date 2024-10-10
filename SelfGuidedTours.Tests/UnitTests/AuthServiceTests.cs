@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -128,9 +129,8 @@ namespace SelfGuidedTours.Tests.UnitTests
             refreshTokenValidator = new RefreshTokenValidator();
             refreshTokenService = new RefreshTokenService(repository);
             logger = new Logger<AuthService>(loggerFactory);
-            var mockedBloblService = new Mock<IBlobService>();
+            var mockedBloblService = new Mock<IBlobService>();      
             profileService = new ProfileService(repository, mockUserManager.Object,mockedBloblService.Object);
-
             // AuthService initialized
             service = new AuthService(repository, accessTokenGenerator,
                 refreshTokenGenerator, refreshTokenValidator, refreshTokenService, profileService, mockUserManager.Object, logger);
